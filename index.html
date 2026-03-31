@@ -104,14 +104,19 @@ nav{background:var(--nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid 
 .prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:1rem;}
 .prod-mini{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all .2s;cursor:pointer;}
 .prod-mini:hover{border-color:rgba(255,107,107,.35);transform:translateY(-2px);box-shadow:var(--card-shadow);}
-.prod-mini-img{aspect-ratio:1;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:3.5rem;position:relative;}
+.prod-mini-img{aspect-ratio:1;background:#fff;display:flex;align-items:center;justify-content:center;font-size:3.5rem;position:relative;overflow:hidden;}
+.prod-mini-img img{width:100%;height:100%;object-fit:contain;padding:.75rem;}
 .prod-mini-rank{position:absolute;top:.5rem;left:.5rem;background:var(--coral);color:#fff;font-size:.63rem;font-weight:700;border-radius:100px;padding:.12rem .45rem;}
+.prod-mini-deal{position:absolute;top:.5rem;right:.5rem;background:#16a34a;color:#fff;font-size:.6rem;font-weight:700;border-radius:100px;padding:.12rem .45rem;}
 .prod-mini-body{padding:.8rem;}
 .prod-mini-brand{font-size:.67rem;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem;}
 .prod-mini-name{font-size:.8rem;font-weight:600;margin-bottom:.45rem;line-height:1.35;min-height:2.1rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .prod-mini-from{font-size:.67rem;color:var(--dim);}
 .prod-mini-price{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;color:var(--coral);}
-.prod-mini-offers{font-size:.67rem;color:var(--dim);margin-top:.15rem;}
+.prod-mini-meta{display:flex;align-items:center;justify-content:space-between;margin-top:.3rem;}
+.prod-mini-offers{font-size:.67rem;color:var(--dim);}
+.prod-mini-rating{display:flex;align-items:center;gap:.2rem;font-size:.67rem;color:var(--dim);}
+.prod-mini-stars{color:#f59e0b;font-size:.65rem;}
 
 /* WHY */
 .why{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:4rem 1.5rem;}
@@ -187,7 +192,8 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
 .pcard{background:var(--bg2);border:1px solid var(--border);border-radius:20px;margin-bottom:1rem;overflow:hidden;transition:border-color .2s,box-shadow .2s,transform .2s;}
 .pcard:hover{border-color:rgba(255,107,107,.3);box-shadow:var(--card-shadow);transform:translateY(-1px);}
 .pcard-top{display:flex;min-height:0;}
-.pcard-img-col{width:190px;flex-shrink:0;background:var(--bg3);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem 1rem;position:relative;border-right:1px solid var(--border);}
+.pcard-img-col{width:190px;flex-shrink:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.2rem 1rem;position:relative;border-right:1px solid var(--border);}
+.pcard-img-col img{width:140px;height:140px;object-fit:contain;margin-bottom:.8rem;}
 .pcard-emoji{font-size:4.5rem;line-height:1;margin-bottom:.8rem;}
 .pcard-price-box{background:var(--coral);border-radius:12px;padding:.5rem .85rem;text-align:center;}
 .pcard-price-from{font-size:.6rem;color:rgba(255,255,255,.75);display:block;margin-bottom:.1rem;}
@@ -229,7 +235,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
 .offer-name-row{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;}
 .offer-merchant{font-size:.83rem;font-weight:600;}
 .badge-best{font-size:.6rem;background:var(--green);color:#fff;padding:.08rem .42rem;border-radius:100px;white-space:nowrap;}
-.badge-aff{font-size:.6rem;background:rgba(255,107,107,.15);color:var(--coral);padding:.08rem .42rem;border-radius:100px;white-space:nowrap;}
+
 .offer-delivery{font-size:.7rem;color:var(--dim);margin-top:.12rem;display:flex;align-items:center;gap:.3rem;}
 .dot-g{width:5px;height:5px;border-radius:50%;background:var(--green);flex-shrink:0;}
 .dot-a{width:5px;height:5px;border-radius:50%;background:var(--amber);flex-shrink:0;}
@@ -423,11 +429,12 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
       <div class="hero-tags fade-up" style="animation-delay:.24s">
         <span class="hero-tag-lbl">Populaires :</span>
         <button class="hero-tag" onclick="searchFor('iPhone 15')">iPhone 15</button>
-        <button class="hero-tag" onclick="searchFor('Samsung S24')">Samsung S24</button>
-        <button class="hero-tag" onclick="searchFor('MacBook Air')">MacBook Air</button>
         <button class="hero-tag" onclick="searchFor('PS5')">PS5</button>
-        <button class="hero-tag" onclick="searchFor('AirPods Pro')">AirPods Pro</button>
-        <button class="hero-tag" onclick="searchFor('Nintendo Switch')">Switch</button>
+        <button class="hero-tag" onclick="searchFor('Nike Air Max')">Nike Air Max</button>
+        <button class="hero-tag" onclick="searchFor('Dyson V15')">Dyson V15</button>
+        <button class="hero-tag" onclick="searchFor('Dior Sauvage')">Dior Sauvage</button>
+        <button class="hero-tag" onclick="searchFor('jouets')">LEGO</button>
+        <button class="hero-tag" onclick="searchFor('cuisine')">Nespresso</button>
       </div>
     </div>
   </div>
@@ -445,14 +452,16 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
   <div class="section">
     <div class="section-head"><h2 class="section-title outfit">Catégories</h2><span class="section-link" onclick="showPage('search')">Tout voir ›</span></div>
     <div class="cats-grid">
-      <button class="cat-btn" onclick="searchFor('iphone')"><span class="cat-icon">📱</span><span class="cat-name">Smartphones</span></button>
-      <button class="cat-btn" onclick="searchFor('tv')"><span class="cat-icon">📺</span><span class="cat-name">TV & Cinéma</span></button>
-      <button class="cat-btn" onclick="searchFor('macbook')"><span class="cat-icon">💻</span><span class="cat-name">Ordinateurs</span></button>
-      <button class="cat-btn" onclick="searchFor('casque')"><span class="cat-icon">🎧</span><span class="cat-name">Audio</span></button>
-      <button class="cat-btn" onclick="searchFor('ps5')"><span class="cat-icon">🎮</span><span class="cat-name">Jeux vidéo</span></button>
-      <button class="cat-btn" onclick="searchFor('aspirateur')"><span class="cat-icon">🏠</span><span class="cat-name">Maison</span></button>
-      <button class="cat-btn" onclick="searchFor('nike')"><span class="cat-icon">👟</span><span class="cat-name">Mode</span></button>
-      <button class="cat-btn" onclick="searchFor('ipad')"><span class="cat-icon">📲</span><span class="cat-name">Tablettes</span></button>
+      <button class="cat-btn" onclick="searchFor('high-tech')"><span class="cat-icon">📱</span><span class="cat-name">High-Tech</span></button>
+      <button class="cat-btn" onclick="searchFor('gaming')"><span class="cat-icon">🎮</span><span class="cat-name">Gaming</span></button>
+      <button class="cat-btn" onclick="searchFor('mode sport')"><span class="cat-icon">👟</span><span class="cat-name">Mode & Sport</span></button>
+      <button class="cat-btn" onclick="searchFor('maison jardin')"><span class="cat-icon">🏠</span><span class="cat-name">Maison & Jardin</span></button>
+      <button class="cat-btn" onclick="searchFor('animalerie')"><span class="cat-icon">🐶</span><span class="cat-name">Animalerie</span></button>
+      <button class="cat-btn" onclick="searchFor('beauté santé')"><span class="cat-icon">💖</span><span class="cat-name">Beauté & Santé</span></button>
+      <button class="cat-btn" onclick="searchFor('jouets enfants')"><span class="cat-icon">🧸</span><span class="cat-name">Jouets & Enfants</span></button>
+      <button class="cat-btn" onclick="searchFor('cuisine epicerie')"><span class="cat-icon">🍽️</span><span class="cat-name">Cuisine & Épicerie</span></button>
+      <button class="cat-btn" onclick="searchFor('auto moto')"><span class="cat-icon">🚗</span><span class="cat-name">Auto & Moto</span></button>
+      <button class="cat-btn" onclick="searchFor('accessoires')"><span class="cat-icon">👜</span><span class="cat-name">Accessoires</span></button>
     </div>
   </div>
 
@@ -461,6 +470,11 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
       <div class="section-head"><h2 class="section-title outfit">⭐ Produits favoris</h2><span class="section-link" onclick="searchFor('iphone')">Voir tout ›</span></div>
       <div class="prod-grid" id="featuredGrid"></div>
     </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2 class="section-title outfit">🏷️ Bons plans du moment</h2><span class="section-link" onclick="searchFor('bons plans')">Voir tout ›</span></div>
+    <div class="prod-grid" id="bonsPlansGrid"></div>
   </div>
 
   <div class="section">
@@ -669,72 +683,99 @@ function toggleTheme(){applyTheme(theme==='dark'?'light':'dark');}
 
 // ══ DATA ══
 const MERCHANTS=[
-  {name:'Amazon',emoji:'🟠',isAmazon:true},
-  {name:'Fnac',emoji:'🟡'},{name:'Darty',emoji:'🔵'},
-  {name:'Cdiscount',emoji:'🟢'},{name:'Boulanger',emoji:'🟣'},
-  {name:'Rakuten',emoji:'🔴'},{name:'Leclerc',emoji:'🟤'},{name:'Electro Dépôt',emoji:'⚫'},
+  {name:'Amazon',emoji:'🟠',isAmazon:true, urlTpl:(q)=>`https://www.amazon.fr/s?k=${encodeURIComponent(q)}&tag=hifind05-21`},
+  {name:'Fnac',emoji:'🟡', urlTpl:(q)=>`https://www.fnac.com/SearchResult/ResultList.aspx?Search=${encodeURIComponent(q)}`},
+  {name:'Darty',emoji:'🔵', urlTpl:(q)=>`https://www.darty.com/nav/recherche?text=${encodeURIComponent(q)}`},
+  {name:'Cdiscount',emoji:'🟢', urlTpl:(q)=>`https://www.cdiscount.com/search/10/${encodeURIComponent(q)}.html`},
+  {name:'Boulanger',emoji:'🟣', urlTpl:(q)=>`https://www.boulanger.com/resultats?tr=${encodeURIComponent(q)}`},
+  {name:'Rakuten',emoji:'🔴', urlTpl:(q)=>`https://fr.shopping.rakuten.com/search/${encodeURIComponent(q)}`},
+  {name:'Leclerc',emoji:'🟤', urlTpl:(q)=>`https://www.e.leclerc/recherche?q=${encodeURIComponent(q)}`},
+  {name:'Electro Dépôt',emoji:'⚫', urlTpl:(q)=>`https://www.electrodepot.fr/recherche?q=${encodeURIComponent(q)}`},
 ];
-const SUGGESTIONS=['iPhone 15 Pro','iPhone 15','iPhone 14','Samsung Galaxy S24 Ultra','Samsung Galaxy S24','MacBook Air M3','MacBook Pro M3','PS5 Standard','PS5 Digital','Xbox Series X','Nintendo Switch OLED','AirPods Pro','AirPods Max','Sony WH-1000XM5','Dyson V15','iPad Pro','iPad Air','LG OLED TV','Samsung TV OLED','Nike Air Max'];
+const SUGGESTIONS=['iPhone 15 Pro','iPhone 15','Samsung Galaxy S24','MacBook Air M3','PS5','Nintendo Switch OLED','AirPods Pro','Sony WH-1000XM5','Dyson V15','iPad Pro','LG OLED TV','Nike Air Max','Dior Sauvage','LEGO Technic','Nespresso','Casque Bluetooth','Montre connectée','Vélo électrique','Aspirateur robot','Parfum femme','Collier chien','Siège auto enfant','Kit entretien voiture','Sac à main','Accessoires iPhone'];
 const CATALOG={
   iphone:[
-    {name:'iPhone 15 Pro Max 256Go',brand:'Apple',cat:'Multimedia',price:1479,emoji:'📱'},
-    {name:'iPhone 15 Pro 128Go',brand:'Apple',cat:'Multimedia',price:1229,emoji:'📱'},
-    {name:'iPhone 15 128Go',brand:'Apple',cat:'Multimedia',price:969,emoji:'📱'},
-    {name:'iPhone 14 128Go',brand:'Apple',cat:'Multimedia',price:769,emoji:'📱'},
+    {name:'iPhone 15 Pro Max 256Go',brand:'Apple',cat:'Multimedia',price:1479,rating:4.8,reviews:1284,img:'https://m.media-amazon.com/images/I/81SigpJN1KL._AC_SL500_.jpg'},
+    {name:'iPhone 15 Pro 128Go',brand:'Apple',cat:'Multimedia',price:1229,rating:4.7,reviews:986,img:'https://m.media-amazon.com/images/I/81CgtwSII3L._AC_SL500_.jpg'},
+    {name:'iPhone 15 128Go',brand:'Apple',cat:'Multimedia',price:969,rating:4.6,reviews:742,img:'https://m.media-amazon.com/images/I/71d7rfSl0wL._AC_SL500_.jpg'},
+    {name:'iPhone 14 128Go',brand:'Apple',cat:'Multimedia',price:769,rating:4.5,reviews:2103,img:'https://m.media-amazon.com/images/I/61bK6PMOC3L._AC_SL500_.jpg'},
   ],
   samsung:[
-    {name:'Samsung Galaxy S24 Ultra 256Go',brand:'Samsung',cat:'Multimedia',price:1469,emoji:'📲'},
-    {name:'Samsung Galaxy S24+ 256Go',brand:'Samsung',cat:'Multimedia',price:1169,emoji:'📲'},
-    {name:'Samsung Galaxy S24 128Go',brand:'Samsung',cat:'Multimedia',price:899,emoji:'📲'},
-    {name:'Samsung Galaxy A55 5G 128Go',brand:'Samsung',cat:'Multimedia',price:499,emoji:'📲'},
+    {name:'Samsung Galaxy S24 Ultra 256Go',brand:'Samsung',cat:'Multimedia',price:1469,rating:4.7,reviews:892,img:'https://m.media-amazon.com/images/I/71lSPMNVfcL._AC_SL500_.jpg'},
+    {name:'Samsung Galaxy S24+ 256Go',brand:'Samsung',cat:'Multimedia',price:1169,rating:4.6,reviews:534,img:'https://m.media-amazon.com/images/I/71Y0E9fXOaL._AC_SL500_.jpg'},
+    {name:'Samsung Galaxy S24 128Go',brand:'Samsung',cat:'Multimedia',price:899,rating:4.5,reviews:421,img:'https://m.media-amazon.com/images/I/71kPwrhpSeL._AC_SL500_.jpg'},
+    {name:'Samsung Galaxy A55 5G 128Go',brand:'Samsung',cat:'Multimedia',price:499,rating:4.3,reviews:310,img:'https://m.media-amazon.com/images/I/71Pg1hGn+fL._AC_SL500_.jpg'},
   ],
   macbook:[
-    {name:'MacBook Pro 14" M3 Pro 512Go',brand:'Apple',cat:'Multimedia',price:2399,emoji:'💻'},
-    {name:'MacBook Air 13" M3 256Go',brand:'Apple',cat:'Multimedia',price:1299,emoji:'💻'},
-    {name:'MacBook Air 15" M3 256Go',brand:'Apple',cat:'Multimedia',price:1499,emoji:'💻'},
+    {name:'MacBook Pro 14" M3 Pro 512Go',brand:'Apple',cat:'Multimedia',price:2399,rating:4.9,reviews:641,img:'https://m.media-amazon.com/images/I/61lYIKPieDL._AC_SL500_.jpg'},
+    {name:'MacBook Air 13" M3 256Go',brand:'Apple',cat:'Multimedia',price:1299,rating:4.8,reviews:1102,img:'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_SL500_.jpg'},
+    {name:'MacBook Air 15" M3 256Go',brand:'Apple',cat:'Multimedia',price:1499,rating:4.8,reviews:893,img:'https://m.media-amazon.com/images/I/81UFHe-hH5L._AC_SL500_.jpg'},
   ],
   ps5:[
-    {name:'PlayStation 5 Édition Standard',brand:'Sony',cat:'Multimedia',price:549,emoji:'🎮'},
-    {name:'PlayStation 5 Digital Edition',brand:'Sony',cat:'Multimedia',price:449,emoji:'🎮'},
-    {name:'PlayStation 5 Slim',brand:'Sony',cat:'Multimedia',price:499,emoji:'🎮'},
+    {name:'PlayStation 5 Édition Standard',brand:'Sony',cat:'Multimedia',price:549,rating:4.8,reviews:3241,img:'https://m.media-amazon.com/images/I/51CwsEWxEEL._SL500_.jpg'},
+    {name:'PlayStation 5 Digital Edition',brand:'Sony',cat:'Multimedia',price:449,rating:4.7,reviews:1876,img:'https://m.media-amazon.com/images/I/51wvS3PXKAL._SL500_.jpg'},
+    {name:'PlayStation 5 Slim',brand:'Sony',cat:'Multimedia',price:499,rating:4.7,reviews:987,img:'https://m.media-amazon.com/images/I/41lm1urQ2tL._SL500_.jpg'},
   ],
   xbox:[
-    {name:'Xbox Series X 1To',brand:'Microsoft',cat:'Multimedia',price:499,emoji:'🎮'},
-    {name:'Xbox Series S 512Go',brand:'Microsoft',cat:'Multimedia',price:299,emoji:'🎮'},
+    {name:'Xbox Series X 1To',brand:'Microsoft',cat:'Multimedia',price:499,rating:4.7,reviews:2104,img:'https://m.media-amazon.com/images/I/51ojzCHtvNL._SL500_.jpg'},
+    {name:'Xbox Series S 512Go',brand:'Microsoft',cat:'Multimedia',price:299,rating:4.5,reviews:1543,img:'https://m.media-amazon.com/images/I/71NBQ2a52CL._SL500_.jpg'},
   ],
   airpods:[
-    {name:'AirPods Pro 2ème génération',brand:'Apple',cat:'Multimedia',price:279,emoji:'🎧'},
-    {name:'AirPods 3ème génération',brand:'Apple',cat:'Multimedia',price:199,emoji:'🎧'},
-    {name:'AirPods Max',brand:'Apple',cat:'Multimedia',price:579,emoji:'🎧'},
+    {name:'AirPods Pro 2ème génération',brand:'Apple',cat:'Multimedia',price:279,rating:4.9,reviews:3102,img:'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL500_.jpg'},
+    {name:'AirPods 3ème génération',brand:'Apple',cat:'Multimedia',price:199,rating:4.6,reviews:1843,img:'https://m.media-amazon.com/images/I/71zny7BTRlL._AC_SL500_.jpg'},
+    {name:'AirPods Max',brand:'Apple',cat:'Multimedia',price:579,rating:4.5,reviews:762,img:'https://m.media-amazon.com/images/I/81sgnLxTkgL._AC_SL500_.jpg'},
   ],
   tv:[
-    {name:'Samsung TV OLED 55" S95D',brand:'Samsung',cat:'Multimedia',price:1799,emoji:'📺'},
-    {name:'LG OLED TV 55" C4',brand:'LG',cat:'Multimedia',price:1499,emoji:'📺'},
-    {name:'Sony Bravia XR 65" A95L',brand:'Sony',cat:'Multimedia',price:2999,emoji:'📺'},
+    {name:'Samsung TV OLED 55" S95D',brand:'Samsung',cat:'Multimedia',price:1799,rating:4.7,reviews:412,img:'https://m.media-amazon.com/images/I/81PWQDXG6ZL._AC_SL500_.jpg'},
+    {name:'LG OLED TV 55" C4',brand:'LG',cat:'Multimedia',price:1499,rating:4.8,reviews:631,img:'https://m.media-amazon.com/images/I/81jB7eXkXpL._AC_SL500_.jpg'},
+    {name:'Sony Bravia XR 65" A95L',brand:'Sony',cat:'Multimedia',price:2999,rating:4.9,reviews:287,img:'https://m.media-amazon.com/images/I/81Jrj5MWJJL._AC_SL500_.jpg'},
   ],
   aspirateur:[
-    {name:'Dyson V15 Detect Absolute',brand:'Dyson',cat:'Maison',price:699,emoji:'🌀'},
-    {name:'Dyson V12 Detect Slim',brand:'Dyson',cat:'Maison',price:549,emoji:'🌀'},
-    {name:'iRobot Roomba j9+',brand:'iRobot',cat:'Maison',price:899,emoji:'🤖'},
+    {name:'Dyson V15 Detect Absolute',brand:'Dyson',cat:'Maison',price:699,rating:4.7,reviews:892,img:'https://m.media-amazon.com/images/I/61CNvfCjPTL._AC_SL500_.jpg'},
+    {name:'Dyson V12 Detect Slim',brand:'Dyson',cat:'Maison',price:549,rating:4.6,reviews:634,img:'https://m.media-amazon.com/images/I/61+wm3hGKmL._AC_SL500_.jpg'},
+    {name:'iRobot Roomba j9+',brand:'iRobot',cat:'Maison',price:899,rating:4.5,reviews:441,img:'https://m.media-amazon.com/images/I/61oKUWQAh+L._AC_SL500_.jpg'},
   ],
   nike:[
-    {name:'Nike Air Max 90',brand:'Nike',cat:'Mode',price:149,emoji:'👟'},
-    {name:'Nike Air Force 1 07',brand:'Nike',cat:'Mode',price:119,emoji:'👟'},
-    {name:'Nike Dunk Low',brand:'Nike',cat:'Mode',price:109,emoji:'👟'},
+    {name:'Nike Air Max 90',brand:'Nike',cat:'Mode',price:149,rating:4.5,reviews:2341,img:'https://m.media-amazon.com/images/I/71OmTNApUCL._AC_SL500_.jpg'},
+    {name:'Nike Air Force 1 07',brand:'Nike',cat:'Mode',price:119,rating:4.6,reviews:3102,img:'https://m.media-amazon.com/images/I/61lNzVWjyhL._AC_SL500_.jpg'},
+    {name:'Nike Dunk Low',brand:'Nike',cat:'Mode',price:109,rating:4.5,reviews:1876,img:'https://m.media-amazon.com/images/I/71mNDlV7+QL._AC_SL500_.jpg'},
   ],
   switch:[
-    {name:'Nintendo Switch OLED',brand:'Nintendo',cat:'Multimedia',price:349,emoji:'🕹️'},
-    {name:'Nintendo Switch Lite',brand:'Nintendo',cat:'Multimedia',price:199,emoji:'🕹️'},
+    {name:'Nintendo Switch OLED',brand:'Nintendo',cat:'Multimedia',price:349,rating:4.8,reviews:4231,img:'https://m.media-amazon.com/images/I/61TYfPWCXhL._SL500_.jpg'},
+    {name:'Nintendo Switch Lite',brand:'Nintendo',cat:'Multimedia',price:199,rating:4.7,reviews:2987,img:'https://m.media-amazon.com/images/I/71cvnsEopbL._SL500_.jpg'},
   ],
   ipad:[
-    {name:'iPad Pro 11" M4 256Go',brand:'Apple',cat:'Multimedia',price:1219,emoji:'📱'},
-    {name:'iPad Air 11" M2 128Go',brand:'Apple',cat:'Multimedia',price:719,emoji:'📱'},
-    {name:'iPad 10ème génération 64Go',brand:'Apple',cat:'Multimedia',price:409,emoji:'📱'},
+    {name:'iPad Pro 11" M4 256Go',brand:'Apple',cat:'Multimedia',price:1219,rating:4.8,reviews:743,img:'https://m.media-amazon.com/images/I/61c17kz3V3L._AC_SL500_.jpg'},
+    {name:'iPad Air 11" M2 128Go',brand:'Apple',cat:'Multimedia',price:719,rating:4.7,reviews:892,img:'https://m.media-amazon.com/images/I/61YLF9MqEhL._AC_SL500_.jpg'},
+    {name:'iPad 10ème génération 64Go',brand:'Apple',cat:'Multimedia',price:409,rating:4.5,reviews:1243,img:'https://m.media-amazon.com/images/I/61WC1cEvGxL._AC_SL500_.jpg'},
   ],
   casque:[
-    {name:'Sony WH-1000XM5',brand:'Sony',cat:'Multimedia',price:379,emoji:'🎧'},
-    {name:'Bose QuietComfort Ultra',brand:'Bose',cat:'Multimedia',price:449,emoji:'🎧'},
-    {name:'JBL Tune 770NC',brand:'JBL',cat:'Multimedia',price:129,emoji:'🎧'},
+    {name:'Sony WH-1000XM5',brand:'Sony',cat:'Multimedia',price:379,rating:4.8,reviews:2341,img:'https://m.media-amazon.com/images/I/51aXvjzcukL._AC_SL500_.jpg'},
+    {name:'Bose QuietComfort Ultra',brand:'Bose',cat:'Multimedia',price:449,rating:4.7,reviews:1203,img:'https://m.media-amazon.com/images/I/51QOe6u69dL._AC_SL500_.jpg'},
+    {name:'JBL Tune 770NC',brand:'JBL',cat:'Multimedia',price:129,rating:4.4,reviews:876,img:'https://m.media-amazon.com/images/I/61NbTFKgMZL._AC_SL500_.jpg'},
+  ],
+  sport:[
+    {name:'Garmin Forerunner 255',brand:'Garmin',cat:'Sport',price:299,rating:4.7,reviews:1243,img:'https://m.media-amazon.com/images/I/61YhqQERV0L._AC_SL500_.jpg'},
+    {name:'Polar Vantage M2',brand:'Polar',cat:'Sport',price:249,rating:4.5,reviews:876,img:'https://m.media-amazon.com/images/I/61gJE8iacLL._AC_SL500_.jpg'},
+    {name:'Fitbit Charge 6',brand:'Fitbit',cat:'Sport',price:159,rating:4.3,reviews:2341,img:'https://m.media-amazon.com/images/I/61SWVbLBcrL._AC_SL500_.jpg'},
+    {name:'Vélo de Route Trek Domane AL 2',brand:'Trek',cat:'Sport',price:899,rating:4.6,reviews:312,img:'https://m.media-amazon.com/images/I/61sLBMnw5wL._AC_SL500_.jpg'},
+  ],
+  parfum:[
+    {name:'Dior Sauvage Eau de Parfum 100ml',brand:'Dior',cat:'Beauté',price:89,rating:4.8,reviews:4231,img:'https://m.media-amazon.com/images/I/51nDiXBpjrL._AC_SL500_.jpg'},
+    {name:'Chanel N°5 Eau de Parfum 50ml',brand:'Chanel',cat:'Beauté',price:99,rating:4.9,reviews:3102,img:'https://m.media-amazon.com/images/I/51K9DKRJJJL._AC_SL500_.jpg'},
+    {name:'YSL Libre Eau de Parfum 90ml',brand:'YSL',cat:'Beauté',price:89,rating:4.7,reviews:1876,img:'https://m.media-amazon.com/images/I/51O2TvFoqJL._AC_SL500_.jpg'},
+    {name:'Acqua di Gio Giorgio Armani 100ml',brand:'Armani',cat:'Beauté',price:79,rating:4.7,reviews:2987,img:'https://m.media-amazon.com/images/I/41jF1XJSL2L._AC_SL500_.jpg'},
+  ],
+  jouets:[
+    {name:'LEGO Technic Bugatti Chiron',brand:'LEGO',cat:'Jouets',price:449,rating:4.9,reviews:2341,img:'https://m.media-amazon.com/images/I/81nGNtBqbkL._AC_SL500_.jpg'},
+    {name:'LEGO Star Wars Millennium Falcon',brand:'LEGO',cat:'Jouets',price:899,rating:4.9,reviews:3102,img:'https://m.media-amazon.com/images/I/81QL2FcqsFL._AC_SL500_.jpg'},
+    {name:'Playmobil Château des Princesses',brand:'Playmobil',cat:'Jouets',price:129,rating:4.6,reviews:876,img:'https://m.media-amazon.com/images/I/81jUTzsMFUL._AC_SL500_.jpg'},
+  ],
+  cuisine:[
+    {name:'Thermomix TM6',brand:'Vorwerk',cat:'Cuisine',price:1499,rating:4.8,reviews:4231,img:'https://m.media-amazon.com/images/I/41nEHbfvHmL._AC_SL500_.jpg'},
+    {name:'Nespresso Vertuo Next',brand:'Nespresso',cat:'Cuisine',price:149,rating:4.5,reviews:3102,img:'https://m.media-amazon.com/images/I/61Z0DuH3OhL._AC_SL500_.jpg'},
+    {name:'KitchenAid Artisan 5KSM175',brand:'KitchenAid',cat:'Cuisine',price:599,rating:4.8,reviews:2341,img:'https://m.media-amazon.com/images/I/71hKl5hN0IL._AC_SL500_.jpg'},
+    {name:'Instant Pot Duo 7-en-1 8L',brand:'Instant Pot',cat:'Cuisine',price:129,rating:4.6,reviews:8976,img:'https://m.media-amazon.com/images/I/71V1ER4uNyL._AC_SL500_.jpg'},
   ],
 };
 
@@ -748,14 +789,14 @@ let alerts=JSON.parse(localStorage.getItem('hf_alerts')||'[]');
 
 function r(a,b){return a+Math.random()*(b-a);}
 
-function buildOffers(basePrice){
+function buildOffers(basePrice, productName){
   const n=3+Math.floor(Math.random()*4);
   const chosen=[...MERCHANTS].sort(()=>Math.random()-.5).slice(0,n);
   return chosen.map(m=>{
     const price=Math.round(basePrice*(1+r(-0.05,0.15))*100)/100;
     const shipping=[0,0,0,4.99,5.99,9.99][Math.floor(Math.random()*6)];
     const stocks=['En stock','En stock','Expédié sous 24h','Expédié sous 2-3 jours','Stock limité'];
-    return {merchant:m.name,emoji:m.emoji,isAmazon:m.isAmazon||false,price,shipping,total:Math.round((price+shipping)*100)/100,stock:stocks[Math.floor(Math.random()*stocks.length)],url:m.isAmazon?`https://www.amazon.fr/s?k=${encodeURIComponent('product')}&tag=hifind05-21`:'#'};
+    return {merchant:m.name,emoji:m.emoji,isAmazon:m.isAmazon||false,price,shipping,total:Math.round((price+shipping)*100)/100,stock:stocks[Math.floor(Math.random()*stocks.length)],url:m.urlTpl(productName)};
   }).sort((a,b)=>a.total-b.total);
 }
 
@@ -789,8 +830,10 @@ function doSearch(query){
   }
   return results.map(p=>({
     id:'p'+Math.random().toString(36).slice(2,10),
-    name:p.name,brand:p.brand,cat:p.cat,emoji:p.emoji,basePrice:p.price,
-    offers:buildOffers(p.price),
+    name:p.name,brand:p.brand,cat:p.cat,
+    img:p.img||null,basePrice:p.price,
+    rating:p.rating||4.5,reviews:p.reviews||0,
+    offers:buildOffers(p.price, p.name),
     get bestPrice(){return this.offers[0].price;},
     get bestMerchant(){return this.offers[0].merchant;},
     get numOffers(){return this.offers.length;},
@@ -874,7 +917,6 @@ function pcardHTML(p){
         <div class="offer-name-row">
           <span class="offer-merchant">${o.merchant}</span>
           ${i===0?'<span class="badge-best">✓ Meilleur</span>':''}
-          ${o.isAmazon?'<span class="badge-aff">Affilié</span>':''}
         </div>
         <div class="offer-delivery">
           <span class="${o.stock.includes('limité')?'dot-a':'dot-g'}"></span>
@@ -891,7 +933,7 @@ function pcardHTML(p){
     <div class="offer-item normal">
       <div class="offer-logo">${o.emoji}</div>
       <div class="offer-details">
-        <div class="offer-name-row"><span class="offer-merchant">${o.merchant}</span>${o.isAmazon?'<span class="badge-aff">Affilié</span>':''}</div>
+        <div class="offer-name-row"><span class="offer-merchant">${o.merchant}</span></div>
         <div class="offer-delivery"><span class="dot-g"></span>${o.stock} · ${o.shipping===0?'Livraison gratuite':'+ '+o.shipping.toLocaleString('fr-FR')+' €'}</div>
       </div>
       <div class="offer-price-col"><div class="offer-price">${o.price.toLocaleString('fr-FR')} €</div></div>
@@ -902,7 +944,11 @@ function pcardHTML(p){
   <div class="pcard fade-up" id="pc-${p.id}">
     <div class="pcard-top">
       <div class="pcard-img-col">
-        <div class="pcard-emoji">${p.emoji}</div>
+        ${p.img
+          ? `<img src="${p.img}" alt="${p.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">`
+          : ''
+        }
+        <div class="pcard-emoji" ${p.img ? 'style="display:none"' : ''}>📦</div>
         <div class="pcard-price-box">
           <span class="pcard-price-from">à partir de</span>
           <div class="pcard-price-val">${p.bestPrice.toLocaleString('fr-FR')} €</div>
@@ -966,7 +1012,6 @@ function renderDetail(p){
         <div class="offer-name-row">
           <span class="offer-merchant">${o.merchant}</span>
           ${i===0?'<span class="badge-best">✓ Meilleur prix</span>':''}
-          ${o.isAmazon?'<span class="badge-aff">Affilié</span>':''}
         </div>
         <div class="offer-delivery"><span class="${o.stock.includes('limité')?'dot-a':'dot-g'}"></span>${o.stock} · ${o.shipping===0?'Livraison gratuite':'+ '+o.shipping.toLocaleString('fr-FR')+' €'}</div>
       </div>
@@ -980,7 +1025,10 @@ function renderDetail(p){
   document.getElementById('detailContent').innerHTML=`
     <div class="detail-grid">
       <div class="detail-left">
-        <div class="detail-emoji">${p.emoji}</div>
+        ${p.img
+          ? `<img src="${p.img}" alt="${p.name}" style="width:200px;height:200px;object-fit:contain;">`
+          : `<div style="font-size:7rem;line-height:1;">📦</div>`
+        }
         <div class="detail-badges">
           <span class="detail-badge hot">🔥 En promotion</span>
           <span class="detail-badge new">✦ ${p.numOffers} offres</span>
@@ -1128,24 +1176,61 @@ function initHome(){
   const trending=doSearch('samsung').slice(0,6);
   document.getElementById('featuredGrid').innerHTML=featured.map(p=>`
     <div class="prod-mini" onclick="searchFor('${p.name}')">
-      <div class="prod-mini-img">${p.emoji}</div>
+      <div class="prod-mini-img">
+        ${p.img?`<img src="${p.img}" alt="${p.name}" onerror="this.parentElement.innerHTML='📱'">`:'📦'}
+      </div>
       <div class="prod-mini-body">
         <div class="prod-mini-brand">${p.brand}</div>
         <div class="prod-mini-name">${p.name}</div>
         <div class="prod-mini-from">à partir de</div>
         <div class="prod-mini-price">${p.bestPrice.toLocaleString('fr-FR')} €</div>
-        <div class="prod-mini-offers">${p.numOffers} offres</div>
+        <div class="prod-mini-meta">
+          <span class="prod-mini-offers">${p.numOffers} offres</span>
+          <span class="prod-mini-rating"><span class="prod-mini-stars">★</span>${p.rating} (${p.reviews.toLocaleString('fr-FR')})</span>
+        </div>
       </div>
     </div>`).join('');
   document.getElementById('trendingGrid').innerHTML=trending.map((p,i)=>`
     <div class="prod-mini" onclick="searchFor('${p.name}')">
-      <div class="prod-mini-img">${p.emoji}<span class="prod-mini-rank">N°${i+1}</span></div>
+      <div class="prod-mini-img">
+        ${p.img?`<img src="${p.img}" alt="${p.name}" onerror="this.parentElement.innerHTML='📱'">`:'📦'}
+        <span class="prod-mini-rank">N°${i+1}</span>
+      </div>
       <div class="prod-mini-body">
         <div class="prod-mini-brand">${p.brand}</div>
         <div class="prod-mini-name">${p.name}</div>
         <div class="prod-mini-from">à partir de</div>
         <div class="prod-mini-price">${p.bestPrice.toLocaleString('fr-FR')} €</div>
-        <div class="prod-mini-offers">${p.numOffers} offres</div>
+        <div class="prod-mini-meta">
+          <span class="prod-mini-offers">${p.numOffers} offres</span>
+          <span class="prod-mini-rating"><span class="prod-mini-stars">★</span>${p.rating}</span>
+        </div>
+      </div>
+    </div>`).join('');
+
+  // Bons plans (produits avec le plus grand écart de prix)
+  const bonsPlansSrc = [
+    ...doSearch('airpods'),
+    ...doSearch('parfum'),
+    ...doSearch('jouets'),
+    ...doSearch('casque'),
+  ].sort((a,b)=>b.numOffers-a.numOffers).slice(0,6);
+  const bpGrid = document.getElementById('bonsPlansGrid');
+  if(bpGrid) bpGrid.innerHTML=bonsPlansSrc.map(p=>`
+    <div class="prod-mini" onclick="searchFor('${p.name}')">
+      <div class="prod-mini-img">
+        ${p.img?`<img src="${p.img}" alt="${p.name}" onerror="this.parentElement.innerHTML='🏷️'">`:'🏷️'}
+        <span class="prod-mini-deal">Bon plan</span>
+      </div>
+      <div class="prod-mini-body">
+        <div class="prod-mini-brand">${p.brand}</div>
+        <div class="prod-mini-name">${p.name}</div>
+        <div class="prod-mini-from">à partir de</div>
+        <div class="prod-mini-price">${p.bestPrice.toLocaleString('fr-FR')} €</div>
+        <div class="prod-mini-meta">
+          <span class="prod-mini-offers">${p.numOffers} offres</span>
+          <span class="prod-mini-rating"><span class="prod-mini-stars">★</span>${p.rating}</span>
+        </div>
       </div>
     </div>`).join('');
 }
