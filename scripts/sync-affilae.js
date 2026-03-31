@@ -8,7 +8,7 @@ const SUPABASE_URL   = process.env.SUPABASE_URL;
 const SUPABASE_KEY   = process.env.SUPABASE_SERVICE_KEY; // service_role
 
 const AFFILAE_BASE   = 'https://rest.affilae.com';
-const PAGE_SIZE      = 100;
+const PAGE_SIZE = 50;
 
 // ── Helpers ──────────────────────────────
 
