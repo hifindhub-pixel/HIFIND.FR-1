@@ -45,21 +45,21 @@ async function supabaseUpsert(table, rows) {
 // ── Fetch all Affilae products (paginated) ─
 
 async function fetchAllProducts() {
-  let page = 1;
-  let all  = [];
+  let offset = 0;
+  let all    = [];
 
   while (true) {
     const data = await affilaeGet(
-      '/publisher/products.list?limit=' + PAGE_SIZE + '&page=' + page
+      '/publisher/products.list?limit=' + PAGE_SIZE + '&offset=' + offset
     );
     const items = data.data || data.items || [];
     if (!items.length) break;
 
     all = all.concat(items);
-    console.log('Fetched page', page, '→', all.length, '/', data.count, 'products');
+    console.log('Fetched offset', offset, '→', all.length, '/', data.count, 'products');
 
     if (all.length >= data.count) break;
-    page++;
+    offset += PAGE_SIZE;
   }
 
   return all;
