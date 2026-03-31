@@ -188,67 +188,33 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
 .results-count strong{color:var(--text);}
 .sort-select{padding:.4rem .7rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.78rem;outline:none;}
 
-/* ══ PRODUCT CARD — IMPROVED ══ */
-.pcard{background:var(--bg2);border:1px solid var(--border);border-radius:20px;margin-bottom:1rem;overflow:hidden;transition:border-color .2s,box-shadow .2s,transform .2s;}
-.pcard:hover{border-color:rgba(255,107,107,.3);box-shadow:var(--card-shadow);transform:translateY(-1px);}
-.pcard-top{display:flex;min-height:0;}
-.pcard-img-col{width:190px;flex-shrink:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.2rem 1rem;position:relative;border-right:1px solid var(--border);}
-.pcard-img-col img{width:140px;height:140px;object-fit:contain;margin-bottom:.8rem;}
-.pcard-emoji{font-size:4.5rem;line-height:1;margin-bottom:.8rem;}
-.pcard-price-box{background:var(--coral);border-radius:12px;padding:.5rem .85rem;text-align:center;}
-.pcard-price-from{font-size:.6rem;color:rgba(255,255,255,.75);display:block;margin-bottom:.1rem;}
-.pcard-price-val{font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:900;color:#fff;}
-.pcard-fav{position:absolute;top:.6rem;right:.6rem;width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:all .2s;}
+/* ══ PRODUCT CARD — IDEALO STYLE ══ */
+.pcard{background:var(--bg2);border:1px solid var(--border);border-radius:16px;margin-bottom:1rem;overflow:hidden;display:flex;flex-direction:row;min-height:180px;transition:border-color .2s,box-shadow .2s,transform .2s;}
+.pcard:hover{border-color:rgba(255,107,107,.35);box-shadow:var(--card-shadow);transform:translateY(-1px);}
+.pcard-img-col{width:200px;flex-shrink:0;background:#fff;display:flex;align-items:center;justify-content:center;padding:1rem;position:relative;border-right:1px solid var(--border);}
+.pcard-img-col img{width:165px;height:165px;object-fit:contain;}
+.pcard-fav{position:absolute;top:.5rem;right:.5rem;width:30px;height:30px;border-radius:50%;border:none;background:rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:.8rem;transition:all .2s;}
 .pcard-fav:hover{background:rgba(255,107,107,.2);}
 .pcard-fav.on{background:var(--coral);}
-.pcard-info-col{flex:1;padding:1.2rem 1.4rem;min-width:0;display:flex;flex-direction:column;gap:.6rem;}
-.pcard-meta{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.3rem;}
-.pcard-brand{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);}
-.pcard-cat{font-size:.68rem;background:var(--bg3);color:var(--sub);padding:.16rem .55rem;border-radius:100px;}
-.pcard-name{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:700;line-height:1.3;}
-.pcard-chips{display:flex;gap:.5rem;flex-wrap:wrap;}
-.pcard-chip{display:flex;align-items:center;gap:.3rem;font-size:.75rem;color:var(--sub);background:var(--bg3);padding:.22rem .65rem;border-radius:100px;}
-.pcard-chip span{font-weight:600;color:var(--text);}
-/* Price range */
-.prange{background:var(--bg3);border-radius:10px;padding:.65rem .85rem;}
-.prange-labels{display:flex;justify-content:space-between;margin-bottom:.4rem;}
-.prange-min{font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:800;color:var(--coral);}
-.prange-mid{font-size:.7rem;color:var(--dim);}
-.prange-max{font-size:.82rem;font-weight:600;color:var(--sub);}
-.prange-track{height:6px;background:var(--border2);border-radius:100px;position:relative;overflow:hidden;}
-.prange-fill{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,var(--coral),#FF9A9A);border-radius:100px;}
-/* View detail btn */
-.pcard-detail-btn{display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.52rem 1rem;background:transparent;border:1.5px solid var(--border2);border-radius:100px;color:var(--sub);font-size:.78rem;font-weight:600;transition:all .2s;align-self:flex-start;}
-.pcard-detail-btn:hover{border-color:var(--coral);color:var(--coral);}
-
-/* OFFERS */
-.pcard-offers{border-top:1px solid var(--border);padding:1rem 1.2rem;background:rgba(0,0,0,.08);}
-[data-theme="light"] .pcard-offers{background:rgba(0,0,0,.02);}
-.offers-head{font-size:.77rem;font-weight:700;color:var(--sub);display:flex;align-items:center;gap:.4rem;margin-bottom:.7rem;}
-.offer-item{display:flex;align-items:center;gap:.7rem;padding:.62rem .82rem;border-radius:12px;margin-bottom:.38rem;border:1.5px solid transparent;transition:border-color .2s;}
-.offer-item.best{background:var(--green-bg);border-color:var(--green-border);}
-.offer-item.normal{background:var(--bg3);border-color:var(--border);}
-[data-theme="light"] .offer-item.normal{background:#f8fafc;}
-.offer-item.normal:hover{border-color:rgba(255,107,107,.3);}
-.offer-logo{width:32px;height:32px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#333;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,.1);}
-.offer-details{flex:1;min-width:0;}
-.offer-name-row{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;}
-.offer-merchant{font-size:.83rem;font-weight:600;}
-.badge-best{font-size:.6rem;background:var(--green);color:#fff;padding:.08rem .42rem;border-radius:100px;white-space:nowrap;}
-
-.offer-delivery{font-size:.7rem;color:var(--dim);margin-top:.12rem;display:flex;align-items:center;gap:.3rem;}
-.dot-g{width:5px;height:5px;border-radius:50%;background:var(--green);flex-shrink:0;}
-.dot-a{width:5px;height:5px;border-radius:50%;background:var(--amber);flex-shrink:0;}
-.offer-price-col{text-align:right;flex-shrink:0;}
-.offer-price{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;}
-.offer-total{font-size:.67rem;color:var(--dim);}
-.offer-btn{flex-shrink:0;padding:.42rem .95rem;border:none;border-radius:100px;font-size:.73rem;font-weight:700;color:#fff;transition:all .2s;white-space:nowrap;}
-.offer-btn.b{background:var(--green);}
-.offer-btn.n{background:var(--coral);}
-.offer-btn:hover{opacity:.85;transform:scale(1.02);}
-.show-more-btn{width:100%;padding:.42rem;background:transparent;border:none;color:var(--coral);font-size:.78rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:.3rem;transition:color .2s;margin-top:.2rem;}
-.show-more-btn:hover{color:var(--coral-h);}
-.mock-note{padding:.48rem 1.2rem;background:rgba(245,158,11,.07);border-top:1px solid rgba(245,158,11,.15);font-size:.68rem;color:var(--amber);text-align:center;}
+.pcard-body{flex:1;padding:1.2rem 1.5rem;display:flex;flex-direction:column;gap:.55rem;min-width:0;}
+.pcard-merchant{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--coral);}
+.pcard-name{font-family:'Outfit',sans-serif;font-size:1.05rem;font-weight:700;line-height:1.35;color:var(--text);}
+.pcard-desc{font-size:.78rem;color:var(--sub);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.pcard-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:.7rem;border-top:1px solid var(--border);flex-wrap:wrap;gap:.5rem;}
+.pcard-price-block{}
+.pcard-price-from{font-size:.65rem;color:var(--dim);display:block;margin-bottom:.1rem;}
+.pcard-price{font-family:'Outfit',sans-serif;font-size:1.7rem;font-weight:900;color:var(--coral);line-height:1;}
+.pcard-delivery{font-size:.7rem;color:var(--green);margin-top:.2rem;}
+.pcard-actions{display:flex;gap:.5rem;align-items:center;}
+.pcard-btn-primary{padding:.6rem 1.5rem;background:var(--coral);color:#fff;border:none;border-radius:100px;font-size:.84rem;font-weight:700;transition:background .2s;white-space:nowrap;}
+.pcard-btn-primary:hover{background:var(--coral-h);}
+.pcard-btn-fav{padding:.6rem .9rem;background:transparent;border:1.5px solid var(--border2);border-radius:100px;font-size:.84rem;color:var(--sub);transition:all .2s;white-space:nowrap;}
+.pcard-btn-fav:hover{border-color:var(--coral);color:var(--coral);}
+@media(max-width:640px){
+  .pcard{flex-direction:column;}
+  .pcard-img-col{width:100%;height:180px;border-right:none;border-bottom:1px solid var(--border);}
+  .pcard-img-col img{width:140px;height:140px;}
+}
 
 /* ══ PRODUCT DETAIL PAGE ══ */
 .detail-page{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
@@ -412,7 +378,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
     <div class="hero-orb hero-orb2"></div>
     <div class="hero-inner">
       <h1 class="fade-up">Des milliers d'offres.<br><span class="ac">Un seul endroit.</span></h1>
-      <p class="hero-sub fade-up" style="animation-delay:.08s">Trouvez les meilleures offres au meilleur prix. Comparez Amazon, Maxitabs et bien plus.</p>
+      <p class="hero-sub fade-up" style="animation-delay:.08s">Trouvez les meilleures offres parmi des milliers de marchands. Amazon, Fnac, Cdiscount, Darty et bien plus.</p>
       <div class="search-wrap fade-up" style="animation-delay:.16s">
         <div class="search-box">
           <div class="search-box-inner">
@@ -557,7 +523,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
         <div class="filter-label">Livraison</div>
         <label class="filter-check"><input type="checkbox"> Gratuite</label>
         <label class="filter-check"><input type="checkbox"> En 24h</label>
-        <label class="filter-check"><input type="checkbox"> En stock</label>
+        
       </div>
     </aside>
     <div>
@@ -683,7 +649,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
       <p>Le site <strong style="color:var(--text);">HiFind.fr</strong> est édité par :<br>
       Mohamed — Fondateur HiFind<br>
       Site web : hifind.fr<br>
-      Contact : <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1f7c70716b7e7c6b5f77767976717b31796d">[email&#160;protected]</a></p>
+      Contact : <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fd9e9293899c9e89bd95949b949399d39b8f">[email&#160;protected]</a></p>
 
       <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">Hébergement</h2>
       <p>Le site est hébergé par :<br>
@@ -752,22 +718,21 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
       <p>HiFind.fr ne collecte pas votre nom, adresse email, numéro de téléphone ou toute autre donnée personnelle identifiable, sauf si vous créez un compte volontairement.</p>
 
       <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">3. Cookies tiers</h2>
-      <p>Lorsque vous cliquez sur un lien affilié (Amazon, Maxitabs, etc.), ces sites déposent leurs propres cookies conformément à leurs politiques de confidentialité respectives. HiFind.fr n'a pas de contrôle sur ces cookies.</p>
+      <p>Lorsque vous cliquez sur un lien affilié (Amazon, Fnac, etc.), ces sites déposent leurs propres cookies conformément à leurs politiques de confidentialité respectives. HiFind.fr n'a pas de contrôle sur ces cookies.</p>
 
       <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">4. Vos droits (RGPD)</h2>
-      <p>Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez d'un droit d'accès, de rectification et de suppression de vos données. Pour exercer ces droits, contactez-nous à : <strong style="color:var(--coral);"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="65060a0b11040611250d0c030c0b014b0317">[email&#160;protected]</a></strong></p>
+      <p>Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez d'un droit d'accès, de rectification et de suppression de vos données. Pour exercer ces droits, contactez-nous à : <strong style="color:var(--coral);"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2a4945445e4b495e6a42434c43444e044c58">[email&#160;protected]</a></strong></p>
 
       <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">5. Sécurité</h2>
       <p>HiFind.fr utilise le protocole HTTPS pour sécuriser toutes les communications entre votre navigateur et notre serveur. Vos données de navigation ne sont pas partagées avec des tiers à des fins commerciales.</p>
 
       <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">6. Contact</h2>
-      <p>Pour toute question relative à notre politique de confidentialité : <strong style="color:var(--coral);"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ccafa3a2b8adafb88ca4a5aaa5a2a8e2aabe">[email&#160;protected]</a></strong></p>
+      <p>Pour toute question relative à notre politique de confidentialité : <strong style="color:var(--coral);"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="beddd1d0cadfddcafed6d7d8d7d0da90d8cc">[email&#160;protected]</a></strong></p>
     </div>
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ══ THEME ══
 let theme = localStorage.getItem('hf_theme')||'dark';
 applyTheme(theme);
@@ -775,12 +740,12 @@ function applyTheme(t){theme=t;document.documentElement.setAttribute('data-theme
 function toggleTheme(){applyTheme(theme==='dark'?'light':'dark');}
 
 // ══ DATA ══
-// ══ AFFILAE CONFIG ══
-const AFFILAE_PUBLISHER_ID = '69c1b60a11c8631dcaad67bf';
-const AFFILAE_FN = '/.netlify/functions/affilae';
-
-// Cache partnerships
-let _partnerships = null;
+// ════════════════════════════════════════════
+// AFFILAE — seule source de produits
+// ════════════════════════════════════════════
+const AFFILAE_PROFILE_ID = '69c1bc52b682a8edf3205672';
+const AFFILAE_FN         = '/.netlify/functions/affilae';
+let   _affilaeCache      = {};
 
 async function affilaeCall(action, query, limit) {
   try {
@@ -794,151 +759,81 @@ async function affilaeCall(action, query, limit) {
 }
 
 async function fetchAffilaeProducts(query) {
-  // 1. Cherche dans les produits des flux
-  const data = await affilaeCall('search', query, 20);
-  if (data) {
-    const items = data.items || data.products || data.results || (Array.isArray(data) ? data : null);
-    if (items && items.length > 0) return items;
-  }
-  // 2. Fallback : liste tous les produits
-  const data2 = await affilaeCall('list', '', 50);
-  if (data2) {
-    const items2 = data2.items || data2.products || data2.results || (Array.isArray(data2) ? data2 : null);
-    if (items2 && items2.length > 0) {
-      // Filtre par query
-      return items2.filter(p => {
-        const name = (p.name || p.title || '').toLowerCase();
-        return name.includes(query.toLowerCase());
-      });
-    }
-  }
-  return null;
+  var key = query.toLowerCase().trim();
+  if (_affilaeCache[key]) return _affilaeCache[key];
+
+  // Charge tous les produits (l'API ne supporte pas la recherche par mot-clé)
+  var raw = await affilaeCall('list', '', 100);
+  if (!raw) return null;
+
+  // Structure API : { data: [...], count: 123 }
+  var allItems = raw.data || raw.items || (Array.isArray(raw) ? raw : []);
+  if (!allItems.length) return null;
+
+  // Filtre côté client par le terme recherché
+  var filtered = allItems.filter(function(p) {
+    var title = (p.title || p.name || '').toLowerCase();
+    var desc  = (p.description || '').toLowerCase();
+    var prog  = ((p.program && p.program.title) || '').toLowerCase();
+    var cat   = (p.category || '').toLowerCase();
+    return title.includes(key) || desc.includes(key) || prog.includes(key) || cat.includes(key);
+  });
+
+  // Si aucun résultat filtré → retourne tous les produits
+  var result = filtered.length > 0 ? filtered : allItems;
+  _affilaeCache[key] = result;
+  return result;
 }
 
 function buildAffilaeLink(item) {
-  return item.trackingUrl || item.affiliateUrl || item.affiliateLink || item.url || item.productUrl || '#';
+  const programId  = item.program ? item.program.id : '';
+  const trackingId = item.trackingId || '';
+  if (programId && trackingId)
+    return 'https://track.affilae.com/' + programId + '/' + trackingId + '?ae=' + AFFILAE_PROFILE_ID;
+  return item.url || '#';
 }
 
-function mapAffilaeProduct(item, query) {
-  const rawPrice = item.price || item.salePrice || item.regularPrice || 0;
-  const price = rawPrice > 10000 ? rawPrice / 100 : rawPrice;
-  const merchant = item.programName || item.advertiserName || item.merchant || item.brand || 'Partenaire';
+function mapAffilaeProduct(item) {
+  // Compatible Supabase (programs join) ET Affilae direct
+  var programTitle = (item.programs && item.programs.title)
+    || (item.program && item.program.title)
+    || 'Partenaire';
+  var price      = parseFloat(item.price) || 0;
+  // Supabase stocke en euros, Affilae direct en centimes
+  if (price > 1000 && !item.program_id) price = price / 100;
+  var img        = item.image_url || (item.images && item.images[0] && item.images[0].url) || null;
+  var desc       = (item.description || '').replace(/<[^>]*>/g, '').trim();
+  var shortDesc  = desc.length > 150 ? desc.slice(0, 150).trim() + '...' : desc;
+  var trackId    = item.tracking_id || item.trackingId || '';
+  var progId     = item.program_id || (item.program && item.program.id) || '';
+
   return {
-    id: 'af_' + (item._id || item.id || Math.random().toString(36).slice(2)),
-    name: item.name || item.title || query,
-    brand: item.brand || merchant,
-    cat: item.category || item.categoryName || 'Général',
-    img: item.imageUrl || item.image || item.imageLink || item.picture || null,
+    id:        item.id || ('af_' + Math.random().toString(36).slice(2)),
+    name:      item.title || item.name || '',
+    brand:     programTitle,
+    cat:       item.category || 'Général',
+    img:       img,
+    desc:      shortDesc,
     basePrice: price,
-    rating: item.rating || 4.5,
-    reviews: item.reviewCount || item.reviews || 0,
+    rating:    4.5, reviews: 0,
     offers: [{
-      merchant: merchant,
-      emoji: '🏷️',
-      isAmazon: false,
-      price: price,
-      shipping: item.shippingCost || item.shipping || 0,
-      total: price + (item.shippingCost || item.shipping || 0),
-      stock: item.availability || item.inStock ? 'En stock' : 'En stock',
-      url: buildAffilaeLink(item)
+      merchant: programTitle, emoji: '🏷️', isAmazon: false,
+      price: price, shipping: 0, total: price, stock: 'En stock',
+      url: buildAffilaeLink({ program: { id: progId }, trackingId: trackId, url: item.url })
     }],
-    get bestPrice(){ return this.offers[0].price; },
-    get bestMerchant(){ return this.offers[0].merchant; },
-    get numOffers(){ return this.offers.length; },
-    get minPrice(){ return this.offers[0].price; },
-    get maxPrice(){ return this.offers[0].price; }
+    get bestPrice()    { return this.offers[0].price; },
+    get bestMerchant() { return this.offers[0].merchant; },
+    get numOffers()    { return this.offers.length; },
+    get minPrice()     { return this.offers[0].price; },
+    get maxPrice()     { return this.offers[0].price; }
   };
 }
 
-const MERCHANTS = [
-  { name:'Amazon', emoji:'🟠', isAmazon:true, urlTpl:(q)=>'https://www.amazon.fr/s?k='+encodeURIComponent(q)+'&tag=hifind05-21' }
+const SUGGESTIONS = [
+  'shampoing', 'soin visage', 'parfum', 'CBD', 'jardin', 'complément alimentaire',
+  'bébé', 'sport', 'cuisine', 'bien-être', 'bio', 'cosmétique',
+  'chanvre', 'potager', 'huile essentielle', 'crème', 'sérum'
 ];
-const SUGGESTIONS=['iPhone 15 Pro','iPhone 15','Samsung Galaxy S24','MacBook Air M3','PS5','Nintendo Switch OLED','AirPods Pro','Sony WH-1000XM5','Dyson V15','iPad Pro','LG OLED TV','Nike Air Max','Dior Sauvage','LEGO Technic','Nespresso','Casque Bluetooth','Montre connectée','Vélo électrique','Aspirateur robot','Parfum femme','Collier chien','Siège auto enfant','Kit entretien voiture','Sac à main','Accessoires iPhone'];
-const CATALOG={
-  iphone:[
-    {name:'iPhone 15 Pro Max 256Go',brand:'Apple',cat:'Multimedia',price:1479,rating:4.8,reviews:1284,img:'https://m.media-amazon.com/images/I/81SigpJN1KL._AC_SL500_.jpg'},
-    {name:'iPhone 15 Pro 128Go',brand:'Apple',cat:'Multimedia',price:1229,rating:4.7,reviews:986,img:'https://m.media-amazon.com/images/I/81CgtwSII3L._AC_SL500_.jpg'},
-    {name:'iPhone 15 128Go',brand:'Apple',cat:'Multimedia',price:969,rating:4.6,reviews:742,img:'https://m.media-amazon.com/images/I/71d7rfSl0wL._AC_SL500_.jpg'},
-    {name:'iPhone 14 128Go',brand:'Apple',cat:'Multimedia',price:769,rating:4.5,reviews:2103,img:'https://m.media-amazon.com/images/I/61bK6PMOC3L._AC_SL500_.jpg'},
-  ],
-  samsung:[
-    {name:'Samsung Galaxy S24 Ultra 256Go',brand:'Samsung',cat:'Multimedia',price:1469,rating:4.7,reviews:892,img:'https://m.media-amazon.com/images/I/71lSPMNVfcL._AC_SL500_.jpg'},
-    {name:'Samsung Galaxy S24+ 256Go',brand:'Samsung',cat:'Multimedia',price:1169,rating:4.6,reviews:534,img:'https://m.media-amazon.com/images/I/71Y0E9fXOaL._AC_SL500_.jpg'},
-    {name:'Samsung Galaxy S24 128Go',brand:'Samsung',cat:'Multimedia',price:899,rating:4.5,reviews:421,img:'https://m.media-amazon.com/images/I/71kPwrhpSeL._AC_SL500_.jpg'},
-    {name:'Samsung Galaxy A55 5G 128Go',brand:'Samsung',cat:'Multimedia',price:499,rating:4.3,reviews:310,img:'https://m.media-amazon.com/images/I/71Pg1hGn%2BfL._AC_SL500_.jpg'},
-  ],
-  macbook:[
-    {name:'MacBook Pro 14" M3 Pro 512Go',brand:'Apple',cat:'Multimedia',price:2399,rating:4.9,reviews:641,img:'https://m.media-amazon.com/images/I/61lYIKPieDL._AC_SL500_.jpg'},
-    {name:'MacBook Air 13" M3 256Go',brand:'Apple',cat:'Multimedia',price:1299,rating:4.8,reviews:1102,img:'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_SL500_.jpg'},
-    {name:'MacBook Air 15" M3 256Go',brand:'Apple',cat:'Multimedia',price:1499,rating:4.8,reviews:893,img:'https://m.media-amazon.com/images/I/81UFHe-hH5L._AC_SL500_.jpg'},
-  ],
-  ps5:[
-    {name:'PlayStation 5 Édition Standard',brand:'Sony',cat:'Multimedia',price:549,rating:4.8,reviews:3241,img:'https://m.media-amazon.com/images/I/51CwsEWxEEL._SL500_.jpg'},
-    {name:'PlayStation 5 Digital Edition',brand:'Sony',cat:'Multimedia',price:449,rating:4.7,reviews:1876,img:'https://m.media-amazon.com/images/I/51wvS3PXKAL._SL500_.jpg'},
-    {name:'PlayStation 5 Slim',brand:'Sony',cat:'Multimedia',price:499,rating:4.7,reviews:987,img:'https://m.media-amazon.com/images/I/41lm1urQ2tL._SL500_.jpg'},
-  ],
-  xbox:[
-    {name:'Xbox Series X 1To',brand:'Microsoft',cat:'Multimedia',price:499,rating:4.7,reviews:2104,img:'https://m.media-amazon.com/images/I/51ojzCHtvNL._SL500_.jpg'},
-    {name:'Xbox Series S 512Go',brand:'Microsoft',cat:'Multimedia',price:299,rating:4.5,reviews:1543,img:'https://m.media-amazon.com/images/I/71NBQ2a52CL._SL500_.jpg'},
-  ],
-  airpods:[
-    {name:'AirPods Pro 2ème génération',brand:'Apple',cat:'Multimedia',price:279,rating:4.9,reviews:3102,img:'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL500_.jpg'},
-    {name:'AirPods 3ème génération',brand:'Apple',cat:'Multimedia',price:199,rating:4.6,reviews:1843,img:'https://m.media-amazon.com/images/I/71zny7BTRlL._AC_SL500_.jpg'},
-    {name:'AirPods Max',brand:'Apple',cat:'Multimedia',price:579,rating:4.5,reviews:762,img:'https://m.media-amazon.com/images/I/81sgnLxTkgL._AC_SL500_.jpg'},
-  ],
-  tv:[
-    {name:'Samsung TV OLED 55" S95D',brand:'Samsung',cat:'Multimedia',price:1799,rating:4.7,reviews:412,img:'https://m.media-amazon.com/images/I/81PWQDXG6ZL._AC_SL500_.jpg'},
-    {name:'LG OLED TV 55" C4',brand:'LG',cat:'Multimedia',price:1499,rating:4.8,reviews:631,img:'https://m.media-amazon.com/images/I/81jB7eXkXpL._AC_SL500_.jpg'},
-    {name:'Sony Bravia XR 65" A95L',brand:'Sony',cat:'Multimedia',price:2999,rating:4.9,reviews:287,img:'https://m.media-amazon.com/images/I/81Jrj5MWJJL._AC_SL500_.jpg'},
-  ],
-  aspirateur:[
-    {name:'Dyson V15 Detect Absolute',brand:'Dyson',cat:'Maison',price:699,rating:4.7,reviews:892,img:'https://m.media-amazon.com/images/I/61CNvfCjPTL._AC_SL500_.jpg'},
-    {name:'Dyson V12 Detect Slim',brand:'Dyson',cat:'Maison',price:549,rating:4.6,reviews:634,img:'https://m.media-amazon.com/images/I/61%2Bwm3hGKmL._AC_SL500_.jpg'},
-    {name:'iRobot Roomba j9+',brand:'iRobot',cat:'Maison',price:899,rating:4.5,reviews:441,img:'https://m.media-amazon.com/images/I/61oKUWQAh%2BL._AC_SL500_.jpg'},
-  ],
-  nike:[
-    {name:'Nike Air Max 90',brand:'Nike',cat:'Mode',price:149,rating:4.5,reviews:2341,img:'https://m.media-amazon.com/images/I/71OmTNApUCL._AC_SL500_.jpg'},
-    {name:'Nike Air Force 1 07',brand:'Nike',cat:'Mode',price:119,rating:4.6,reviews:3102,img:'https://m.media-amazon.com/images/I/61lNzVWjyhL._AC_SL500_.jpg'},
-    {name:'Nike Dunk Low',brand:'Nike',cat:'Mode',price:109,rating:4.5,reviews:1876,img:'https://m.media-amazon.com/images/I/71mNDlV7%2BQL._AC_SL500_.jpg'},
-  ],
-  switch:[
-    {name:'Nintendo Switch OLED',brand:'Nintendo',cat:'Multimedia',price:349,rating:4.8,reviews:4231,img:'https://m.media-amazon.com/images/I/61TYfPWCXhL._SL500_.jpg'},
-    {name:'Nintendo Switch Lite',brand:'Nintendo',cat:'Multimedia',price:199,rating:4.7,reviews:2987,img:'https://m.media-amazon.com/images/I/71cvnsEopbL._SL500_.jpg'},
-  ],
-  ipad:[
-    {name:'iPad Pro 11" M4 256Go',brand:'Apple',cat:'Multimedia',price:1219,rating:4.8,reviews:743,img:'https://m.media-amazon.com/images/I/61c17kz3V3L._AC_SL500_.jpg'},
-    {name:'iPad Air 11" M2 128Go',brand:'Apple',cat:'Multimedia',price:719,rating:4.7,reviews:892,img:'https://m.media-amazon.com/images/I/61YLF9MqEhL._AC_SL500_.jpg'},
-    {name:'iPad 10ème génération 64Go',brand:'Apple',cat:'Multimedia',price:409,rating:4.5,reviews:1243,img:'https://m.media-amazon.com/images/I/61WC1cEvGxL._AC_SL500_.jpg'},
-  ],
-  casque:[
-    {name:'Sony WH-1000XM5',brand:'Sony',cat:'Multimedia',price:379,rating:4.8,reviews:2341,img:'https://m.media-amazon.com/images/I/51aXvjzcukL._AC_SL500_.jpg'},
-    {name:'Bose QuietComfort Ultra',brand:'Bose',cat:'Multimedia',price:449,rating:4.7,reviews:1203,img:'https://m.media-amazon.com/images/I/51QOe6u69dL._AC_SL500_.jpg'},
-    {name:'JBL Tune 770NC',brand:'JBL',cat:'Multimedia',price:129,rating:4.4,reviews:876,img:'https://m.media-amazon.com/images/I/61NbTFKgMZL._AC_SL500_.jpg'},
-  ],
-  sport:[
-    {name:'Garmin Forerunner 255',brand:'Garmin',cat:'Sport',price:299,rating:4.7,reviews:1243,img:'https://m.media-amazon.com/images/I/61YhqQERV0L._AC_SL500_.jpg'},
-    {name:'Polar Vantage M2',brand:'Polar',cat:'Sport',price:249,rating:4.5,reviews:876,img:'https://m.media-amazon.com/images/I/61gJE8iacLL._AC_SL500_.jpg'},
-    {name:'Fitbit Charge 6',brand:'Fitbit',cat:'Sport',price:159,rating:4.3,reviews:2341,img:'https://m.media-amazon.com/images/I/61SWVbLBcrL._AC_SL500_.jpg'},
-    {name:'Vélo de Route Trek Domane AL 2',brand:'Trek',cat:'Sport',price:899,rating:4.6,reviews:312,img:'https://m.media-amazon.com/images/I/61sLBMnw5wL._AC_SL500_.jpg'},
-  ],
-  parfum:[
-    {name:'Dior Sauvage Eau de Parfum 100ml',brand:'Dior',cat:'Beauté',price:89,rating:4.8,reviews:4231,img:'https://m.media-amazon.com/images/I/51nDiXBpjrL._AC_SL500_.jpg'},
-    {name:'Chanel N°5 Eau de Parfum 50ml',brand:'Chanel',cat:'Beauté',price:99,rating:4.9,reviews:3102,img:'https://m.media-amazon.com/images/I/51K9DKRJJJL._AC_SL500_.jpg'},
-    {name:'YSL Libre Eau de Parfum 90ml',brand:'YSL',cat:'Beauté',price:89,rating:4.7,reviews:1876,img:'https://m.media-amazon.com/images/I/51O2TvFoqJL._AC_SL500_.jpg'},
-    {name:'Acqua di Gio Giorgio Armani 100ml',brand:'Armani',cat:'Beauté',price:79,rating:4.7,reviews:2987,img:'https://m.media-amazon.com/images/I/41jF1XJSL2L._AC_SL500_.jpg'},
-  ],
-  jouets:[
-    {name:'LEGO Technic Bugatti Chiron',brand:'LEGO',cat:'Jouets',price:449,rating:4.9,reviews:2341,img:'https://m.media-amazon.com/images/I/81nGNtBqbkL._AC_SL500_.jpg'},
-    {name:'LEGO Star Wars Millennium Falcon',brand:'LEGO',cat:'Jouets',price:899,rating:4.9,reviews:3102,img:'https://m.media-amazon.com/images/I/81QL2FcqsFL._AC_SL500_.jpg'},
-    {name:'Playmobil Château des Princesses',brand:'Playmobil',cat:'Jouets',price:129,rating:4.6,reviews:876,img:'https://m.media-amazon.com/images/I/81jUTzsMFUL._AC_SL500_.jpg'},
-  ],
-  cuisine:[
-    {name:'Thermomix TM6',brand:'Vorwerk',cat:'Cuisine',price:1499,rating:4.8,reviews:4231,img:'https://m.media-amazon.com/images/I/41nEHbfvHmL._AC_SL500_.jpg'},
-    {name:'Nespresso Vertuo Next',brand:'Nespresso',cat:'Cuisine',price:149,rating:4.5,reviews:3102,img:'https://m.media-amazon.com/images/I/61Z0DuH3OhL._AC_SL500_.jpg'},
-    {name:'KitchenAid Artisan 5KSM175',brand:'KitchenAid',cat:'Cuisine',price:599,rating:4.8,reviews:2341,img:'https://m.media-amazon.com/images/I/71hKl5hN0IL._AC_SL500_.jpg'},
-    {name:'Instant Pot Duo 7-en-1 8L',brand:'Instant Pot',cat:'Cuisine',price:129,rating:4.6,reviews:8976,img:'https://m.media-amazon.com/images/I/71V1ER4uNyL._AC_SL500_.jpg'},
-  ],
-};
 
 // ══ STATE ══
 let currentResults=[];
@@ -949,17 +844,6 @@ let favorites=JSON.parse(localStorage.getItem('hf_favs')||'[]');
 let alerts=JSON.parse(localStorage.getItem('hf_alerts')||'[]');
 
 function r(a,b){return a+Math.random()*(b-a);}
-
-function buildOffers(basePrice, productName){
-  const n=3+Math.floor(Math.random()*4);
-  const chosen=[...MERCHANTS].sort(()=>Math.random()-.5).slice(0,n);
-  return chosen.map(m=>{
-    const price=Math.round(basePrice*(1+r(-0.05,0.15))*100)/100;
-    const shipping=[0,0,0,4.99,5.99,9.99][Math.floor(Math.random()*6)];
-    const stocks=['En stock','En stock','Expédié sous 24h','Expédié sous 2-3 jours','Stock limité'];
-    return {merchant:m.name,emoji:m.emoji,isAmazon:m.isAmazon||false,price,shipping,total:Math.round((price+shipping)*100)/100,stock:stocks[Math.floor(Math.random()*stocks.length)],url:m.urlTpl(productName)};
-  }).sort((a,b)=>a.total-b.total);
-}
 
 function buildPriceHistory(basePrice,days=30){
   const labels=[];const data=[];
@@ -972,35 +856,6 @@ function buildPriceHistory(basePrice,days=30){
   }
   data[data.length-1]=Math.round(basePrice*100)/100;
   return {labels,data};
-}
-
-function doSearch(query){
-  const q=query.toLowerCase().trim();
-  let results=[];
-  for(const [key,prods] of Object.entries(CATALOG)){
-    if(key.includes(q)||q.includes(key)||prods.some(p=>p.name.toLowerCase().includes(q)||p.brand.toLowerCase().includes(q))){
-      results.push(...prods);
-    }
-  }
-  if(!results.length){
-    results=[
-      {name:query+' Premium',brand:'Marque',cat:'Divers',price:Math.round(r(50,500)),emoji:'📦'},
-      {name:query+' Pro',brand:'Marque',cat:'Divers',price:Math.round(r(80,800)),emoji:'📦'},
-      {name:query+' Standard',brand:'Marque',cat:'Divers',price:Math.round(r(30,300)),emoji:'📦'},
-    ];
-  }
-  return results.map(p=>({
-    id:'p'+Math.random().toString(36).slice(2,10),
-    name:p.name,brand:p.brand,cat:p.cat,
-    img:p.img||null,basePrice:p.price,
-    rating:p.rating||4.5,reviews:p.reviews||0,
-    offers:buildOffers(p.price, p.name),
-    get bestPrice(){return this.offers[0].price;},
-    get bestMerchant(){return this.offers[0].merchant;},
-    get numOffers(){return this.offers.length;},
-    get minPrice(){return Math.min(...this.offers.map(o=>o.price));},
-    get maxPrice(){return Math.max(...this.offers.map(o=>o.price));}
-  }));
 }
 
 // ══ SUGGESTIONS ══
@@ -1032,24 +887,19 @@ function searchFor(q){document.getElementById('spInput').value=q;showPage('searc
 function doHeroSearch(){const q=document.getElementById('heroInput').value.trim();if(q)searchFor(q);}
 function doSpSearch(){const q=document.getElementById('spInput').value.trim();if(q)runSearch(q);}
 
-async function runSearch(q){
+async function runSearch(q) {
   lastQuery = q;
-  const container = document.getElementById('resultsContainer');
+  var container = document.getElementById('resultsContainer');
   container.innerHTML = '<div class="spinner"><div class="spin"></div><p class="spin-lbl">Recherche en cours...</p></div>';
-
-  const affilaeItems = await fetchAffilaeProducts(q);
-
-  if (affilaeItems && affilaeItems.length > 0) {
-    currentResults = affilaeItems.map(item => mapAffilaeProduct(item, q));
+  var items = await fetchAffilaeProducts(q);
+  console.log('Affilae items for "'+q+'":', items);
+  if (items && items.length > 0) {
+    currentResults = items.map(mapAffilaeProduct);
   } else {
-    // Fallback catalogue mock si API ne répond pas / aucun résultat
-    currentResults = doSearch(q);
-    if (currentResults.length === 0) {
-      container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun produit trouvé</div><div class="empty-sub">Essayez avec d\'autres termes de recherche.</div></div>';
-      return;
-    }
+    currentResults = [];
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun produit trouvé</div><div class="empty-sub">Essayez avec d\'autres termes : soin, shampoing, CBD, jardin...</div></div>';
+    return;
   }
-
   sortResults();
 }
 
@@ -1080,93 +930,40 @@ function renderResults(list){
     :'<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun produit trouvé</div><div class="empty-sub">Essayez avec d\'autres termes de recherche.</div></div>';
 }
 
-// ══ PRODUCT CARD ══
-function pcardHTML(p){
-  const isFav=favorites.some(f=>f.id===p.id);
-  const range=p.maxPrice-p.minPrice||1;
-  const pct=Math.round(((p.bestPrice-p.minPrice)/range)*60)+5;
-  const top3=p.offers.slice(0,3);
-  const rest=p.offers.slice(3);
-  const offersHTML=top3.map((o,i)=>`
-    <div class="offer-item ${i===0?'best':'normal'}">
-      <div class="offer-logo">${o.emoji}</div>
-      <div class="offer-details">
-        <div class="offer-name-row">
-          <span class="offer-merchant">${o.merchant}</span>
-          ${i===0?'<span class="badge-best">✓ Meilleur</span>':''}
-        </div>
-        <div class="offer-delivery">
-          <span class="${o.stock.includes('limité')?'dot-a':'dot-g'}"></span>
-          ${o.stock} · ${o.shipping===0?'Livraison gratuite':'+ '+o.shipping.toLocaleString('fr-FR')+' €'}
-        </div>
-      </div>
-      <div class="offer-price-col">
-        <div class="offer-price">${o.price.toLocaleString('fr-FR')} €</div>
-        ${o.shipping>0?('<div class="offer-total">Total : '+o.total.toLocaleString('fr-FR')+' €</div>'):''}
-      </div>
-      <a href="${o.url}" target="_blank" rel="noopener"><button class="offer-btn ${i===0?'b':'n'}">Voir ↗</button></a>
-    </div>`).join('');
-  const extraHTML=rest.map(o=>`
-    <div class="offer-item normal">
-      <div class="offer-logo">${o.emoji}</div>
-      <div class="offer-details">
-        <div class="offer-name-row"><span class="offer-merchant">${o.merchant}</span></div>
-        <div class="offer-delivery"><span class="dot-g"></span>${o.stock} · ${o.shipping===0?'Livraison gratuite':'+ '+o.shipping.toLocaleString('fr-FR')+' €'}</div>
-      </div>
-      <div class="offer-price-col"><div class="offer-price">${o.price.toLocaleString('fr-FR')} €</div></div>
-      <a href="${o.url}" target="_blank"><button class="offer-btn n">Voir ↗</button></a>
-    </div>`).join('');
+// ══ PRODUCT CARD — IDEALO STYLE ══
+function pcardHTML(p) {
+  var isFav  = favorites.some(function(f){ return f.id===p.id; });
+  var offer  = p.offers[0];
+  var imgHtml = p.img
+    ? '<img src="'+p.img+'" alt="'+p.name.replace(/"/g,'&quot;')+'" onerror="this.style.display=\'none\'">'
+    : '<div style="font-size:3.5rem;line-height:1">🏷️</div>';
 
-  return `
-  <div class="pcard fade-up" id="pc-${p.id}">
-    <div class="pcard-top">
-      <div class="pcard-img-col">
-        ${p.img
-          ? `<img src="${p.img}" alt="${p.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">`
-          : ''
-        }
-        <div class="pcard-emoji" ${p.img ? 'style="display:none"' : ''}>📦</div>
-        <div class="pcard-price-box">
-          <span class="pcard-price-from">à partir de</span>
-          <div class="pcard-price-val">${p.bestPrice.toLocaleString('fr-FR')} €</div>
-        </div>
-        <button class="pcard-fav ${isFav?'on':''}" onclick="toggleFav('${p.id}')">${isFav?'❤️':'🤍'}</button>
-      </div>
-      <div class="pcard-info-col">
-        <div class="pcard-meta">
-          <span class="pcard-brand">${p.brand}</span>
-          <span class="pcard-cat">${p.cat}</span>
-        </div>
-        <div class="pcard-name">${p.name}</div>
-        <div class="pcard-chips">
-          <div class="pcard-chip">🏪 <span>${p.numOffers} offres</span></div>
-          <div class="pcard-chip">🏆 <span>${p.bestMerchant}</span></div>
-          <div class="pcard-chip">📦 <span>En stock</span></div>
-        </div>
-        <div class="prange">
-          <div class="prange-labels">
-            <span class="prange-min">${p.minPrice.toLocaleString('fr-FR')} €</span>
-            <span class="prange-mid">Fourchette de prix</span>
-            <span class="prange-max">${p.maxPrice.toLocaleString('fr-FR')} €</span>
-          </div>
-          <div class="prange-track"><div class="prange-fill" style="width:${pct}%"></div></div>
-        </div>
-        <button class="pcard-detail-btn" onclick="openDetail('${p.id}')">📊 Voir l'historique des prix →</button>
-      </div>
-    </div>
-    <div class="pcard-offers">
-      <div class="offers-head">🏪 Comparer les offres</div>
-      ${offersHTML}
-      ${rest.length?`<button class="show-more-btn" onclick="toggleExtra(this,'ex-${p.id}')">▼ Voir ${rest.length} offre${rest.length>1?'s':''} de plus</button><div id="ex-${p.id}" class="hidden">${extraHTML}</div>`:''}
-    </div>
-
-  </div>`;
-}
-
-function toggleExtra(btn,id){
-  const el=document.getElementById(id);
-  const h=el.classList.toggle('hidden');
-  btn.textContent=h?`▼ Voir plus d'offres`:`▲ Voir moins d'offres`;
+  return (
+    '<div class="pcard fade-up" id="pc-'+p.id+'">' +
+      '<div class="pcard-img-col">' +
+        imgHtml +
+        '<button class="pcard-fav'+(isFav?' on':'')+'" onclick="toggleFav(\''+p.id+'\')">'+(isFav?'❤️':'🤍')+'</button>' +
+      '</div>' +
+      '<div class="pcard-body">' +
+        '<div class="pcard-merchant">'+p.brand+'</div>' +
+        '<div class="pcard-name">'+p.name+'</div>' +
+        (p.desc ? '<div class="pcard-desc">'+p.desc+'</div>' : '') +
+        '<div class="pcard-bottom">' +
+          '<div class="pcard-price-block">' +
+            '<span class="pcard-price-from">à partir de</span>' +
+            '<div class="pcard-price">'+p.bestPrice.toLocaleString('fr-FR')+' €</div>' +
+            '<div class="pcard-delivery">Livraison gratuite</div>' +
+          '</div>' +
+          '<div class="pcard-actions">' +
+            '<a href="'+offer.url+'" target="_blank" rel="noopener sponsored">' +
+              '<button class="pcard-btn-primary">Voir l\'offre \u2197</button>' +
+            '</a>' +
+            '<button class="pcard-btn-fav" onclick="openDetail(\''+p.id+'\')">📊 Prix</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  );
 }
 
 // ══ PRODUCT DETAIL ══
@@ -1279,7 +1076,7 @@ function renderChart(hist){
     },
     options:{
       responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.raw.toLocaleString('fr-FR')+' \u20ac';}},backgroundColor:isDark?'#1e293b':'#fff',titleColor:isDark?'#f1f5f9':'#0f172a',bodyColor:isDark?'#94a3b8':'#64748b',borderColor:'rgba(255,107,107,.3)',borderWidth:1}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.raw.toLocaleString('fr-FR')+' €';}},backgroundColor:isDark?'#1e293b':'#fff',titleColor:isDark?'#f1f5f9':'#0f172a',bodyColor:isDark?'#94a3b8':'#64748b',borderColor:'rgba(255,107,107,.3)',borderWidth:1}},
       scales:{
         x:{grid:{color:isDark?'rgba(255,255,255,.04)':'rgba(0,0,0,.04)'},ticks:{color:isDark?'#64748b':'#94a3b8',font:{size:10},maxTicksLimit:8}},
         y:{grid:{color:isDark?'rgba(255,255,255,.04)':'rgba(0,0,0,.04)'},ticks:{color:isDark?'#64748b':'#94a3b8',font:{size:10},callback:v=>v.toLocaleString('fr-FR')+' €'}}
@@ -1339,41 +1136,44 @@ function renderAlerts(){
   const cnt=document.getElementById('alertCount');
   cnt.textContent=alerts.length+' alerte'+(alerts.length!==1?'s':'')+' active'+(alerts.length!==1?'s':'');
   if(!alerts.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-title">Aucune alerte</div><div class="empty-sub">Créez une alerte pour être notifié quand un prix baisse.</div></div>';return;}
-  c.innerHTML=alerts.map(a=>'<div class="alert-item"><div><div class="alert-item-q">'+a.query+'</div><div class="alert-item-p">'+(a.price?'Prix cible : '+a.price.toLocaleString('fr-FR')+' €':'Toute baisse de prix')+' · '+a.date+'</div></div><button class="alert-del" onclick="deleteAlert(\''+a.id+'\')">🗑️</button></div>').join('');
+  c.innerHTML=alerts.map(function(a){
+    return '<div class="alert-item"><div><div class="alert-item-q">'+a.query+'</div><div class="alert-item-p">'+(a.price?'Prix cible : '+a.price.toLocaleString('fr-FR')+' €':'Toute baisse de prix')+' · '+a.date+'</div></div><button class="alert-del" onclick="deleteAlert(\''+a.id+'\')">🗑️</button></div>';
+  }).join('');
 }
 
 // ══ HOME GRIDS ══
-function miniCard(p, rank){
-  var im = p.img ? '<img src="'+p.img+'" alt="'+p.name.replace(/'/g,"&#39;")+'">' : '';
-  var rankBadge = rank ? '<span class="prod-mini-rank">N°'+rank+'</span>' : '';
-  var dealBadge = p.deal ? '<span class="prod-mini-deal">Bon plan</span>' : '';
-  var reviews = p.reviews ? ' ('+p.reviews.toLocaleString('fr-FR')+')' : '';
-  var safeName = p.name.replace(/'/g,"&#39;");
-  return '<div class="prod-mini" onclick="searchFor(&quot;'+safeName+'&quot;)">'+
-    '<div class="prod-mini-img">'+im+rankBadge+dealBadge+'</div>'+
+function miniCard(p, rank, deal) {
+  var im = p.img ? '<img src="'+p.img+'" alt="'+p.name.replace(/"/g,'&quot;')+'" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem">🏷️</div>';
+  var badge = rank ? '<span class="prod-mini-rank">N°'+rank+'</span>' : (deal ? '<span class="prod-mini-deal">Bon plan</span>' : '');
+  var safeName = p.name.replace(/'/g, '&#39;');
+  return '<div class="prod-mini" onclick="searchFor(\''+safeName+'\')">'+
+    '<div class="prod-mini-img">'+im+badge+'</div>'+
     '<div class="prod-mini-body">'+
       '<div class="prod-mini-brand">'+p.brand+'</div>'+
       '<div class="prod-mini-name">'+p.name+'</div>'+
       '<div class="prod-mini-from">à partir de</div>'+
       '<div class="prod-mini-price">'+p.bestPrice.toLocaleString('fr-FR')+' €</div>'+
-      '<div class="prod-mini-meta">'+
-        '<span class="prod-mini-offers">'+p.numOffers+' offres</span>'+
-        '<span class="prod-mini-rating"><span class="prod-mini-stars">★</span>'+p.rating+reviews+'</span>'+
-      '</div>'+
     '</div>'+
   '</div>';
 }
-function initHome(){
-  var featured=doSearch('iphone').slice(0,6);
-  var trending=doSearch('samsung').slice(0,6);
-  var bonsSrc=[...doSearch('airpods'),...doSearch('parfum'),...doSearch('jouets'),...doSearch('casque')].sort(function(a,b){return b.numOffers-a.numOffers;}).slice(0,6);
-  bonsSrc.forEach(function(p){p.deal=true;});
-  var fg=document.getElementById('featuredGrid');
-  if(fg) fg.innerHTML=featured.map(function(p){return miniCard(p,0);}).join('');
-  var tg=document.getElementById('trendingGrid');
-  if(tg) tg.innerHTML=trending.map(function(p,i){return miniCard(p,i+1);}).join('');
-  var bg=document.getElementById('bonsPlansGrid');
-  if(bg) bg.innerHTML=bonsSrc.map(function(p){return miniCard(p,0);}).join('');
+
+async function initHome() {
+  // Featured : premiers produits Affilae
+  var raw = await affilaeCall('list', '', 12);
+  var products = (raw && (raw.data || raw.items || (Array.isArray(raw) ? raw : []))) || [];
+  var mapped = products.map(mapAffilaeProduct);
+
+  var fg = document.getElementById('featuredGrid');
+  if (fg) fg.innerHTML = mapped.slice(0, 6).map(function(p){ return miniCard(p, 0, false); }).join('') ||
+    '<p style="color:var(--sub);font-size:.85rem;padding:.5rem">Chargement des produits…</p>';
+
+  var tg = document.getElementById('trendingGrid');
+  if (tg) tg.innerHTML = mapped.slice(6, 12).map(function(p, i){ return miniCard(p, i+1, false); }).join('') ||
+    '<p style="color:var(--sub);font-size:.85rem;padding:.5rem">Chargement des produits...</p>';
+
+  var bg = document.getElementById('bonsPlansGrid');
+  if (bg) bg.innerHTML = mapped.slice(0, 6).map(function(p){ return miniCard(p, 0, true); }).join('') ||
+    '<p style="color:var(--sub);font-size:.85rem;padding:.5rem">Chargement des produits...</p>';
 }
 initHome();
 </script>
