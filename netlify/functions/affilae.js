@@ -1,11 +1,30 @@
-const AFFILAE_TOKEN = process.env.AFFILAE_TOKEN;
-const AFFILAE_BASE = 'https://rest.affilae.com';
+// ══════════════════════════════════════════
+// HIFIND — Netlify Function
+// Interroge Supabase (base locale) au lieu
+// d'appeler Affilae à chaque requête
+// ══════════════════════════════════════════
+
+const SUPABASE_URL  = process.env.SUPABASE_URL;
+const SUPABASE_KEY  = process.env.SUPABASE_ANON_KEY;
+
+async function supabaseQuery(path) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    headers: {
+      'apikey':        SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type':  'application/json'
+    }
+  });
+  if (!res.ok) throw new Error('Supabase error ' + res.status);
+  return res.json();
+}
 
 exports.handler = async function(event) {
   const headers = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin':  '*',
     'Access-Control-Allow-Headers': 'Content-Type',
-    'Content-Type': 'application/json'
+    'Content-Type':                 'application/json',
+    'Cache-Control':                'public, max-age=300'
   };
 
   if (event.httpMethod === 'OPTIONS') {
@@ -13,38 +32,58 @@ exports.handler = async function(event) {
   }
 
   const params = event.queryStringParameters || {};
-  const action = params.action || 'search';
-  const query  = params.q || '';
-  const limit  = params.limit || '20';
-
-  let url;
-  if (action === 'list') {
-    url = AFFILAE_BASE + '/publisher/products.list?limit=' + limit;
-  } else if (action === 'feeds') {
-    url = AFFILAE_BASE + '/publisher/product-feeds.list?limit=50';
-  } else if (action === 'partnerships') {
-    url = AFFILAE_BASE + '/publisher/partnerships.list?status=accepted&limit=50';
-  } else if (action === 'me') {
-    url = AFFILAE_BASE + '/publisher/publishers.me';
-  } else {
-    url = AFFILAE_BASE + '/publisher/products.list?q=' + encodeURIComponent(query) + '&limit=' + limit;
-  }
+  const action = params.action || 'list';
+  const query  = params.q    || '';
+  const limit  = parseInt(params.limit) || 30;
+  const page   = parseInt(params.page)  || 1;
+  const offset = (page - 1) * limit;
 
   try {
-    const res = await fetch(url, {
-      headers: {
-        'Authorization': 'Bearer ' + AFFILAE_TOKEN,
-        'Content-Type': 'application/json'
-      }
-    });
+    let data;
 
-    const text = await res.text();
+    if (action === 'search' && query) {
+      data = await supabaseQuery(
+        'products?select=*,programs(title,countries)' +
+        '&or=(title.ilike.*' + encodeURIComponent(query) + '*,description.ilike.*' + encodeURIComponent(query) + '*)' +
+        '&status=eq.enabled' +
+        '&order=updated_at.desc' +
+        '&limit=' + limit +
+        '&offset=' + offset
+      );
+    } else if (action === 'product') {
+      data = await supabaseQuery(
+        'products?select=*,programs(title,countries)' +
+        '&id=eq.' + encodeURIComponent(params.id) +
+        '&limit=1'
+      );
+    } else if (action === 'history') {
+      data = await supabaseQuery(
+        'price_history?product_id=eq.' + encodeURIComponent(params.id) +
+        '&order=recorded_at.asc&limit=365'
+      );
+    } else if (action === 'programs') {
+      data = await supabaseQuery('programs?select=*&order=title.asc');
+    } else if (action === 'category') {
+      data = await supabaseQuery(
+        'products?select=*,programs(title)' +
+        '&category=eq.' + encodeURIComponent(params.cat || '') +
+        '&status=eq.enabled&order=updated_at.desc' +
+        '&limit=' + limit + '&offset=' + offset
+      );
+    } else {
+      data = await supabaseQuery(
+        'products?select=*,programs(title,countries)' +
+        '&status=eq.enabled&order=updated_at.desc' +
+        '&limit=' + limit + '&offset=' + offset
+      );
+    }
 
     return {
-      statusCode: res.status,
+      statusCode: 200,
       headers,
-      body: text
+      body: JSON.stringify({ data: data, count: Array.isArray(data) ? data.length : 0 })
     };
+
   } catch (err) {
     return {
       statusCode: 500,
