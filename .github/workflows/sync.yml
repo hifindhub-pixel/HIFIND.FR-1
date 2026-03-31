@@ -1,0 +1,24 @@
+name: Sync Affilae → Supabase
+ 
+on:
+  schedule:
+    - cron: '0 * * * *'   # toutes les heures
+  workflow_dispatch:        # déclenchement manuel possible
+ 
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+ 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+ 
+      - name: Run Affilae sync
+        run: node scripts/sync-affilae.js
+        env:
+          AFFILAE_TOKEN:       ${{ secrets.AFFILAE_TOKEN }}
+          SUPABASE_URL:        ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+ 
