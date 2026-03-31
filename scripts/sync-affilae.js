@@ -8,7 +8,7 @@ const SUPABASE_URL   = process.env.SUPABASE_URL;
 const SUPABASE_KEY   = process.env.SUPABASE_SERVICE_KEY; // service_role
 
 const AFFILAE_BASE   = 'https://rest.affilae.com';
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 20;
 
 // ── Helpers ──────────────────────────────
 
@@ -16,8 +16,12 @@ async function affilaeGet(path) {
   const res = await fetch(AFFILAE_BASE + path, {
     headers: { 'Authorization': 'Bearer ' + AFFILAE_TOKEN }
   });
-  if (!res.ok) throw new Error('Affilae error ' + res.status + ' on ' + path);
-  return res.json();
+  const text = await res.text();
+  if (!res.ok) {
+    console.error('Affilae full response:', text);
+    throw new Error('Affilae error ' + res.status + ' on ' + path);
+  }
+  return JSON.parse(text);
 }
 
 async function supabaseUpsert(table, rows) {
