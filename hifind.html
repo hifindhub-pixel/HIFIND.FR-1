@@ -412,7 +412,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
     <div class="hero-orb hero-orb2"></div>
     <div class="hero-inner">
       <h1 class="fade-up">Des milliers d'offres.<br><span class="ac">Un seul endroit.</span></h1>
-      <p class="hero-sub fade-up" style="animation-delay:.08s">Trouvez les meilleures offres parmi des milliers de marchands. Amazon, Fnac, Cdiscount, Darty et bien plus.</p>
+      <p class="hero-sub fade-up" style="animation-delay:.08s">Trouvez les meilleures offres au meilleur prix. Comparez Amazon, Maxitabs et bien plus.</p>
       <div class="search-wrap fade-up" style="animation-delay:.16s">
         <div class="search-box">
           <div class="search-box-inner">
@@ -510,10 +510,10 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
     <div class="footer-inner">
       <div><div class="footer-brand">HiFind</div><p class="footer-desc">Le comparateur de prix qui vous fait vraiment économiser.</p></div>
       <div class="footer-col"><h4>Catégories</h4><a onclick="searchFor('iphone')">Smartphones</a><a onclick="searchFor('tv')">TV & Audio</a><a onclick="searchFor('macbook')">Ordinateurs</a><a onclick="searchFor('ps5')">Jeux vidéo</a></div>
-      <div class="footer-col"><h4>HiFind</h4><a onclick="showPage('about')">À propos</a><a>Contact</a><a>CGU</a><a>Confidentialité</a></div>
+      <div class="footer-col"><h4>HiFind</h4><a onclick="showPage('about')">À propos</a><a onclick="showPage('mentions')">Mentions légales</a><a onclick="showPage('cgu')">CGU</a><a onclick="showPage('privacy')">Confidentialité</a></div>
       <div class="footer-col"><h4>Suivez-nous</h4><a>Twitter</a><a>Facebook</a><a>Instagram</a></div>
     </div>
-    <div class="footer-bottom">© 2025 HiFind · Certains liens sont des liens d'affiliation · 100% gratuit</div>
+    <div class="footer-bottom">© 2025 HiFind · Certains liens sont des <a onclick="showPage('mentions')" style="color:var(--coral);cursor:pointer;">liens d'affiliation</a> · <a onclick="showPage('mentions')" style="color:var(--coral);cursor:pointer;">Mentions légales</a> · <a onclick="showPage('cgu')" style="color:var(--coral);cursor:pointer;">CGU</a> · <a onclick="showPage('privacy')" style="color:var(--coral);cursor:pointer;">Confidentialité</a></div>
   </footer>
 </div>
 
@@ -628,7 +628,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
     <div class="footer-inner">
       <div><div class="footer-brand">HiFind</div><p class="footer-desc">Le comparateur de prix qui vous fait vraiment économiser.</p></div>
       <div class="footer-col"><h4>Catégories</h4><a onclick="searchFor('iphone')">Smartphones</a><a onclick="searchFor('tv')">TV & Audio</a><a onclick="searchFor('macbook')">Ordinateurs</a></div>
-      <div class="footer-col"><h4>HiFind</h4><a onclick="showPage('about')">À propos</a><a>Contact</a><a>CGU</a><a>Confidentialité</a></div>
+      <div class="footer-col"><h4>HiFind</h4><a onclick="showPage('about')">À propos</a><a onclick="showPage('mentions')">Mentions légales</a><a onclick="showPage('cgu')">CGU</a><a onclick="showPage('privacy')">Confidentialité</a></div>
     </div>
     <div class="footer-bottom">© 2025 HiFind · Certains liens sont des liens d'affiliation</div>
   </footer>
@@ -674,6 +674,99 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
   </div>
 </div>
 
+<!-- ══════ MENTIONS LÉGALES ══════ -->
+<div id="page-mentions" class="page">
+  <div class="page-hdr"><div class="page-hdr-inner"><button class="page-hdr-back" onclick="showPage('home')">←</button><div class="page-hdr-icon">📄</div><div><div class="page-hdr-title outfit">Mentions légales</div></div></div></div>
+  <div style="max-width:860px;margin:0 auto;padding:2rem 1.5rem;">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2rem;line-height:1.8;font-size:.9rem;color:var(--sub);">
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:1rem;">Éditeur du site</h2>
+      <p>Le site <strong style="color:var(--text);">HiFind.fr</strong> est édité par :<br>
+      Mohamed — Fondateur HiFind<br>
+      Site web : hifind.fr<br>
+      Contact : <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1f7c70716b7e7c6b5f77767976717b31796d">[email&#160;protected]</a></p>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">Hébergement</h2>
+      <p>Le site est hébergé par :<br>
+      <strong style="color:var(--text);">Netlify, Inc.</strong><br>
+      512 2nd Street, Suite 200, San Francisco, CA 94107, USA<br>
+      netlify.com</p>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">Activité</h2>
+      <p>HiFind.fr est un comparateur de prix en ligne. Le site agrège et compare les offres de marchands partenaires afin d'aider les utilisateurs à trouver le meilleur prix pour leurs achats.</p>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">Liens d'affiliation</h2>
+      <p>Certains liens présents sur HiFind.fr sont des liens d'affiliation. Lorsqu'un utilisateur clique sur ces liens et effectue un achat, HiFind.fr peut percevoir une commission de la part du marchand. Cela n'engendre aucun coût supplémentaire pour l'utilisateur et ne biaise pas le classement des offres présentées.</p>
+      <p>HiFind.fr est notamment membre du programme Amazon Partenaires (tag affilié : hifind05-21), un programme d'affiliation conçu pour permettre à des sites de percevoir des commissions en faisant la promotion de produits Amazon.</p>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">Propriété intellectuelle</h2>
+      <p>L'ensemble du contenu du site (textes, images, logos, structure) est la propriété de HiFind.fr ou de ses partenaires. Toute reproduction, même partielle, est interdite sans autorisation préalable.</p>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">Responsabilité</h2>
+      <p>HiFind.fr s'efforce de proposer des informations à jour et exactes. Cependant, les prix et disponibilités affichés sont fournis à titre indicatif et peuvent varier. HiFind.fr ne peut être tenu responsable des erreurs ou omissions dans les informations fournies.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ CGU ══════ -->
+<div id="page-cgu" class="page">
+  <div class="page-hdr"><div class="page-hdr-inner"><button class="page-hdr-back" onclick="showPage('home')">←</button><div class="page-hdr-icon">📋</div><div><div class="page-hdr-title outfit">Conditions Générales d'Utilisation</div></div></div></div>
+  <div style="max-width:860px;margin:0 auto;padding:2rem 1.5rem;">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2rem;line-height:1.8;font-size:.9rem;color:var(--sub);">
+      <p style="margin-bottom:1rem;"><em>Dernière mise à jour : janvier 2025</em></p>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:1rem;">1. Objet</h2>
+      <p>Les présentes CGU régissent l'utilisation du site HiFind.fr, comparateur de prix en ligne accessible à l'adresse hifind.fr. En utilisant le site, vous acceptez sans réserve les présentes conditions.</p>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">2. Description du service</h2>
+      <p>HiFind.fr est un service gratuit de comparaison de prix. Il permet aux utilisateurs de comparer les offres de différents marchands partenaires. HiFind.fr n'est pas lui-même un marchand et ne vend aucun produit directement.</p>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">3. Gratuité du service</h2>
+      <p>L'utilisation de HiFind.fr est entièrement gratuite pour les utilisateurs. Le service est financé par des commissions d'affiliation versées par les marchands partenaires lorsqu'un achat est réalisé via un lien présent sur le site.</p>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">4. Exactitude des informations</h2>
+      <p>HiFind.fr s'efforce de maintenir des informations à jour. Cependant, les prix, disponibilités et caractéristiques des produits sont susceptibles de changer sans préavis. L'utilisateur est invité à vérifier les informations directement sur le site du marchand avant tout achat.</p>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">5. Liens externes</h2>
+      <p>Le site contient des liens vers des sites tiers. HiFind.fr n'est pas responsable du contenu de ces sites ni des transactions effectuées sur ceux-ci. L'utilisateur accède aux sites tiers sous sa propre responsabilité.</p>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">6. Droit applicable</h2>
+      <p>Les présentes CGU sont soumises au droit français. Tout litige relatif à leur interprétation ou à leur exécution relève de la compétence des tribunaux français.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ CONFIDENTIALITÉ ══════ -->
+<div id="page-privacy" class="page">
+  <div class="page-hdr"><div class="page-hdr-inner"><button class="page-hdr-back" onclick="showPage('home')">←</button><div class="page-hdr-icon">🔒</div><div><div class="page-hdr-title outfit">Politique de confidentialité</div></div></div></div>
+  <div style="max-width:860px;margin:0 auto;padding:2rem 1.5rem;">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2rem;line-height:1.8;font-size:.9rem;color:var(--sub);">
+      <p style="margin-bottom:1rem;"><em>Dernière mise à jour : janvier 2025</em></p>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:1rem;">1. Données collectées</h2>
+      <p>HiFind.fr collecte uniquement les données strictement nécessaires au fonctionnement du service :</p>
+      <p>• <strong style="color:var(--text);">Données de navigation</strong> : pages visitées, termes de recherche (anonymisés)<br>
+      • <strong style="color:var(--text);">Favoris et alertes</strong> : stockés localement dans votre navigateur (localStorage), non transmis à nos serveurs<br>
+      • <strong style="color:var(--text);">Cookies</strong> : uniquement pour mémoriser vos préférences (thème clair/sombre)</p>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">2. Données non collectées</h2>
+      <p>HiFind.fr ne collecte pas votre nom, adresse email, numéro de téléphone ou toute autre donnée personnelle identifiable, sauf si vous créez un compte volontairement.</p>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">3. Cookies tiers</h2>
+      <p>Lorsque vous cliquez sur un lien affilié (Amazon, Maxitabs, etc.), ces sites déposent leurs propres cookies conformément à leurs politiques de confidentialité respectives. HiFind.fr n'a pas de contrôle sur ces cookies.</p>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">4. Vos droits (RGPD)</h2>
+      <p>Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez d'un droit d'accès, de rectification et de suppression de vos données. Pour exercer ces droits, contactez-nous à : <strong style="color:var(--coral);"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="65060a0b11040611250d0c030c0b014b0317">[email&#160;protected]</a></strong></p>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">5. Sécurité</h2>
+      <p>HiFind.fr utilise le protocole HTTPS pour sécuriser toutes les communications entre votre navigateur et notre serveur. Vos données de navigation ne sont pas partagées avec des tiers à des fins commerciales.</p>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">6. Contact</h2>
+      <p>Pour toute question relative à notre politique de confidentialité : <strong style="color:var(--coral);"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ccafa3a2b8adafb88ca4a5aaa5a2a8e2aabe">[email&#160;protected]</a></strong></p>
+    </div>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
 <script>
 // ══ THEME ══
 let theme = localStorage.getItem('hf_theme')||'dark';
@@ -682,15 +775,83 @@ function applyTheme(t){theme=t;document.documentElement.setAttribute('data-theme
 function toggleTheme(){applyTheme(theme==='dark'?'light':'dark');}
 
 // ══ DATA ══
-const MERCHANTS=[
-  {name:'Amazon',emoji:'🟠',isAmazon:true, urlTpl:(q)=>`https://www.amazon.fr/s?k=${encodeURIComponent(q)}&tag=hifind05-21`},
-  {name:'Fnac',emoji:'🟡', urlTpl:(q)=>`https://www.fnac.com/SearchResult/ResultList.aspx?Search=${encodeURIComponent(q)}`},
-  {name:'Darty',emoji:'🔵', urlTpl:(q)=>`https://www.darty.com/nav/recherche?text=${encodeURIComponent(q)}`},
-  {name:'Cdiscount',emoji:'🟢', urlTpl:(q)=>`https://www.cdiscount.com/search/10/${encodeURIComponent(q)}.html`},
-  {name:'Boulanger',emoji:'🟣', urlTpl:(q)=>`https://www.boulanger.com/resultats?tr=${encodeURIComponent(q)}`},
-  {name:'Rakuten',emoji:'🔴', urlTpl:(q)=>`https://fr.shopping.rakuten.com/search/${encodeURIComponent(q)}`},
-  {name:'Leclerc',emoji:'🟤', urlTpl:(q)=>`https://www.e.leclerc/recherche?q=${encodeURIComponent(q)}`},
-  {name:'Electro Dépôt',emoji:'⚫', urlTpl:(q)=>`https://www.electrodepot.fr/recherche?q=${encodeURIComponent(q)}`},
+// ══ AFFILAE CONFIG ══
+const AFFILAE_PUBLISHER_ID = '69c1b60a11c8631dcaad67bf';
+const AFFILAE_FN = '/.netlify/functions/affilae';
+
+// Cache partnerships
+let _partnerships = null;
+
+async function affilaeCall(action, query, limit) {
+  try {
+    let url = AFFILAE_FN + '?action=' + action;
+    if (query) url += '&q=' + encodeURIComponent(query);
+    if (limit) url += '&limit=' + limit;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch(e) { return null; }
+}
+
+async function fetchAffilaeProducts(query) {
+  // 1. Cherche dans les produits des flux
+  const data = await affilaeCall('search', query, 20);
+  if (data) {
+    const items = data.items || data.products || data.results || (Array.isArray(data) ? data : null);
+    if (items && items.length > 0) return items;
+  }
+  // 2. Fallback : liste tous les produits
+  const data2 = await affilaeCall('list', '', 50);
+  if (data2) {
+    const items2 = data2.items || data2.products || data2.results || (Array.isArray(data2) ? data2 : null);
+    if (items2 && items2.length > 0) {
+      // Filtre par query
+      return items2.filter(p => {
+        const name = (p.name || p.title || '').toLowerCase();
+        return name.includes(query.toLowerCase());
+      });
+    }
+  }
+  return null;
+}
+
+function buildAffilaeLink(item) {
+  return item.trackingUrl || item.affiliateUrl || item.affiliateLink || item.url || item.productUrl || '#';
+}
+
+function mapAffilaeProduct(item, query) {
+  const rawPrice = item.price || item.salePrice || item.regularPrice || 0;
+  const price = rawPrice > 10000 ? rawPrice / 100 : rawPrice;
+  const merchant = item.programName || item.advertiserName || item.merchant || item.brand || 'Partenaire';
+  return {
+    id: 'af_' + (item._id || item.id || Math.random().toString(36).slice(2)),
+    name: item.name || item.title || query,
+    brand: item.brand || merchant,
+    cat: item.category || item.categoryName || 'Général',
+    img: item.imageUrl || item.image || item.imageLink || item.picture || null,
+    basePrice: price,
+    rating: item.rating || 4.5,
+    reviews: item.reviewCount || item.reviews || 0,
+    offers: [{
+      merchant: merchant,
+      emoji: '🏷️',
+      isAmazon: false,
+      price: price,
+      shipping: item.shippingCost || item.shipping || 0,
+      total: price + (item.shippingCost || item.shipping || 0),
+      stock: item.availability || item.inStock ? 'En stock' : 'En stock',
+      url: buildAffilaeLink(item)
+    }],
+    get bestPrice(){ return this.offers[0].price; },
+    get bestMerchant(){ return this.offers[0].merchant; },
+    get numOffers(){ return this.offers.length; },
+    get minPrice(){ return this.offers[0].price; },
+    get maxPrice(){ return this.offers[0].price; }
+  };
+}
+
+const MERCHANTS = [
+  { name:'Amazon', emoji:'🟠', isAmazon:true, urlTpl:(q)=>'https://www.amazon.fr/s?k='+encodeURIComponent(q)+'&tag=hifind05-21' }
 ];
 const SUGGESTIONS=['iPhone 15 Pro','iPhone 15','Samsung Galaxy S24','MacBook Air M3','PS5','Nintendo Switch OLED','AirPods Pro','Sony WH-1000XM5','Dyson V15','iPad Pro','LG OLED TV','Nike Air Max','Dior Sauvage','LEGO Technic','Nespresso','Casque Bluetooth','Montre connectée','Vélo électrique','Aspirateur robot','Parfum femme','Collier chien','Siège auto enfant','Kit entretien voiture','Sac à main','Accessoires iPhone'];
 const CATALOG={
@@ -704,7 +865,7 @@ const CATALOG={
     {name:'Samsung Galaxy S24 Ultra 256Go',brand:'Samsung',cat:'Multimedia',price:1469,rating:4.7,reviews:892,img:'https://m.media-amazon.com/images/I/71lSPMNVfcL._AC_SL500_.jpg'},
     {name:'Samsung Galaxy S24+ 256Go',brand:'Samsung',cat:'Multimedia',price:1169,rating:4.6,reviews:534,img:'https://m.media-amazon.com/images/I/71Y0E9fXOaL._AC_SL500_.jpg'},
     {name:'Samsung Galaxy S24 128Go',brand:'Samsung',cat:'Multimedia',price:899,rating:4.5,reviews:421,img:'https://m.media-amazon.com/images/I/71kPwrhpSeL._AC_SL500_.jpg'},
-    {name:'Samsung Galaxy A55 5G 128Go',brand:'Samsung',cat:'Multimedia',price:499,rating:4.3,reviews:310,img:'https://m.media-amazon.com/images/I/71Pg1hGn+fL._AC_SL500_.jpg'},
+    {name:'Samsung Galaxy A55 5G 128Go',brand:'Samsung',cat:'Multimedia',price:499,rating:4.3,reviews:310,img:'https://m.media-amazon.com/images/I/71Pg1hGn%2BfL._AC_SL500_.jpg'},
   ],
   macbook:[
     {name:'MacBook Pro 14" M3 Pro 512Go',brand:'Apple',cat:'Multimedia',price:2399,rating:4.9,reviews:641,img:'https://m.media-amazon.com/images/I/61lYIKPieDL._AC_SL500_.jpg'},
@@ -732,13 +893,13 @@ const CATALOG={
   ],
   aspirateur:[
     {name:'Dyson V15 Detect Absolute',brand:'Dyson',cat:'Maison',price:699,rating:4.7,reviews:892,img:'https://m.media-amazon.com/images/I/61CNvfCjPTL._AC_SL500_.jpg'},
-    {name:'Dyson V12 Detect Slim',brand:'Dyson',cat:'Maison',price:549,rating:4.6,reviews:634,img:'https://m.media-amazon.com/images/I/61+wm3hGKmL._AC_SL500_.jpg'},
-    {name:'iRobot Roomba j9+',brand:'iRobot',cat:'Maison',price:899,rating:4.5,reviews:441,img:'https://m.media-amazon.com/images/I/61oKUWQAh+L._AC_SL500_.jpg'},
+    {name:'Dyson V12 Detect Slim',brand:'Dyson',cat:'Maison',price:549,rating:4.6,reviews:634,img:'https://m.media-amazon.com/images/I/61%2Bwm3hGKmL._AC_SL500_.jpg'},
+    {name:'iRobot Roomba j9+',brand:'iRobot',cat:'Maison',price:899,rating:4.5,reviews:441,img:'https://m.media-amazon.com/images/I/61oKUWQAh%2BL._AC_SL500_.jpg'},
   ],
   nike:[
     {name:'Nike Air Max 90',brand:'Nike',cat:'Mode',price:149,rating:4.5,reviews:2341,img:'https://m.media-amazon.com/images/I/71OmTNApUCL._AC_SL500_.jpg'},
     {name:'Nike Air Force 1 07',brand:'Nike',cat:'Mode',price:119,rating:4.6,reviews:3102,img:'https://m.media-amazon.com/images/I/61lNzVWjyhL._AC_SL500_.jpg'},
-    {name:'Nike Dunk Low',brand:'Nike',cat:'Mode',price:109,rating:4.5,reviews:1876,img:'https://m.media-amazon.com/images/I/71mNDlV7+QL._AC_SL500_.jpg'},
+    {name:'Nike Dunk Low',brand:'Nike',cat:'Mode',price:109,rating:4.5,reviews:1876,img:'https://m.media-amazon.com/images/I/71mNDlV7%2BQL._AC_SL500_.jpg'},
   ],
   switch:[
     {name:'Nintendo Switch OLED',brand:'Nintendo',cat:'Multimedia',price:349,rating:4.8,reviews:4231,img:'https://m.media-amazon.com/images/I/61TYfPWCXhL._SL500_.jpg'},
@@ -849,7 +1010,8 @@ function showSuggestions(id, val){
   const matches=SUGGESTIONS.filter(s=>s.toLowerCase().includes(val.toLowerCase())).slice(0,6);
   if(!matches.length){el.classList.add('hidden');return;}
   el.innerHTML=matches.map(s=>{
-    const hl=s.replace(new RegExp('('+val+')','gi'),'<strong>$1</strong>');
+    const idx=s.toLowerCase().indexOf(val.toLowerCase());
+    const hl = idx>=0 ? s.slice(0,idx)+'<strong>'+s.slice(idx,idx+val.length)+'</strong>'+s.slice(idx+val.length) : s;
     return `<div class="suggestion-item" onclick="searchFor('${s}')"><span class="suggestion-icon">🔍</span><span class="suggestion-text">${hl}</span></div>`;
   }).join('');
   el.classList.remove('hidden');
@@ -870,10 +1032,25 @@ function searchFor(q){document.getElementById('spInput').value=q;showPage('searc
 function doHeroSearch(){const q=document.getElementById('heroInput').value.trim();if(q)searchFor(q);}
 function doSpSearch(){const q=document.getElementById('spInput').value.trim();if(q)runSearch(q);}
 
-function runSearch(q){
-  lastQuery=q;
-  document.getElementById('resultsContainer').innerHTML='<div class="spinner"><div class="spin"></div><p class="spin-lbl">Recherche des meilleures offres...</p></div>';
-  setTimeout(()=>{currentResults=doSearch(q);sortResults();},500);
+async function runSearch(q){
+  lastQuery = q;
+  const container = document.getElementById('resultsContainer');
+  container.innerHTML = '<div class="spinner"><div class="spin"></div><p class="spin-lbl">Recherche en cours...</p></div>';
+
+  const affilaeItems = await fetchAffilaeProducts(q);
+
+  if (affilaeItems && affilaeItems.length > 0) {
+    currentResults = affilaeItems.map(item => mapAffilaeProduct(item, q));
+  } else {
+    // Fallback catalogue mock si API ne répond pas / aucun résultat
+    currentResults = doSearch(q);
+    if (currentResults.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun produit trouvé</div><div class="empty-sub">Essayez avec d\'autres termes de recherche.</div></div>';
+      return;
+    }
+  }
+
+  sortResults();
 }
 
 function sortResults(){
@@ -925,7 +1102,7 @@ function pcardHTML(p){
       </div>
       <div class="offer-price-col">
         <div class="offer-price">${o.price.toLocaleString('fr-FR')} €</div>
-        ${o.shipping>0?`<div class="offer-total">Total : ${o.total.toLocaleString('fr-FR')} €</div>`:''}
+        ${o.shipping>0?('<div class="offer-total">Total : '+o.total.toLocaleString('fr-FR')+' €</div>'):''}
       </div>
       <a href="${o.url}" target="_blank" rel="noopener"><button class="offer-btn ${i===0?'b':'n'}">Voir ↗</button></a>
     </div>`).join('');
@@ -982,7 +1159,7 @@ function pcardHTML(p){
       ${offersHTML}
       ${rest.length?`<button class="show-more-btn" onclick="toggleExtra(this,'ex-${p.id}')">▼ Voir ${rest.length} offre${rest.length>1?'s':''} de plus</button><div id="ex-${p.id}" class="hidden">${extraHTML}</div>`:''}
     </div>
-    <div class="mock-note">⚠️ Données de démonstration — Les vraies offres seront affichées une fois les APIs connectées</div>
+
   </div>`;
 }
 
@@ -1017,7 +1194,7 @@ function renderDetail(p){
       </div>
       <div class="offer-price-col">
         <div class="offer-price">${o.price.toLocaleString('fr-FR')} €</div>
-        ${o.shipping>0?`<div class="offer-total">Total : ${o.total.toLocaleString('fr-FR')} €</div>`:''}
+        ${o.shipping>0?('<div class="offer-total">Total : '+o.total.toLocaleString('fr-FR')+' €</div>'):''}
       </div>
       <a href="${o.url}" target="_blank" rel="noopener"><button class="offer-btn ${i===0?'b':'n'}">Voir l'offre ↗</button></a>
     </div>`).join('');
@@ -1026,8 +1203,8 @@ function renderDetail(p){
     <div class="detail-grid">
       <div class="detail-left">
         ${p.img
-          ? `<img src="${p.img}" alt="${p.name}" style="width:200px;height:200px;object-fit:contain;">`
-          : `<div style="font-size:7rem;line-height:1;">📦</div>`
+          ? '<img src="'+p.img+'" alt="'+p.name+'" style="width:200px;height:200px;object-fit:contain;">'
+          : '<div style="font-size:7rem;line-height:1;">📦</div>'
         }
         <div class="detail-badges">
           <span class="detail-badge hot">🔥 En promotion</span>
@@ -1079,8 +1256,7 @@ function renderDetail(p){
     <div class="all-offers-section">
       <div class="all-offers-head">🏪 Toutes les offres (${p.numOffers})</div>
       ${allOffersHTML}
-    </div>
-    <div class="mock-note" style="border-radius:12px;margin-top:1rem;">⚠️ Données de démonstration — Historique et offres simulés</div>`;
+    </div>`;
 
   setTimeout(()=>renderChart(hist30),100);
 }
@@ -1103,7 +1279,7 @@ function renderChart(hist){
     },
     options:{
       responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.raw.toLocaleString('fr-FR')} €`},backgroundColor:isDark?'#1e293b':'#fff',titleColor:isDark?'#f1f5f9':'#0f172a',bodyColor:isDark?'#94a3b8':'#64748b',borderColor:'rgba(255,107,107,.3)',borderWidth:1}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.raw.toLocaleString('fr-FR')+' \u20ac';}},backgroundColor:isDark?'#1e293b':'#fff',titleColor:isDark?'#f1f5f9':'#0f172a',bodyColor:isDark?'#94a3b8':'#64748b',borderColor:'rgba(255,107,107,.3)',borderWidth:1}},
       scales:{
         x:{grid:{color:isDark?'rgba(255,255,255,.04)':'rgba(0,0,0,.04)'},ticks:{color:isDark?'#64748b':'#94a3b8',font:{size:10},maxTicksLimit:8}},
         y:{grid:{color:isDark?'rgba(255,255,255,.04)':'rgba(0,0,0,.04)'},ticks:{color:isDark?'#64748b':'#94a3b8',font:{size:10},callback:v=>v.toLocaleString('fr-FR')+' €'}}
@@ -1127,7 +1303,7 @@ function toggleFav(id){
   if(idx>=0)favorites.splice(idx,1);
   else{const p=currentResults.find(x=>x.id===id)||[currentProduct].find(x=>x&&x.id===id);if(p)favorites.push(p);}
   localStorage.setItem('hf_favs',JSON.stringify(favorites));
-  const btn=document.querySelector(`#pc-${id} .pcard-fav`);
+  const el2=document.getElementById('pc-'+id);const btn=el2?el2.querySelector('.pcard-fav'):null;
   const on=favorites.some(f=>f.id===id);
   if(btn){btn.className='pcard-fav'+(on?' on':'');btn.textContent=on?'❤️':'🤍';}
 }
@@ -1163,76 +1339,41 @@ function renderAlerts(){
   const cnt=document.getElementById('alertCount');
   cnt.textContent=alerts.length+' alerte'+(alerts.length!==1?'s':'')+' active'+(alerts.length!==1?'s':'');
   if(!alerts.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-title">Aucune alerte</div><div class="empty-sub">Créez une alerte pour être notifié quand un prix baisse.</div></div>';return;}
-  c.innerHTML=alerts.map(a=>`
-    <div class="alert-item">
-      <div><div class="alert-item-q">${a.query}</div><div class="alert-item-p">${a.price?'Prix cible : '+a.price.toLocaleString('fr-FR')+' €':'Toute baisse de prix'} · ${a.date}</div></div>
-      <button class="alert-del" onclick="deleteAlert('${a.id}')">🗑️</button>
-    </div>`).join('');
+  c.innerHTML=alerts.map(a=>'<div class="alert-item"><div><div class="alert-item-q">'+a.query+'</div><div class="alert-item-p">'+(a.price?'Prix cible : '+a.price.toLocaleString('fr-FR')+' €':'Toute baisse de prix')+' · '+a.date+'</div></div><button class="alert-del" onclick="deleteAlert(\''+a.id+'\')">🗑️</button></div>').join('');
 }
 
 // ══ HOME GRIDS ══
+function miniCard(p, rank){
+  var im = p.img ? '<img src="'+p.img+'" alt="'+p.name.replace(/'/g,"&#39;")+'">' : '';
+  var rankBadge = rank ? '<span class="prod-mini-rank">N°'+rank+'</span>' : '';
+  var dealBadge = p.deal ? '<span class="prod-mini-deal">Bon plan</span>' : '';
+  var reviews = p.reviews ? ' ('+p.reviews.toLocaleString('fr-FR')+')' : '';
+  var safeName = p.name.replace(/'/g,"&#39;");
+  return '<div class="prod-mini" onclick="searchFor(&quot;'+safeName+'&quot;)">'+
+    '<div class="prod-mini-img">'+im+rankBadge+dealBadge+'</div>'+
+    '<div class="prod-mini-body">'+
+      '<div class="prod-mini-brand">'+p.brand+'</div>'+
+      '<div class="prod-mini-name">'+p.name+'</div>'+
+      '<div class="prod-mini-from">à partir de</div>'+
+      '<div class="prod-mini-price">'+p.bestPrice.toLocaleString('fr-FR')+' €</div>'+
+      '<div class="prod-mini-meta">'+
+        '<span class="prod-mini-offers">'+p.numOffers+' offres</span>'+
+        '<span class="prod-mini-rating"><span class="prod-mini-stars">★</span>'+p.rating+reviews+'</span>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
 function initHome(){
-  const featured=doSearch('iphone').slice(0,6);
-  const trending=doSearch('samsung').slice(0,6);
-  document.getElementById('featuredGrid').innerHTML=featured.map(p=>`
-    <div class="prod-mini" onclick="searchFor('${p.name}')">
-      <div class="prod-mini-img">
-        ${p.img?`<img src="${p.img}" alt="${p.name}" onerror="this.parentElement.innerHTML='📱'">`:'📦'}
-      </div>
-      <div class="prod-mini-body">
-        <div class="prod-mini-brand">${p.brand}</div>
-        <div class="prod-mini-name">${p.name}</div>
-        <div class="prod-mini-from">à partir de</div>
-        <div class="prod-mini-price">${p.bestPrice.toLocaleString('fr-FR')} €</div>
-        <div class="prod-mini-meta">
-          <span class="prod-mini-offers">${p.numOffers} offres</span>
-          <span class="prod-mini-rating"><span class="prod-mini-stars">★</span>${p.rating} (${p.reviews.toLocaleString('fr-FR')})</span>
-        </div>
-      </div>
-    </div>`).join('');
-  document.getElementById('trendingGrid').innerHTML=trending.map((p,i)=>`
-    <div class="prod-mini" onclick="searchFor('${p.name}')">
-      <div class="prod-mini-img">
-        ${p.img?`<img src="${p.img}" alt="${p.name}" onerror="this.parentElement.innerHTML='📱'">`:'📦'}
-        <span class="prod-mini-rank">N°${i+1}</span>
-      </div>
-      <div class="prod-mini-body">
-        <div class="prod-mini-brand">${p.brand}</div>
-        <div class="prod-mini-name">${p.name}</div>
-        <div class="prod-mini-from">à partir de</div>
-        <div class="prod-mini-price">${p.bestPrice.toLocaleString('fr-FR')} €</div>
-        <div class="prod-mini-meta">
-          <span class="prod-mini-offers">${p.numOffers} offres</span>
-          <span class="prod-mini-rating"><span class="prod-mini-stars">★</span>${p.rating}</span>
-        </div>
-      </div>
-    </div>`).join('');
-
-  // Bons plans (produits avec le plus grand écart de prix)
-  const bonsPlansSrc = [
-    ...doSearch('airpods'),
-    ...doSearch('parfum'),
-    ...doSearch('jouets'),
-    ...doSearch('casque'),
-  ].sort((a,b)=>b.numOffers-a.numOffers).slice(0,6);
-  const bpGrid = document.getElementById('bonsPlansGrid');
-  if(bpGrid) bpGrid.innerHTML=bonsPlansSrc.map(p=>`
-    <div class="prod-mini" onclick="searchFor('${p.name}')">
-      <div class="prod-mini-img">
-        ${p.img?`<img src="${p.img}" alt="${p.name}" onerror="this.parentElement.innerHTML='🏷️'">`:'🏷️'}
-        <span class="prod-mini-deal">Bon plan</span>
-      </div>
-      <div class="prod-mini-body">
-        <div class="prod-mini-brand">${p.brand}</div>
-        <div class="prod-mini-name">${p.name}</div>
-        <div class="prod-mini-from">à partir de</div>
-        <div class="prod-mini-price">${p.bestPrice.toLocaleString('fr-FR')} €</div>
-        <div class="prod-mini-meta">
-          <span class="prod-mini-offers">${p.numOffers} offres</span>
-          <span class="prod-mini-rating"><span class="prod-mini-stars">★</span>${p.rating}</span>
-        </div>
-      </div>
-    </div>`).join('');
+  var featured=doSearch('iphone').slice(0,6);
+  var trending=doSearch('samsung').slice(0,6);
+  var bonsSrc=[...doSearch('airpods'),...doSearch('parfum'),...doSearch('jouets'),...doSearch('casque')].sort(function(a,b){return b.numOffers-a.numOffers;}).slice(0,6);
+  bonsSrc.forEach(function(p){p.deal=true;});
+  var fg=document.getElementById('featuredGrid');
+  if(fg) fg.innerHTML=featured.map(function(p){return miniCard(p,0);}).join('');
+  var tg=document.getElementById('trendingGrid');
+  if(tg) tg.innerHTML=trending.map(function(p,i){return miniCard(p,i+1);}).join('');
+  var bg=document.getElementById('bonsPlansGrid');
+  if(bg) bg.innerHTML=bonsSrc.map(function(p){return miniCard(p,0);}).join('');
 }
 initHome();
 </script>
