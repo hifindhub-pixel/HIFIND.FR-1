@@ -17,10 +17,7 @@ jobs:
       - name: Run sync
         run: node scripts/sync-affilae.js
         env:
-          AFFILAE_TOKEN:        ${{ secrets.AFFILAE_TOKEN }}
-          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-          RAKUTEN_TOKEN:        ${{ secrets.RAKUTEN_TOKEN }}
-          RAKUTEN_CLIENT_ID:    ${{ secrets.RAKUTEN_CLIENT_ID }}
-          RAKUTEN_SECRET:       ${{ secrets.RAKUTEN_SECRET }}
-          RAKUTEN_SID:          ${{ secrets.RAKUTEN_SID }}
+          AFFILAE_TOKEN:         ${{ secrets.AFFILAE_TOKEN }}
+          SUPABASE_URL:          ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY:  ${{ secrets.SUPABASE_SERVICE_KEY }}
+          RAKUTEN_ACCESS_TOKEN:  ${{ secrets.RAKUTEN_ACCESS_TOKEN }}
