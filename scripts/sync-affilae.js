@@ -219,58 +219,188 @@ syncAll().catch(err => { console.error('❌ Sync failed:', err.message); process
 // RAKUTEN — Sync complémentaire
 // ══════════════════════════════════════════
 const RAKUTEN_ACCESS_TOKEN = process.env.RAKUTEN_ACCESS_TOKEN;
-const RAKUTEN_BASE         = 'https://api.rakutenadvertising.com';
+
+async function tryRakutenEndpoint(url, token) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Accept': 'application/json'
+      },
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    const text = await res.text();
+    console.log('Rakuten [' + url + '] status:', res.status, text.slice(0, 200));
+    return { status: res.status, text };
+  } catch(e) {
+    console.log('Rakuten [' + url + '] error:', e.message);
+    return null;
+  }
+}
 
 async function syncRakuten() {
   console.log('🔄 Starting Rakuten sync...');
-
   if (!RAKUTEN_ACCESS_TOKEN) {
     console.log('⚠️ RAKUTEN_ACCESS_TOKEN missing — skipping');
     return;
   }
 
-  try {
-    // Test avec l'endpoint advertisers
-    const res = await fetch(RAKUTEN_BASE + '/publishers/advertisers/approved', {
-      headers: {
-        'Authorization': 'Bearer ' + RAKUTEN_ACCESS_TOKEN,
-        'Accept': 'application/json'
-      }
-    });
+  // Test plusieurs endpoints possibles
+  const endpoints = [
+    'https://api.rakutenadvertising.com/v1/publishers/advertisers/approved',
+    'https://api.rakutenadvertising.com/publishers/advertisers/approved',
+    'https://ran-reporting.rakutenmarketing.com/en/reports/advertisers/filters',
+  ];
 
-    const text = await res.text();
-    console.log('Rakuten status:', res.status);
-    console.log('Rakuten response:', text.slice(0, 300));
+  for (const url of endpoints) {
+    const result = await tryRakutenEndpoint(url, RAKUTEN_ACCESS_TOKEN);
+    if (result && result.status === 200) {
+      try {
+        const data = JSON.parse(result.text);
+        const advertisers = data.data || data.advertisers || data || [];
+        if (Array.isArray(advertisers) && advertisers.length > 0) {
+          const programs = advertisers.map(adv => ({
+            id:         'rakuten_' + (adv.advertiserId || adv.mid || adv.id || Math.random().toString(36).slice(2)),
+            title:      adv.advertiserName || adv.name || 'Rakuten Partner',
+            categories: [],
+            countries:  ['FR'],
+            updated_at: new Date().toISOString()
+          }));
+          await supabaseUpsert('programs', programs);
+          console.log('✅ Rakuten programs:', programs.length);
+          return;
+        }
+      } catch(e) {}
+    }
+  }
+  console.log('⚠️ Rakuten — no valid endpoint found');
+}
 
-    if (!res.ok) return;
 
+// ══════════════════════════════════════════
+// EFFINITY — Sync multi-flux produits
+// Secret EFFINITY_FEEDS = JSON array
+// ══════════════════════════════════════════
+const EFFINITY_FEEDS_JSON = process.env.EFFINITY_FEEDS;
+
+async function parseProductFeed(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Feed error ' + res.status);
+  const text = await res.text();
+
+  if (text.trim().startsWith('[') || text.trim().startsWith('{')) {
     const data = JSON.parse(text);
-    const advertisers = data.data || data.advertisers || data || [];
-    console.log('✅ Rakuten advertisers:', Array.isArray(advertisers) ? advertisers.length : 'unknown');
+    return Array.isArray(data) ? data : (data.products || data.items || data.data || []);
+  }
 
-    if (Array.isArray(advertisers) && advertisers.length > 0) {
-      const programs = advertisers.map(adv => ({
-        id:         'rakuten_' + (adv.advertiserId || adv.id || Math.random().toString(36).slice(2)),
-        title:      adv.advertiserName || adv.name || 'Rakuten Partner',
+  if (text.trim().startsWith('<')) {
+    const items = text.match(/<item[^>]*>([\s\S]*?)<\/item>/gi) ||
+                  text.match(/<product[^>]*>([\s\S]*?)<\/product>/gi) || [];
+    return items.map(item => {
+      const get = tag => {
+        const m = item.match(new RegExp('<' + tag + '[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/' + tag + '>|<' + tag + '[^>]*>([\\s\\S]*?)<\\/' + tag + '>', 'i'));
+        return m ? (m[1] || m[2] || '').trim() : '';
+      };
+      return {
+        title:       get('title') || get('name'),
+        description: get('description') || get('description_short'),
+        price:       parseFloat(get('price') || get('sale_price') || '0'),
+        url:         get('link') || get('url') || get('product_url'),
+        image_url:   get('image_link') || get('image') || get('image_url'),
+        category:    get('google_product_category') || get('category') || '',
+        brand:       get('brand') || '',
+      };
+    });
+  }
+
+  // CSV
+  const lines = text.split('\n').filter(l => l.trim());
+  const sep = lines[0].includes(';') ? ';' : ',';
+  const headers = lines[0].split(sep).map(h => h.trim().replace(/"/g,'').toLowerCase());
+  return lines.slice(1).map(line => {
+    const vals = line.split(sep).map(v => v.trim().replace(/^"|"$/g,''));
+    const obj = {};
+    headers.forEach((h,i) => obj[h] = vals[i] || '');
+    return {
+      title:       obj.title || obj.name || '',
+      description: obj.description || '',
+      price:       parseFloat(obj.price || obj.sale_price || '0'),
+      url:         obj.link || obj.url || '',
+      image_url:   obj.image_link || obj.image || '',
+      category:    obj.category || '',
+      brand:       obj.brand || '',
+    };
+  });
+}
+
+async function syncEffinity() {
+  console.log('🔄 Starting Effinity sync...');
+  if (!EFFINITY_FEEDS_JSON) {
+    console.log('⚠️ EFFINITY_FEEDS missing — skipping');
+    return;
+  }
+
+  let feeds;
+  try {
+    feeds = JSON.parse(EFFINITY_FEEDS_JSON);
+  } catch(e) {
+    console.log('❌ EFFINITY_FEEDS invalid JSON:', e.message);
+    return;
+  }
+
+  for (const feed of feeds) {
+    try {
+      console.log('  → Syncing', feed.name, '...');
+      const products = await parseProductFeed(feed.url);
+      console.log('  ✅', feed.name, ':', products.length, 'products');
+
+      const programId = 'effinity_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+      await supabaseUpsert('programs', [{
+        id:         programId,
+        title:      feed.name,
         categories: [],
         countries:  ['FR'],
         updated_at: new Date().toISOString()
-      }));
-      await supabaseUpsert('programs', programs);
-      console.log('✅ Rakuten programs upserted:', programs.length);
+      }]);
+
+      const mapped = products
+        .filter(p => p.title && p.url)
+        .map((p, i) => ({
+          id:          programId + '_' + i,
+          affilae_id:  programId + '_' + i,
+          program_id:  programId,
+          title:       p.title,
+          description: p.description || null,
+          price:       p.price || null,
+          currency:    'EUR',
+          url:         feed.tracking || p.url,
+          tracking_id: null,
+          image_url:   p.image_url || null,
+          category:    detectCategory(Object.assign(p, { program: { title: feed.name } })),
+          lang:        'fr',
+          status:      'enabled',
+          updated_at:  new Date().toISOString()
+        }));
+
+      for (let i = 0; i < mapped.length; i += 50) {
+        await supabaseUpsert('products', mapped.slice(i, i + 50));
+      }
+      console.log('  ✅', feed.name, 'upserted:', mapped.length);
+
+    } catch(e) {
+      console.log('  ⚠️', feed.name, 'error:', e.message);
     }
-  } catch(e) {
-    console.log('⚠️ Rakuten error:', e.message);
   }
 }
 
 async function syncAll() {
   await sync();
-  try {
-    await syncRakuten();
-  } catch(e) {
-    console.log('⚠️ Rakuten sync skipped:', e.message);
-  }
+  try { await syncRakuten(); } catch(e) { console.log('⚠️ Rakuten skipped:', e.message); }
+  try { await syncEffinity(); } catch(e) { console.log('⚠️ Effinity skipped:', e.message); }
   console.log('🎉 All syncs complete!');
 }
 
