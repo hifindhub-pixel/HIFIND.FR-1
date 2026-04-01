@@ -221,71 +221,73 @@ syncAll().catch(err => { console.error('❌ Sync failed:', err.message); process
 const RAKUTEN_TOKEN     = process.env.RAKUTEN_TOKEN;
 const RAKUTEN_CLIENT_ID = process.env.RAKUTEN_CLIENT_ID;
 const RAKUTEN_SECRET    = process.env.RAKUTEN_SECRET;
+const RAKUTEN_SID       = process.env.RAKUTEN_SID;
 const RAKUTEN_BASE      = 'https://api.rakutenmarketing.com';
 
 async function getRakutenAccessToken() {
-  const credentials = Buffer.from(RAKUTEN_CLIENT_ID + ':' + RAKUTEN_SECRET).toString('base64');
-  const res = await fetch(RAKUTEN_BASE + '/token', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Basic ' + credentials,
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: 'grant_type=client_credentials&scope=' + RAKUTEN_TOKEN
-  });
-  if (!res.ok) {
-    const t = await res.text();
-    console.log('Rakuten token error:', t);
+  if (!RAKUTEN_CLIENT_ID || !RAKUTEN_SECRET || !RAKUTEN_SID) {
+    console.log('⚠️ Rakuten credentials missing — skipping');
     return null;
   }
-  const data = await res.json();
-  return data.access_token;
+  const credentials = Buffer.from(RAKUTEN_CLIENT_ID + ':' + RAKUTEN_SECRET).toString('base64');
+  try {
+    const res = await fetch(RAKUTEN_BASE + '/token', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Basic ' + credentials,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'grant_type=client_credentials&scope=' + RAKUTEN_SID
+    });
+    if (!res.ok) {
+      console.log('Rakuten token error:', res.status, await res.text());
+      return null;
+    }
+    const data = await res.json();
+    return data.access_token;
+  } catch(e) {
+    console.log('Rakuten token exception:', e.message);
+    return null;
+  }
 }
 
 async function syncRakuten() {
   console.log('🔄 Starting Rakuten sync...');
-  
   const token = await getRakutenAccessToken();
-  if (!token) { console.log('❌ Rakuten auth failed'); return; }
+  if (!token) { console.log('⚠️ Rakuten skipped — no token'); return; }
 
-  // Récupère les advertisers approuvés
-  const res = await fetch(RAKUTEN_BASE + '/publishers/advertisers/approved', {
-    headers: { 'Authorization': 'Bearer ' + token }
-  });
-  
-  if (!res.ok) {
-    console.log('Rakuten advertisers error:', res.status, await res.text());
-    return;
-  }
+  try {
+    const res = await fetch(RAKUTEN_BASE + '/publishers/advertisers/approved', {
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+    });
+    if (!res.ok) {
+      console.log('Rakuten advertisers error:', res.status, await res.text());
+      return;
+    }
+    const data = await res.json();
+    const advertisers = data.data || data.advertisers || [];
+    console.log('✅ Rakuten advertisers:', advertisers.length);
 
-  const data = await res.json();
-  const advertisers = data.data || data.advertisers || [];
-  console.log('✅ Rakuten advertisers:', advertisers.length);
+    const programs = advertisers.map(adv => ({
+      id:         'rakuten_' + (adv.advertiserId || adv.id || Math.random().toString(36).slice(2)),
+      title:      adv.advertiserName || adv.name || 'Rakuten Partner',
+      categories: [],
+      countries:  ['FR'],
+      updated_at: new Date().toISOString()
+    })).filter(p => !p.id.includes('undefined'));
 
-  // Pour chaque advertiser, récupère les liens produits
-  for (const adv of advertisers.slice(0, 10)) {
-    console.log('  -', adv.advertiserName || adv.name, '| ID:', adv.advertiserId || adv.id);
-  }
-
-  // Upsert advertisers comme programmes dans Supabase
-  const programs = advertisers.map(adv => ({
-    id:         'rakuten_' + (adv.advertiserId || adv.id),
-    title:      adv.advertiserName || adv.name || 'Rakuten Partner',
-    categories: [],
-    countries:  ['FR'],
-    updated_at: new Date().toISOString()
-  })).filter(p => p.id !== 'rakuten_undefined');
-
-  if (programs.length > 0) {
-    await supabaseUpsert('programs', programs);
-    console.log('✅ Rakuten programs upserted:', programs.length);
+    if (programs.length > 0) {
+      await supabaseUpsert('programs', programs);
+      console.log('✅ Rakuten programs upserted:', programs.length);
+    }
+  } catch(e) {
+    console.log('Rakuten sync error:', e.message);
   }
 }
 
-// Lance les deux syncs
 async function syncAll() {
-  await sync();          // Affilae
-  await syncRakuten();   // Rakuten
+  await sync();
+  await syncRakuten();
   console.log('🎉 All syncs complete!');
 }
 
