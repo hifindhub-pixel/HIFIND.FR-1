@@ -1,4 +1,4 @@
-name: Sync Affilae + Rakuten → Supabase
+name: Sync Affilae + Effinity → Supabase
 
 on:
   schedule:
@@ -17,7 +17,7 @@ jobs:
       - name: Run sync
         run: node scripts/sync-affilae.js
         env:
-          AFFILAE_TOKEN:         ${{ secrets.AFFILAE_TOKEN }}
-          SUPABASE_URL:          ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY:  ${{ secrets.SUPABASE_SERVICE_KEY }}
-          RAKUTEN_ACCESS_TOKEN:  ${{ secrets.RAKUTEN_ACCESS_TOKEN }}
+          AFFILAE_TOKEN:        ${{ secrets.AFFILAE_TOKEN }}
+          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          EFFINITY_FEEDS:       ${{ secrets.EFFINITY_FEEDS }}
