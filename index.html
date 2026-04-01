@@ -799,12 +799,10 @@ async function fetchAffilaeProducts(query) {
 }
 
 function buildAffilaeLink(item) {
-  var programId  = item.program_id || (item.program && item.program.id) || '';
-  var trackingId = item.tracking_id || item.trackingId || '';
-  // Lien direct produit avec paramètre de tracking Affilae
-  var directUrl  = item.url || '#';
-  if (!directUrl || directUrl === '#') return '#';
-  // Ajoute le paramètre ae= pour le tracking Affilae
+  // Utilise le lien de tracking pré-calculé par l'API si disponible
+  if (item.tracking_url) return item.tracking_url;
+  var directUrl = item.url || '#';
+  if (directUrl === '#') return '#';
   var sep = directUrl.includes('?') ? '&' : '?';
   return directUrl + sep + 'ae=' + AFFILAE_PROFILE_ID;
 }
