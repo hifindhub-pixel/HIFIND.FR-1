@@ -801,10 +801,9 @@ async function fetchAffilaeProducts(query) {
 function buildAffilaeLink(item) {
   var programId  = item.program_id || (item.program && item.program.id) || '';
   var trackingId = item.tracking_id || item.trackingId || '';
-  // Format correct : /publisher/[programId]/[trackingId]?ae=[profileId]
+  console.log('buildAffilaeLink:', programId, trackingId, item);
   if (programId && trackingId)
     return 'https://track.affilae.com/' + programId + '/' + trackingId + '?ae=' + AFFILAE_PROFILE_ID;
-  // Fallback : lien direct produit
   return item.url || '#';
 }
 
