@@ -801,10 +801,12 @@ async function fetchAffilaeProducts(query) {
 function buildAffilaeLink(item) {
   var programId  = item.program_id || (item.program && item.program.id) || '';
   var trackingId = item.tracking_id || item.trackingId || '';
-  console.log('buildAffilaeLink:', programId, trackingId, item);
-  if (programId && trackingId)
-    return 'https://track.affilae.com/' + programId + '/' + trackingId + '?ae=' + AFFILAE_PROFILE_ID;
-  return item.url || '#';
+  // Lien direct produit avec paramètre de tracking Affilae
+  var directUrl  = item.url || '#';
+  if (!directUrl || directUrl === '#') return '#';
+  // Ajoute le paramètre ae= pour le tracking Affilae
+  var sep = directUrl.includes('?') ? '&' : '?';
+  return directUrl + sep + 'ae=' + AFFILAE_PROFILE_ID;
 }
 
 function mapAffilaeProduct(item) {
