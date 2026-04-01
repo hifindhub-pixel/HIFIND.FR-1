@@ -23,3 +23,4 @@ jobs:
           RAKUTEN_TOKEN:        ${{ secrets.RAKUTEN_TOKEN }}
           RAKUTEN_CLIENT_ID:    ${{ secrets.RAKUTEN_CLIENT_ID }}
           RAKUTEN_SECRET:       ${{ secrets.RAKUTEN_SECRET }}
+          RAKUTEN_SID:          ${{ secrets.RAKUTEN_SID }}
