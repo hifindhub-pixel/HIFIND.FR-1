@@ -752,10 +752,17 @@ async function affilaeCall(action, query, limit) {
     let url = AFFILAE_FN + '?action=' + action;
     if (query) url += '&q=' + encodeURIComponent(query);
     if (limit) url += '&limit=' + limit;
+    console.log('affilaeCall →', url);
     const res = await fetch(url);
+    console.log('affilaeCall status:', res.status);
     if (!res.ok) return null;
-    return await res.json();
-  } catch(e) { return null; }
+    const data = await res.json();
+    console.log('affilaeCall data:', data);
+    return data;
+  } catch(e) {
+    console.error('affilaeCall error:', e.message);
+    return null;
+  }
 }
 
 async function fetchAffilaeProducts(query) {
