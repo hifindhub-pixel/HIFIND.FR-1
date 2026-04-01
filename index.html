@@ -799,11 +799,12 @@ async function fetchAffilaeProducts(query) {
 }
 
 function buildAffilaeLink(item) {
-  // Supabase stocke program_id et tracking_id directement
   var programId  = item.program_id || (item.program && item.program.id) || '';
   var trackingId = item.tracking_id || item.trackingId || '';
+  // Format correct : /publisher/[programId]/[trackingId]?ae=[profileId]
   if (programId && trackingId)
     return 'https://track.affilae.com/' + programId + '/' + trackingId + '?ae=' + AFFILAE_PROFILE_ID;
+  // Fallback : lien direct produit
   return item.url || '#';
 }
 
@@ -833,7 +834,7 @@ function mapAffilaeProduct(item) {
     offers: [{
       merchant: programTitle, emoji: '🏷️', isAmazon: false,
       price: price, shipping: 0, total: price, stock: 'En stock',
-      url: buildAffilaeLink({ program: { id: progId }, trackingId: trackId, url: item.url })
+      url: buildAffilaeLink({ program_id: progId, tracking_id: trackId, url: item.url })
     }],
     get bestPrice()    { return this.offers[0].price; },
     get bestMerchant() { return this.offers[0].merchant; },
