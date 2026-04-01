@@ -218,76 +218,59 @@ syncAll().catch(err => { console.error('❌ Sync failed:', err.message); process
 // ══════════════════════════════════════════
 // RAKUTEN — Sync complémentaire
 // ══════════════════════════════════════════
-const RAKUTEN_TOKEN     = process.env.RAKUTEN_TOKEN;
-const RAKUTEN_CLIENT_ID = process.env.RAKUTEN_CLIENT_ID;
-const RAKUTEN_SECRET    = process.env.RAKUTEN_SECRET;
-const RAKUTEN_SID       = process.env.RAKUTEN_SID;
-const RAKUTEN_BASE      = 'https://api.rakutenmarketing.com';
-
-async function getRakutenAccessToken() {
-  if (!RAKUTEN_CLIENT_ID || !RAKUTEN_SECRET || !RAKUTEN_SID) {
-    console.log('⚠️ Rakuten credentials missing — skipping');
-    return null;
-  }
-  const credentials = Buffer.from(RAKUTEN_CLIENT_ID + ':' + RAKUTEN_SECRET).toString('base64');
-  try {
-    const res = await fetch(RAKUTEN_BASE + '/token', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Basic ' + credentials,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: 'grant_type=client_credentials&scope=' + RAKUTEN_SID
-    });
-    if (!res.ok) {
-      console.log('Rakuten token error:', res.status, await res.text());
-      return null;
-    }
-    const data = await res.json();
-    return data.access_token;
-  } catch(e) {
-    console.log('Rakuten token exception:', e.message);
-    return null;
-  }
-}
+const RAKUTEN_ACCESS_TOKEN = process.env.RAKUTEN_ACCESS_TOKEN;
+const RAKUTEN_BASE         = 'https://api.rakutenadvertising.com';
 
 async function syncRakuten() {
   console.log('🔄 Starting Rakuten sync...');
-  const token = await getRakutenAccessToken();
-  if (!token) { console.log('⚠️ Rakuten skipped — no token'); return; }
+
+  if (!RAKUTEN_ACCESS_TOKEN) {
+    console.log('⚠️ RAKUTEN_ACCESS_TOKEN missing — skipping');
+    return;
+  }
 
   try {
+    // Test avec l'endpoint advertisers
     const res = await fetch(RAKUTEN_BASE + '/publishers/advertisers/approved', {
-      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+      headers: {
+        'Authorization': 'Bearer ' + RAKUTEN_ACCESS_TOKEN,
+        'Accept': 'application/json'
+      }
     });
-    if (!res.ok) {
-      console.log('Rakuten advertisers error:', res.status, await res.text());
-      return;
-    }
-    const data = await res.json();
-    const advertisers = data.data || data.advertisers || [];
-    console.log('✅ Rakuten advertisers:', advertisers.length);
 
-    const programs = advertisers.map(adv => ({
-      id:         'rakuten_' + (adv.advertiserId || adv.id || Math.random().toString(36).slice(2)),
-      title:      adv.advertiserName || adv.name || 'Rakuten Partner',
-      categories: [],
-      countries:  ['FR'],
-      updated_at: new Date().toISOString()
-    })).filter(p => !p.id.includes('undefined'));
+    const text = await res.text();
+    console.log('Rakuten status:', res.status);
+    console.log('Rakuten response:', text.slice(0, 300));
 
-    if (programs.length > 0) {
+    if (!res.ok) return;
+
+    const data = JSON.parse(text);
+    const advertisers = data.data || data.advertisers || data || [];
+    console.log('✅ Rakuten advertisers:', Array.isArray(advertisers) ? advertisers.length : 'unknown');
+
+    if (Array.isArray(advertisers) && advertisers.length > 0) {
+      const programs = advertisers.map(adv => ({
+        id:         'rakuten_' + (adv.advertiserId || adv.id || Math.random().toString(36).slice(2)),
+        title:      adv.advertiserName || adv.name || 'Rakuten Partner',
+        categories: [],
+        countries:  ['FR'],
+        updated_at: new Date().toISOString()
+      }));
       await supabaseUpsert('programs', programs);
       console.log('✅ Rakuten programs upserted:', programs.length);
     }
   } catch(e) {
-    console.log('Rakuten sync error:', e.message);
+    console.log('⚠️ Rakuten error:', e.message);
   }
 }
 
 async function syncAll() {
   await sync();
-  await syncRakuten();
+  try {
+    await syncRakuten();
+  } catch(e) {
+    console.log('⚠️ Rakuten sync skipped:', e.message);
+  }
   console.log('🎉 All syncs complete!');
 }
 
