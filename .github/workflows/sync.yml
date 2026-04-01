@@ -15,7 +15,7 @@ jobs:
           node-version: '20'
 
       - name: Run sync
-        run: node scripts/sync-affilae.js
+        run:  node scripts/sync-affilae.js --fresh
         env:
           AFFILAE_TOKEN:        ${{ secrets.AFFILAE_TOKEN }}
           SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
