@@ -807,6 +807,12 @@ function buildAffilaeLink(item) {
   return directUrl + sep + 'ae=' + AFFILAE_PROFILE_ID;
 }
 
+function proxyImage(url) {
+  if (!url) return null;
+  // Proxifie via notre API pour éviter les bloqueurs de pub
+  return '/api/image?url=' + encodeURIComponent(url);
+}
+
 function mapAffilaeProduct(item) {
   // Compatible Supabase (programs join) ET Affilae direct
   var programTitle = (item.programs && item.programs.title)
@@ -815,7 +821,7 @@ function mapAffilaeProduct(item) {
   var price      = parseFloat(item.price) || 0;
   // Supabase stocke en euros, Affilae direct en centimes
   if (price > 1000 && !item.program_id) price = price / 100;
-  var img        = item.image_url || (item.images && item.images[0] && item.images[0].url) || null;
+  var img        = proxyImage(item.image_url || (item.images && item.images[0] && item.images[0].url) || null);
   var desc       = (item.description || '').replace(/<[^>]*>/g, '').trim();
   var shortDesc  = desc.length > 150 ? desc.slice(0, 150).trim() + '...' : desc;
   var trackId    = item.tracking_id || item.trackingId || '';
