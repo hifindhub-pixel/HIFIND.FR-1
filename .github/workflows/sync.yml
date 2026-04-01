@@ -1,24 +1,25 @@
-name: Sync Affilae → Supabase
- 
+name: Sync Affilae + Rakuten → Supabase
+
 on:
   schedule:
-    - cron: '0 * * * *'   # toutes les heures
-  workflow_dispatch:        # déclenchement manuel possible
- 
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
- 
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
- 
-      - name: Run Affilae sync
+
+      - name: Run sync
         run: node scripts/sync-affilae.js
         env:
-          AFFILAE_TOKEN:       ${{ secrets.AFFILAE_TOKEN }}
-          SUPABASE_URL:        ${{ secrets.SUPABASE_URL }}
+          AFFILAE_TOKEN:        ${{ secrets.AFFILAE_TOKEN }}
+          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
- 
+          RAKUTEN_TOKEN:        ${{ secrets.RAKUTEN_TOKEN }}
+          RAKUTEN_CLIENT_ID:    ${{ secrets.RAKUTEN_CLIENT_ID }}
+          RAKUTEN_SECRET:       ${{ secrets.RAKUTEN_SECRET }}
