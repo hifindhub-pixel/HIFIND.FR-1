@@ -744,7 +744,7 @@ function toggleTheme(){applyTheme(theme==='dark'?'light':'dark');}
 // AFFILAE — seule source de produits
 // ════════════════════════════════════════════
 const AFFILAE_PROFILE_ID = '69c1bc52b682a8edf3205672';
-const AFFILAE_FN         = '/.netlify/functions/affilae';
+const AFFILAE_FN         = '/api/products';
 let   _affilaeCache      = {};
 
 async function affilaeCall(action, query, limit) {
@@ -762,32 +762,39 @@ async function fetchAffilaeProducts(query) {
   var key = query.toLowerCase().trim();
   if (_affilaeCache[key]) return _affilaeCache[key];
 
-  // Charge tous les produits (l'API ne supporte pas la recherche par mot-clé)
-  var raw = await affilaeCall('list', '', 100);
-  if (!raw) return null;
+  var raw;
+  // Essaie d'abord la recherche Supabase
+  if (key) {
+    raw = await affilaeCall('search', key, 50);
+  }
+  // Si pas de résultats, charge tous les produits
+  if (!raw || !raw.data || !raw.data.length) {
+    raw = await affilaeCall('list', '', 50);
+  }
+  if (!raw || !raw.data) return null;
 
-  // Structure API : { data: [...], count: 123 }
-  var allItems = raw.data || raw.items || (Array.isArray(raw) ? raw : []);
+  var allItems = raw.data;
   if (!allItems.length) return null;
 
-  // Filtre côté client par le terme recherché
-  var filtered = allItems.filter(function(p) {
-    var title = (p.title || p.name || '').toLowerCase();
+  // Filtre côté client si on a chargé tous les produits
+  var filtered = key ? allItems.filter(function(p) {
+    var title = (p.title || '').toLowerCase();
     var desc  = (p.description || '').toLowerCase();
-    var prog  = ((p.program && p.program.title) || '').toLowerCase();
+    var prog  = ((p.programs && p.programs.title) || '').toLowerCase();
     var cat   = (p.category || '').toLowerCase();
     return title.includes(key) || desc.includes(key) || prog.includes(key) || cat.includes(key);
-  });
+  }) : allItems;
 
-  // Si aucun résultat filtré → retourne tous les produits
   var result = filtered.length > 0 ? filtered : allItems;
   _affilaeCache[key] = result;
+  console.log('fetchAffilaeProducts "'+key+'" → '+result.length+' produits');
   return result;
 }
 
 function buildAffilaeLink(item) {
-  const programId  = item.program ? item.program.id : '';
-  const trackingId = item.trackingId || '';
+  // Supabase stocke program_id et tracking_id directement
+  var programId  = item.program_id || (item.program && item.program.id) || '';
+  var trackingId = item.tracking_id || item.trackingId || '';
   if (programId && trackingId)
     return 'https://track.affilae.com/' + programId + '/' + trackingId + '?ae=' + AFFILAE_PROFILE_ID;
   return item.url || '#';
