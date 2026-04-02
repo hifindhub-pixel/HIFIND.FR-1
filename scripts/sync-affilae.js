@@ -1,4 +1,4 @@
- // HIFIND — Sync Affilae + Effinity
+// HIFIND — Sync Affilae + Effinity
 const AFFILAE_TOKEN       = process.env.AFFILAE_TOKEN;
 const SUPABASE_URL        = process.env.SUPABASE_URL;
 const SUPABASE_KEY        = process.env.SUPABASE_SERVICE_KEY;
@@ -98,18 +98,34 @@ async function syncEffinity() {
       console.log('  →', feed.name);
       const res = await fetch(feed.url);
       if (!res.ok) { console.log('  ❌', feed.name, res.status); continue; }
-      const text = await res.text();
+
+      // Décode en ISO-8859-1 pour corriger les Ã©, Ã€ etc.
+      const buffer = await res.arrayBuffer();
+      const text = new TextDecoder('iso-8859-1').decode(buffer);
+
       let products = [];
 
       if (text.trim().startsWith('<')) {
-        const items = text.match(/<item[^>]*>([\s\S]*?)<\/item>/gi) || text.match(/<product[^>]*>([\s\S]*?)<\/product>/gi) || [];
+        const items = text.match(/<item[^>]*>([\s\S]*?)<\/item>/gi) ||
+                      text.match(/<product[^>]*>([\s\S]*?)<\/product>/gi) || [];
         products = items.map(item => {
-          const get = tag => { const m = item.match(new RegExp('<'+tag+'[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</'+tag+'>','i')); return m?(m[1]||'').trim():''; };
-          return { title:get('title')||get('name'), description:get('description'), price:parseFloat(get('price')||'0'), url:get('link')||get('url'), image_url:get('image_link')||get('image') };
+          const get = tag => {
+            const m = item.match(new RegExp('<'+tag+'[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</'+tag+'>','i'));
+            return m ? (m[1]||'').trim() : '';
+          };
+          return {
+            title:       get('title') || get('name'),
+            description: get('description') || get('custom_label_0') || '',
+            price:       parseFloat(get('price') || '0'),
+            url:         get('link') || get('url'),
+            image_url:   get('image_link') || get('image'),
+            brand:       get('brand') || '',
+            feed_cat:    get('category_level2') || get('category_level1') || get('category') || get('google_product_category') || '',
+            color:       get('color') || '',
+            size:        get('size') || '',
+            product_id:  get('id') || get('item_id') || '',
+          };
         });
-      } else if (text.trim().startsWith('[') || text.trim().startsWith('{')) {
-        const data = JSON.parse(text);
-        products = Array.isArray(data) ? data : (data.products||data.items||data.data||[]);
       } else {
         const lines = text.split('\n').filter(l=>l.trim());
         const sep = lines[0].includes(';')?';':',';
@@ -117,23 +133,81 @@ async function syncEffinity() {
         products = lines.slice(1).map(line => {
           const vals = line.split(sep).map(v=>v.trim().replace(/^"|"$/g,''));
           const obj = {}; headers.forEach((h,i)=>obj[h]=vals[i]||'');
-          return { title:obj.title||obj.name, description:obj.description, price:parseFloat(obj.price||'0'), url:obj.link||obj.url, image_url:obj.image_link||obj.image };
+          return {
+            title: obj.title||obj.name, description: obj.description||obj.custom_label_0||'',
+            price: parseFloat(obj.price||'0'), url: obj.link||obj.url,
+            image_url: obj.image_link||obj.image, brand: obj.brand||'',
+            feed_cat: obj.category_level2||obj.category_level1||obj.category||'',
+            color: obj.color||'', size: obj.size||'', product_id: obj.id||obj.item_id||'',
+          };
         });
       }
+
+      // Dédoublonnage par product_id ou par titre (garde le premier)
+      const seen = new Set();
+      const unique = products.filter(p => {
+        const key = p.product_id || ((p.title||'').toLowerCase().trim() + '_' + p.price);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      console.log('  📦', feed.name, ':', products.length, 'bruts →', unique.length, 'uniques');
+
+      // Mapping catégories du flux → catégories HiFind
+      const feedCatMap = {
+        'chaussures femme':   'mode-vetements',
+        'chaussures homme':   'mode-vetements',
+        'chaussures enfant':  'mode-vetements',
+        'chaussures':         'mode-vetements',
+        'sneakers':           'mode-vetements',
+        'boots':              'mode-vetements',
+        'sandales':           'mode-vetements',
+        'soin':               'beaute-bienetre',
+        'soins':              'beaute-bienetre',
+        'semelles':           'sante-nutrition',
+        'accessoires':        'mode-vetements',
+        'sport':              'sport-outdoor',
+      };
 
       const programId = 'effinity_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
       await supabaseUpsert('programs', [{ id:programId, title:feed.name, categories:[], countries:['FR'], updated_at:new Date().toISOString() }]);
 
-      const mapped = products.filter(p=>p.title&&p.url).map((p,i) => ({
-        id: programId+'_'+i, affilae_id: programId+'_'+i, program_id: programId,
-        title: p.title, description: p.description||null, price: p.price||null,
-        currency: 'EUR', url: feed.tracking||p.url, tracking_id: null,
-        image_url: p.image_url||null, category: detectCategory({ title:p.title, description:p.description, program:{title:feed.name} }),
-        lang: 'fr', status: 'enabled', updated_at: new Date().toISOString()
-      }));
+      const mapped = unique.filter(p=>p.title&&p.url).map((p, i) => {
+        const feedCatLower = (p.feed_cat||'').toLowerCase().trim();
+        const hifindCat = feed.category ||
+          feedCatMap[feedCatLower] ||
+          Object.entries(feedCatMap).find(([k]) => feedCatLower.includes(k))?.[1] ||
+          detectCategory({ title:p.title, description:p.description, program:{title:feed.name} });
 
-      for (let i = 0; i < mapped.length; i += 50) await supabaseUpsert('products', mapped.slice(i,i+50));
-      console.log('  ✅', feed.name, ':', mapped.length, 'products');
+        return {
+          id: programId + '_' + i,
+          affilae_id: programId + '_' + i,
+          program_id: programId,
+          title: p.title,
+          description: p.description || null,
+          price: p.price || null,
+          currency: 'EUR',
+          url: feed.tracking || p.url,
+          tracking_id: null,
+          image_url: p.image_url || null,
+          category: hifindCat,
+          lang: 'fr',
+          status: 'enabled',
+          updated_at: new Date().toISOString()
+        };
+      });
+
+      for (let i = 0; i < mapped.length; i += 50) {
+        await supabaseUpsert('products', mapped.slice(i, i+50));
+      }
+      console.log('  ✅', feed.name, ':', mapped.length, 'produits uniques');
+
+      // Stats catégories
+      const cats = {};
+      mapped.forEach(p => { cats[p.category] = (cats[p.category]||0)+1; });
+      console.log('  📊', JSON.stringify(cats));
+
     } catch(e) { console.log('  ⚠️', feed.name, ':', e.message); }
   }
   console.log('🎉 Effinity done');
