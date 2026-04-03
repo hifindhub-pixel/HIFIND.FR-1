@@ -1408,10 +1408,39 @@ async function loadModeTab(cat, btn) {
 
 async function initHome() {
   loadModeTab('beaute-bienetre', document.querySelector('.mode-tab'));
-  // Featured : premiers produits Affilae
-  var raw = await affilaeCall('list', '', 12);
-  var products = (raw && (raw.data || raw.items || (Array.isArray(raw) ? raw : []))) || [];
-  var mapped = products.map(mapAffilaeProduct);
+
+  // Charge un mix de catégories pour la home
+  var categories = ['beaute-bienetre', 'sante-nutrition', 'mode-vetements', 'enfants-bebes', 'auto-moto'];
+  var allProducts = [];
+
+  for (var i = 0; i < categories.length; i++) {
+    var raw = await affilaeCall('category', '', 3);
+    var url = '/api/products?action=category&cat=' + encodeURIComponent(categories[i]) + '&limit=3';
+    try {
+      var res = await fetch(url);
+      var data = await res.json();
+      if (data.data && data.data.length) {
+        allProducts = allProducts.concat(data.data.slice(0, 3));
+      }
+    } catch(e) {}
+  }
+
+  // Complète avec la liste générale si pas assez
+  if (allProducts.length < 12) {
+    var raw = await affilaeCall('list', '', 12);
+    var extra = (raw && raw.data) || [];
+    allProducts = allProducts.concat(extra);
+  }
+
+  // Dédoublonne
+  var seen = new Set();
+  var unique = allProducts.filter(function(p) {
+    if (seen.has(p.id)) return false;
+    seen.add(p.id);
+    return true;
+  });
+
+  var mapped = unique.slice(0, 12).map(mapAffilaeProduct);
 
   var fg = document.getElementById('featuredGrid');
   if (fg) fg.innerHTML = mapped.slice(0, 6).map(function(p){ return miniCard(p, 0, false); }).join('') ||
