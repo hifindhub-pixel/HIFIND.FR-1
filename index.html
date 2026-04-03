@@ -871,32 +871,46 @@ async function fetchAffilaeProducts(query) {
   if (_affilaeCache[key]) return _affilaeCache[key];
 
   var raw;
-  // Essaie d'abord la recherche Supabase
+  // 1. Cherche par titre dans Supabase
   if (key) {
     raw = await affilaeCall('search', key, 50);
   }
-  // Si pas de résultats, charge tous les produits
-  if (!raw || !raw.data || !raw.data.length) {
-    raw = await affilaeCall('list', '', 50);
+
+  // 2. Si résultats → filtre côté client pour plus de précision
+  if (raw && raw.data && raw.data.length > 0) {
+    var filtered = raw.data.filter(function(p) {
+      var title = (p.title || '').toLowerCase();
+      var desc  = (p.description || '').toLowerCase();
+      var prog  = ((p.programs && p.programs.title) || '').toLowerCase();
+      return title.includes(key) || desc.includes(key) || prog.includes(key);
+    });
+    var result = filtered.length > 0 ? filtered : raw.data;
+    _affilaeCache[key] = result;
+    console.log('fetchAffilaeProducts "'+key+'" → '+result.length+' produits (search)');
+    return result;
   }
-  if (!raw || !raw.data) return null;
 
-  var allItems = raw.data;
-  if (!allItems.length) return null;
+  // 3. Fallback : charge plus de produits et filtre strictement
+  var allRaw = await affilaeCall('list', '', 100);
+  if (!allRaw || !allRaw.data) return null;
 
-  // Filtre côté client si on a chargé tous les produits
-  var filtered = key ? allItems.filter(function(p) {
+  var allFiltered = allRaw.data.filter(function(p) {
     var title = (p.title || '').toLowerCase();
     var desc  = (p.description || '').toLowerCase();
     var prog  = ((p.programs && p.programs.title) || '').toLowerCase();
     var cat   = (p.category || '').toLowerCase();
     return title.includes(key) || desc.includes(key) || prog.includes(key) || cat.includes(key);
-  }) : allItems;
+  });
 
-  var result = filtered.length > 0 ? filtered : allItems;
-  _affilaeCache[key] = result;
-  console.log('fetchAffilaeProducts "'+key+'" → '+result.length+' produits');
-  return result;
+  // Ne retourne que les produits pertinents — pas tous si rien trouvé
+  if (allFiltered.length === 0) {
+    _affilaeCache[key] = [];
+    return [];
+  }
+
+  _affilaeCache[key] = allFiltered;
+  console.log('fetchAffilaeProducts "'+key+'" → '+allFiltered.length+' produits (fallback)');
+  return allFiltered;
 }
 
 function buildAffilaeLink(item) {
@@ -910,7 +924,12 @@ function buildAffilaeLink(item) {
 
 function proxyImage(url) {
   if (!url) return null;
-  // Proxifie via notre API pour éviter les bloqueurs de pub
+  // Ces domaines bloquent le proxy → on sert directement
+  var directDomains = ['medias-norauto.fr', 'vertbaudet.fr', 'blancheporte.fr', 'lunii.fr', 'monpiedceheros.fr'];
+  for (var i = 0; i < directDomains.length; i++) {
+    if (url.includes(directDomains[i])) return url;
+  }
+  // Pour Affilae → proxy pour contourner les bloqueurs de pub
   return '/api/image?url=' + encodeURIComponent(url);
 }
 
