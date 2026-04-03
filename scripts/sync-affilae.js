@@ -128,7 +128,7 @@ async function syncEffinity() {
           if (seen.has(key)) continue;
           seen.add(key);
           products.push(p);
-          if (products.length >= feedLimit * 10) break; // Parse 10x la limite pour avoir toutes les catégories
+          if (products.length >= feedLimit * 5) break;
         }
       } else {
         const lines = text.split('\n').filter(l=>l.trim());
@@ -144,7 +144,7 @@ async function syncEffinity() {
           if (seen.has(key)) continue;
           seen.add(key);
           products.push(p);
-          if (products.length >= feedLimit * 10) break; // Parse 10x pour avoir toutes les catégories
+          if (products.length >= feedLimit * 5) break;
         }
       }
 
@@ -152,24 +152,23 @@ async function syncEffinity() {
       function mixByCategory(products, limit) {
         const bycat = {};
         for (const p of products) {
-          const cat = (p.feed_cat || 'autres').toLowerCase().trim() || 'autres';
+          const cat = (p.feed_cat||'autres').toLowerCase().trim()||'autres';
           if (!bycat[cat]) bycat[cat] = [];
           bycat[cat].push(p);
         }
         const cats = Object.keys(bycat);
-        const perCat = Math.max(1, Math.ceil(limit / cats.length));
         const result = [];
         let i = 0;
         while (result.length < limit) {
           let added = false;
           for (const cat of cats) {
-            if (bycat[cat][i]) { result.push(bycat[cat][i]); added = true; }
             if (result.length >= limit) break;
+            if (bycat[cat][i]) { result.push(bycat[cat][i]); added = true; }
           }
           i++;
           if (!added) break;
         }
-        return result;
+        return result.slice(0, limit); // Garantit la limite
       }
 
       const limited = mixByCategory(products, feedLimit);
