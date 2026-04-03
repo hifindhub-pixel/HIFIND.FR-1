@@ -6,22 +6,32 @@ async function supabaseQuery(path) {
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
   });
-  if (!res.ok) throw new Error('Supabase ' + res.status);
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error('Supabase ' + res.status + ': ' + err.slice(0, 200));
+  }
   return res.json();
 }
 
 function makeTrackingUrl(product) {
-  if (!product.url || !product.program_id) return product.url || '#';
-  // Format officiel Affilae publisher tracking
-  return 'https://track.affilae.com/' + product.program_id +
-         '?ae=' + AFFILAE_PROFILE_ID +
-         '&url=' + encodeURIComponent(product.url);
+  if (!product.url) return '#';
+  // Produits Effinity → lien de tracking direct (déjà dans url)
+  if (product.program_id && product.program_id.startsWith('effinity_')) {
+    return product.url;
+  }
+  // Produits Affilae → tracking Affilae
+  if (product.program_id) {
+    return 'https://track.affilae.com/' + product.program_id +
+           '?ae=' + AFFILAE_PROFILE_ID +
+           '&url=' + encodeURIComponent(product.url);
+  }
+  return product.url || '#';
 }
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+  res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const { action='list', q='', limit='30', page='1', id='', cat='' } = req.query;
@@ -32,24 +42,46 @@ export default async function handler(req, res) {
     let data;
 
     if (action === 'search' && q) {
+      // Encode correctement le terme de recherche pour Supabase
+      const term = encodeURIComponent('%' + q + '%');
       data = await supabaseQuery(
         'products?select=*,programs(title,countries)' +
-        '&or=(title.ilike.*' + encodeURIComponent(q) + '*,description.ilike.*' + encodeURIComponent(q) + '*)' +
-        '&status=eq.enabled&order=updated_at.desc&limit=' + limitN + '&offset=' + offset
+        '&title=ilike.' + term +
+        '&status=eq.enabled&order=updated_at.desc' +
+        '&limit=' + limitN + '&offset=' + offset
       );
+      // Si pas de résultats par titre, cherche dans la description
+      if (!data || data.length === 0) {
+        data = await supabaseQuery(
+          'products?select=*,programs(title,countries)' +
+          '&description=ilike.' + term +
+          '&status=eq.enabled&order=updated_at.desc' +
+          '&limit=' + limitN + '&offset=' + offset
+        );
+      }
     } else if (action === 'product' && id) {
-      data = await supabaseQuery('products?select=*,programs(title,countries)&id=eq.' + encodeURIComponent(id) + '&limit=1');
+      data = await supabaseQuery(
+        'products?select=*,programs(title,countries)&id=eq.' + encodeURIComponent(id) + '&limit=1'
+      );
     } else if (action === 'history' && id) {
-      data = await supabaseQuery('price_history?product_id=eq.' + encodeURIComponent(id) + '&order=recorded_at.asc&limit=365');
+      data = await supabaseQuery(
+        'price_history?product_id=eq.' + encodeURIComponent(id) + '&order=recorded_at.asc&limit=365'
+      );
     } else if (action === 'programs') {
       data = await supabaseQuery('programs?select=*&order=title.asc');
     } else if (action === 'category' && cat) {
-      data = await supabaseQuery('products?select=*,programs(title)&category=eq.' + encodeURIComponent(cat) + '&status=eq.enabled&order=updated_at.desc&limit=' + limitN + '&offset=' + offset);
+      data = await supabaseQuery(
+        'products?select=*,programs(title)&category=eq.' + encodeURIComponent(cat) +
+        '&status=eq.enabled&order=updated_at.desc&limit=' + limitN + '&offset=' + offset
+      );
     } else {
-      data = await supabaseQuery('products?select=*,programs(title,countries)&status=eq.enabled&order=updated_at.desc&limit=' + limitN + '&offset=' + offset);
+      data = await supabaseQuery(
+        'products?select=*,programs(title,countries)' +
+        '&status=eq.enabled&order=updated_at.desc' +
+        '&limit=' + limitN + '&offset=' + offset
+      );
     }
 
-    // Ajoute le lien de tracking à chaque produit
     if (Array.isArray(data)) {
       data = data.map(p => ({ ...p, tracking_url: makeTrackingUrl(p) }));
     }
