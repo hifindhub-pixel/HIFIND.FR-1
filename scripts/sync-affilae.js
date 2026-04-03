@@ -114,21 +114,21 @@ async function syncEffinity() {
           const item = match[0];
           const get = tag => { const m = item.match(new RegExp('<'+tag+'[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</'+tag+'>','i')); return m?(m[1]||'').trim():''; };
           const p = {
-            title: get('title')||get('name'),
+            title:       get('title')||get('name'),
             description: get('description')||get('custom_label_0')||'',
-            price: parseFloat(get('price')||'0'),
-            url: get('link')||get('url'),
-            image_url: get('image_link')||get('image'),
-            brand: get('brand')||'',
-            feed_cat: get('category_level2')||get('category_level1')||get('category')||'',
-            product_id: get('id')||get('item_id')||'',
+            price:       parseFloat(get('price')||'0'),
+            url:         get('link')||get('url'),
+            image_url:   get('image_link')||get('image'),
+            brand:       get('brand')||'',
+            feed_cat:    get('category_level2')||get('category_level1')||get('category')||'',
+            product_id:  get('id')||get('item_id')||'',
           };
           if (!p.title || !p.url) continue;
           const key = p.product_id || (p.title.toLowerCase().trim()+'_'+p.price);
           if (seen.has(key)) continue;
           seen.add(key);
           products.push(p);
-          if (products.length >= feedLimit * 5) break;
+          if (products.length >= feedLimit) break; // Stop immédiatement
         }
       } else {
         const lines = text.split('\n').filter(l=>l.trim());
@@ -144,7 +144,7 @@ async function syncEffinity() {
           if (seen.has(key)) continue;
           seen.add(key);
           products.push(p);
-          if (products.length >= feedLimit * 5) break;
+          if (products.length >= feedLimit) break;
         }
       }
 
@@ -171,8 +171,8 @@ async function syncEffinity() {
         return result.slice(0, limit); // Garantit la limite
       }
 
-      const limited = mixByCategory(products, feedLimit);
-      console.log('  📦', feed.name, ':', products.length, 'parsés →', limited.length, 'insérés (mix catégories)');
+      const limited = products;
+      console.log('  📦', feed.name, ':', limited.length, 'produits');
 
       // Mapping catégories du flux → catégories HiFind
       const feedCatMap = {
