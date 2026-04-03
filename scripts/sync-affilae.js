@@ -96,63 +96,84 @@ async function syncEffinity() {
   for (const feed of feeds) {
     try {
       console.log('  →', feed.name);
+      const feedLimit = feed.limit || 500;
       const res = await fetch(feed.url);
       if (!res.ok) { console.log('  ❌', feed.name, res.status); continue; }
 
-      // Décode en ISO-8859-1 pour corriger les Ã©, Ã€ etc.
+      // Décode en ISO-8859-1
       const buffer = await res.arrayBuffer();
       const text = new TextDecoder('iso-8859-1').decode(buffer);
 
       let products = [];
-
       if (text.trim().startsWith('<')) {
-        const items = text.match(/<item[^>]*>([\s\S]*?)<\/item>/gi) ||
-                      text.match(/<product[^>]*>([\s\S]*?)<\/product>/gi) || [];
-        products = items.map(item => {
-          const get = tag => {
-            const m = item.match(new RegExp('<'+tag+'[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</'+tag+'>','i'));
-            return m ? (m[1]||'').trim() : '';
+        // Parse XML item par item et s'arrête dès qu'on a assez
+        const regex = /<item[^>]*>([\s\S]*?)<\/item>/gi;
+        const seen = new Set();
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+          const item = match[0];
+          const get = tag => { const m = item.match(new RegExp('<'+tag+'[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</'+tag+'>','i')); return m?(m[1]||'').trim():''; };
+          const p = {
+            title: get('title')||get('name'),
+            description: get('description')||get('custom_label_0')||'',
+            price: parseFloat(get('price')||'0'),
+            url: get('link')||get('url'),
+            image_url: get('image_link')||get('image'),
+            brand: get('brand')||'',
+            feed_cat: get('category_level2')||get('category_level1')||get('category')||'',
+            product_id: get('id')||get('item_id')||'',
           };
-          return {
-            title:       get('title') || get('name'),
-            description: get('description') || get('custom_label_0') || '',
-            price:       parseFloat(get('price') || '0'),
-            url:         get('link') || get('url'),
-            image_url:   get('image_link') || get('image'),
-            brand:       get('brand') || '',
-            feed_cat:    get('category_level2') || get('category_level1') || get('category') || get('google_product_category') || '',
-            color:       get('color') || '',
-            size:        get('size') || '',
-            product_id:  get('id') || get('item_id') || '',
-          };
-        });
+          if (!p.title || !p.url) continue;
+          const key = p.product_id || (p.title.toLowerCase().trim()+'_'+p.price);
+          if (seen.has(key)) continue;
+          seen.add(key);
+          products.push(p);
+          if (products.length >= feedLimit * 10) break; // Parse 10x la limite pour avoir toutes les catégories
+        }
       } else {
         const lines = text.split('\n').filter(l=>l.trim());
         const sep = lines[0].includes(';')?';':',';
         const headers = lines[0].split(sep).map(h=>h.trim().replace(/"/g,'').toLowerCase());
-        products = lines.slice(1).map(line => {
+        const seen = new Set();
+        for (const line of lines.slice(1)) {
           const vals = line.split(sep).map(v=>v.trim().replace(/^"|"$/g,''));
           const obj = {}; headers.forEach((h,i)=>obj[h]=vals[i]||'');
-          return {
-            title: obj.title||obj.name, description: obj.description||obj.custom_label_0||'',
-            price: parseFloat(obj.price||'0'), url: obj.link||obj.url,
-            image_url: obj.image_link||obj.image, brand: obj.brand||'',
-            feed_cat: obj.category_level2||obj.category_level1||obj.category||'',
-            color: obj.color||'', size: obj.size||'', product_id: obj.id||obj.item_id||'',
-          };
-        });
+          const p = { title:obj.title||obj.name, description:obj.description||'', price:parseFloat(obj.price||'0'), url:obj.link||obj.url, image_url:obj.image_link||obj.image, brand:obj.brand||'', feed_cat:obj.category_level2||obj.category_level1||obj.category||'', product_id:obj.id||obj.item_id||'' };
+          if (!p.title || !p.url) continue;
+          const key = p.product_id || (p.title.toLowerCase().trim()+'_'+p.price);
+          if (seen.has(key)) continue;
+          seen.add(key);
+          products.push(p);
+          if (products.length >= feedLimit * 10) break; // Parse 10x pour avoir toutes les catégories
+        }
       }
 
-      // Dédoublonnage par product_id ou par titre (garde le premier)
-      const seen = new Set();
-      const unique = products.filter(p => {
-        const key = p.product_id || ((p.title||'').toLowerCase().trim() + '_' + p.price);
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
+      // Mix de catégories : prend N produits par catégorie du flux
+      function mixByCategory(products, limit) {
+        const bycat = {};
+        for (const p of products) {
+          const cat = (p.feed_cat || 'autres').toLowerCase().trim() || 'autres';
+          if (!bycat[cat]) bycat[cat] = [];
+          bycat[cat].push(p);
+        }
+        const cats = Object.keys(bycat);
+        const perCat = Math.max(1, Math.ceil(limit / cats.length));
+        const result = [];
+        let i = 0;
+        while (result.length < limit) {
+          let added = false;
+          for (const cat of cats) {
+            if (bycat[cat][i]) { result.push(bycat[cat][i]); added = true; }
+            if (result.length >= limit) break;
+          }
+          i++;
+          if (!added) break;
+        }
+        return result;
+      }
 
-      console.log('  📦', feed.name, ':', products.length, 'bruts →', unique.length, 'uniques');
+      const limited = mixByCategory(products, feedLimit);
+      console.log('  📦', feed.name, ':', products.length, 'parsés →', limited.length, 'insérés (mix catégories)');
 
       // Mapping catégories du flux → catégories HiFind
       const feedCatMap = {
@@ -173,7 +194,7 @@ async function syncEffinity() {
       const programId = 'effinity_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
       await supabaseUpsert('programs', [{ id:programId, title:feed.name, categories:[], countries:['FR'], updated_at:new Date().toISOString() }]);
 
-      const mapped = unique.filter(p=>p.title&&p.url).map((p, i) => {
+      const mapped = limited.filter(p=>p.title&&p.url).map((p, i) => {
         const feedCatLower = (p.feed_cat||'').toLowerCase().trim();
         const hifindCat = feed.category ||
           feedCatMap[feedCatLower] ||
