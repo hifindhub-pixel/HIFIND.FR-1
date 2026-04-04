@@ -216,10 +216,112 @@ async function syncEffinity() {
   console.log('🎉 Effinity done');
 }
 
+// ══ RAKUTEN / PRICEMINISTER ══
+const RAKUTEN_COUNTER = '23254453';
+const RAKUTEN_BASE    = 'https://priceminister.effiliation.com/pm/api.html';
+
+const RAKUTEN_CATEGORIES = [
+  { nav: 'Mode',           cat: 'mode-vetements',   limit: 100 },
+  { nav: 'Loisirs',        cat: 'sport-outdoor',    limit: 100 },
+  { nav: 'Soins-Beaute',   cat: 'beaute-bienetre',  limit: 100 },
+  { nav: 'Maison',         cat: 'maison-jardin',    limit: 100 },
+  { nav: 'Informatique',   cat: 'high-tech',        limit: 100 },
+  { nav: 'Hifi',           cat: 'high-tech',        limit: 50  },
+  { nav: 'Enfant',         cat: 'enfants-bebes',    limit: 100 },
+  { nav: 'Electromenager', cat: 'maison-jardin',    limit: 50  },
+  { nav: 'auto-moto',      cat: 'auto-moto',        limit: 50  },
+  { nav: 'Animalerie',     cat: 'animaux',          limit: 50  },
+];
+
+function parseRakutenXML(xml) {
+  const products = [];
+  const regex = /<product>([\s\S]*?)<\/product>/gi;
+  let match;
+  while ((match = regex.exec(xml)) !== null) {
+    const item = match[1];
+    const get = tag => { const m = item.match(new RegExp('<'+tag+'[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</'+tag+'>','i')); return m?(m[1]||'').trim():''; };
+    const getDeep = (tag1, tag2) => { const block = item.match(new RegExp('<'+tag1+'>[\\s\\S]*?<\\/'+tag1+'>','i')); return block ? (block[0].match(new RegExp('<'+tag2+'[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</'+tag2+'>','i'))||[])[1]||'' : ''; };
+
+    const title = cleanTitle(get('headline'));
+    const url   = get('url');
+    const price = parseFloat(getDeep('advertprice','amount')||'0');
+    // Image : extrait l'URL réelle depuis le redirect Effinity
+    const imgRedirect = getDeep('image','url');
+    const imgMatch = imgRedirect.match(/url=([^&]+)/);
+    const image_url = imgMatch ? decodeURIComponent(imgMatch[1]) : '';
+
+    if (!title || !url) continue;
+    products.push({
+      id:          'rakuten_' + get('productid'),
+      title,
+      price,
+      url,
+      image_url,
+      category:    get('category'),
+      brand:       get('caption'),
+      product_id:  get('productid'),
+    });
+  }
+  return products;
+}
+
+async function syncRakuten() {
+  console.log('🔄 Rakuten sync...');
+  const programId = 'rakuten_priceminister';
+
+  await supabaseUpsert('programs', [{
+    id: programId, title: 'Rakuten', categories: [], countries: ['FR'],
+    updated_at: new Date().toISOString()
+  }]);
+
+  let totalInserted = 0;
+
+  for (const catConfig of RAKUTEN_CATEGORIES) {
+    try {
+      const perPage = Math.min(catConfig.limit, 100);
+      const url = RAKUTEN_BASE + '?id_compteur=' + RAKUTEN_COUNTER +
+                  '&nav=' + encodeURIComponent(catConfig.nav) +
+                  '&nbproductsperpage=' + perPage + '&pagenumber=1';
+
+      const res = await fetch(url);
+      if (!res.ok) { console.log('  ❌ Rakuten', catConfig.nav, res.status); continue; }
+      const text = await res.text();
+      const products = parseRakutenXML(text);
+
+      const mapped = products.map(p => ({
+        id:          p.id,
+        affilae_id:  p.id,
+        program_id:  programId,
+        title:       p.title,
+        description: null,
+        price:       p.price || null,
+        currency:    'EUR',
+        url:         p.url,
+        tracking_id: null,
+        image_url:   p.image_url || null,
+        category:    catConfig.cat,
+        lang:        'fr',
+        status:      'enabled',
+        updated_at:  new Date().toISOString()
+      }));
+
+      if (mapped.length > 0) {
+        await supabaseUpsert('products', mapped);
+        totalInserted += mapped.length;
+        console.log('  ✅ Rakuten', catConfig.nav, ':', mapped.length, 'produits');
+      }
+    } catch(e) {
+      console.log('  ⚠️ Rakuten', catConfig.nav, ':', e.message);
+    }
+  }
+  console.log('🎉 Rakuten done:', totalInserted, 'produits');
+}
+
 async function main() {
   try {
     await syncAffilae();
     await syncEffinity();
+    await syncRakuten();
     console.log('🎉 All done!');
   } catch(e) {
     console.error('❌ Failed:', e.message);
