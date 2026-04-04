@@ -133,6 +133,17 @@ async function syncEffinity() {
           .replace(/Ã¥/g, 'å').replace(/Ã/g, 'Â');
       }
 
+      // Nettoie les titres (supprime les "null" parasites)
+      function cleanTitle(str) {
+        if (!str) return str;
+        return fixEncoding(str)
+          .replace(/\s*-\s*null\s*-\s*/gi, ' - ')  // "Pneu - null - X" → "Pneu - X"
+          .replace(/^null\s*-\s*/gi, '')             // "null - X" → "X"
+          .replace(/\s*-\s*null$/gi, '')             // "X - null" → "X"
+          .replace(/\s+/g, ' ')                      // espaces multiples
+          .trim();
+      }
+
       const products = [];
       const seen = new Set();
 
@@ -143,7 +154,7 @@ async function syncEffinity() {
           const item = match[0];
           const get = tag => { const m = item.match(new RegExp('<'+tag+'[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</'+tag+'>','i')); return m?(m[1]||'').trim():''; };
           const p = {
-            title: fixEncoding(get('title')||get('name')),
+            title: cleanTitle(get('title')||get('name')),
             description: fixEncoding(get('description')||get('custom_label_0')||''),
             price: parseFloat(get('price')||'0'),
             url: get('link')||get('url'),
@@ -165,7 +176,7 @@ async function syncEffinity() {
         for (const line of lines.slice(1)) {
           const vals = line.split(sep).map(v=>v.trim().replace(/^"|"$/g,''));
           const obj = {}; headers.forEach((h,i)=>obj[h]=vals[i]||'');
-          const p = { title:fixEncoding(obj.title||obj.name), description:fixEncoding(obj.description||''), price:parseFloat(obj.price||'0'), url:obj.link||obj.url, image_url:obj.image_link||obj.image, feed_cat:obj.category_level2||obj.category_level1||obj.category||'', product_id:obj.id||obj.item_id||'' };
+          const p = { title:cleanTitle(obj.title||obj.name), description:fixEncoding(obj.description||''), price:parseFloat(obj.price||'0'), url:obj.link||obj.url, image_url:obj.image_link||obj.image, feed_cat:obj.category_level2||obj.category_level1||obj.category||'', product_id:obj.id||obj.item_id||'' };
           if (!p.title || !p.url) continue;
           const key = p.product_id || (p.title.toLowerCase().trim()+'_'+p.price);
           if (seen.has(key)) continue;
