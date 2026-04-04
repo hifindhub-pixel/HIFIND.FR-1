@@ -8,24 +8,19 @@ async function supabaseQuery(path) {
   });
   if (!res.ok) {
     const err = await res.text();
-    throw new Error('Supabase ' + res.status + ': ' + err.slice(0, 200));
+    throw new Error('Supabase ' + res.status + ': ' + err.slice(0, 300));
   }
   return res.json();
 }
 
 function makeTrackingUrl(product) {
   if (!product.url) return '#';
-  // Produits Effinity → lien de tracking direct (déjà dans url)
-  if (product.program_id && product.program_id.startsWith('effinity_')) {
-    return product.url;
-  }
-  // Produits Affilae → tracking Affilae
+  if (product.program_id && product.program_id.startsWith('effinity_')) return product.url;
   if (product.program_id) {
     return 'https://track.affilae.com/' + product.program_id +
-           '?ae=' + AFFILAE_PROFILE_ID +
-           '&url=' + encodeURIComponent(product.url);
+           '?ae=' + AFFILAE_PROFILE_ID + '&url=' + encodeURIComponent(product.url);
   }
-  return product.url || '#';
+  return product.url;
 }
 
 export default async function handler(req, res) {
@@ -42,7 +37,7 @@ export default async function handler(req, res) {
     let data;
 
     if (action === 'search' && q) {
-      // Encode correctement le terme de recherche pour Supabase
+      // Recherche par titre avec ilike
       const term = encodeURIComponent('%' + q + '%');
       data = await supabaseQuery(
         'products?select=*,programs(title,countries)' +
@@ -50,15 +45,21 @@ export default async function handler(req, res) {
         '&status=eq.enabled&order=updated_at.desc' +
         '&limit=' + limitN + '&offset=' + offset
       );
-      // Si pas de résultats par titre, cherche dans la description
-      if (!data || data.length === 0) {
-        data = await supabaseQuery(
+
+      // Si pas assez de résultats → cherche aussi dans description
+      if (!data || data.length < 5) {
+        const descData = await supabaseQuery(
           'products?select=*,programs(title,countries)' +
           '&description=ilike.' + term +
           '&status=eq.enabled&order=updated_at.desc' +
-          '&limit=' + limitN + '&offset=' + offset
+          '&limit=' + (limitN - (data||[]).length) + '&offset=0'
         );
+        // Fusionne sans doublons
+        const ids = new Set((data||[]).map(p => p.id));
+        const extra = (descData||[]).filter(p => !ids.has(p.id));
+        data = [...(data||[]), ...extra];
       }
+
     } else if (action === 'product' && id) {
       data = await supabaseQuery(
         'products?select=*,programs(title,countries)&id=eq.' + encodeURIComponent(id) + '&limit=1'
@@ -71,8 +72,10 @@ export default async function handler(req, res) {
       data = await supabaseQuery('programs?select=*&order=title.asc');
     } else if (action === 'category' && cat) {
       data = await supabaseQuery(
-        'products?select=*,programs(title)&category=eq.' + encodeURIComponent(cat) +
-        '&status=eq.enabled&order=updated_at.desc&limit=' + limitN + '&offset=' + offset
+        'products?select=*,programs(title,countries)' +
+        '&category=eq.' + encodeURIComponent(cat) +
+        '&status=eq.enabled&order=updated_at.desc' +
+        '&limit=' + limitN + '&offset=' + offset
       );
     } else {
       data = await supabaseQuery(
