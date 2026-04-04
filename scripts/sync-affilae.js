@@ -148,7 +148,11 @@ async function syncEffinity() {
       const seen = new Set();
 
       if (text.trim().startsWith('<')) {
-        const regex = /<item[^>]*>([\s\S]*?)<\/item>/gi;
+        // Détecte automatiquement la balise produit utilisée
+        const tagMatch = text.match(/<(item|product|offer|Product|Offer|annonce|Article|PRODUCT|ITEM)[\s>]/i);
+        const xmlTag = tagMatch ? tagMatch[1] : 'item';
+        console.log('  XML tag detected:', xmlTag);
+        const regex = new RegExp('<' + xmlTag + '[^>]*>([\\s\\S]*?)<\\/' + xmlTag + '>', 'gi');
         let match;
         while ((match = regex.exec(text)) !== null) {
           const item = match[0];
@@ -186,6 +190,8 @@ async function syncEffinity() {
         }
       }
 
+      console.log('  Feed size:', text.length, 'chars');
+      console.log('  Feed start:', text.slice(0, 300).replace(/\n/g,' '));
       console.log('  📦', feed.name, ':', products.length, 'produits');
 
       const programId = 'effinity_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
