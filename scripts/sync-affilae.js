@@ -95,50 +95,67 @@ async function syncEffinity() {
 
   for (const feed of feeds) {
     try {
-      console.log('  →', feed.name);
-      const feedLimit = feed.limit || 500;
+      const feedLimit = feed.limit || 200;
+      console.log('  →', feed.name, '(limit:', feedLimit, ')');
+
       const res = await fetch(feed.url);
       if (!res.ok) { console.log('  ❌', feed.name, res.status); continue; }
 
-      // Décode en ISO-8859-1
       const buffer = await res.arrayBuffer();
-      const text = new TextDecoder('iso-8859-1').decode(buffer);
+      // Détecte l'encodage depuis le XML header ou force UTF-8 d'abord
+      let text;
+      const rawBytes = new Uint8Array(buffer);
+      const rawStr = String.fromCharCode(...rawBytes.slice(0, 200));
+      const isIso = rawStr.includes('iso-8859') || rawStr.includes('ISO-8859') || rawStr.includes('windows-1252');
+      if (isIso) {
+        text = new TextDecoder('iso-8859-1').decode(buffer);
+      } else {
+        try {
+          text = new TextDecoder('utf-8', { fatal: true }).decode(buffer);
+        } catch(e) {
+          text = new TextDecoder('iso-8859-1').decode(buffer);
+        }
+      }
 
-      let products = [];
+      // Nettoie les titres mal encodés (Ã© → é)
+      function fixEncoding(str) {
+        if (!str) return str;
+        try { return decodeURIComponent(escape(str)); } catch(e) { return str; }
+      }
+
+      const products = [];
+      const seen = new Set();
+
       if (text.trim().startsWith('<')) {
-        // Parse XML item par item et s'arrête dès qu'on a assez
         const regex = /<item[^>]*>([\s\S]*?)<\/item>/gi;
-        const seen = new Set();
         let match;
         while ((match = regex.exec(text)) !== null) {
           const item = match[0];
           const get = tag => { const m = item.match(new RegExp('<'+tag+'[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</'+tag+'>','i')); return m?(m[1]||'').trim():''; };
           const p = {
-            title:       get('title')||get('name'),
-            description: get('description')||get('custom_label_0')||'',
-            price:       parseFloat(get('price')||'0'),
-            url:         get('link')||get('url'),
-            image_url:   get('image_link')||get('image'),
-            brand:       get('brand')||'',
-            feed_cat:    get('category_level2')||get('category_level1')||get('category')||'',
-            product_id:  get('id')||get('item_id')||'',
+            title: fixEncoding(get('title')||get('name')),
+            description: fixEncoding(get('description')||get('custom_label_0')||''),
+            price: parseFloat(get('price')||'0'),
+            url: get('link')||get('url'),
+            image_url: get('image_link')||get('image'),
+            feed_cat: get('category_level2')||get('category_level1')||get('category')||'',
+            product_id: get('id')||get('item_id')||'',
           };
           if (!p.title || !p.url) continue;
           const key = p.product_id || (p.title.toLowerCase().trim()+'_'+p.price);
           if (seen.has(key)) continue;
           seen.add(key);
           products.push(p);
-          if (products.length >= feedLimit) break; // Stop immédiatement
+          if (products.length >= feedLimit) break;
         }
       } else {
         const lines = text.split('\n').filter(l=>l.trim());
         const sep = lines[0].includes(';')?';':',';
         const headers = lines[0].split(sep).map(h=>h.trim().replace(/"/g,'').toLowerCase());
-        const seen = new Set();
         for (const line of lines.slice(1)) {
           const vals = line.split(sep).map(v=>v.trim().replace(/^"|"$/g,''));
           const obj = {}; headers.forEach((h,i)=>obj[h]=vals[i]||'');
-          const p = { title:obj.title||obj.name, description:obj.description||'', price:parseFloat(obj.price||'0'), url:obj.link||obj.url, image_url:obj.image_link||obj.image, brand:obj.brand||'', feed_cat:obj.category_level2||obj.category_level1||obj.category||'', product_id:obj.id||obj.item_id||'' };
+          const p = { title:obj.title||obj.name, description:obj.description||'', price:parseFloat(obj.price||'0'), url:obj.link||obj.url, image_url:obj.image_link||obj.image, feed_cat:obj.category_level2||obj.category_level1||obj.category||'', product_id:obj.id||obj.item_id||'' };
           if (!p.title || !p.url) continue;
           const key = p.product_id || (p.title.toLowerCase().trim()+'_'+p.price);
           if (seen.has(key)) continue;
@@ -148,85 +165,22 @@ async function syncEffinity() {
         }
       }
 
-      // Mix de catégories : prend N produits par catégorie du flux
-      function mixByCategory(products, limit) {
-        const bycat = {};
-        for (const p of products) {
-          const cat = (p.feed_cat||'autres').toLowerCase().trim()||'autres';
-          if (!bycat[cat]) bycat[cat] = [];
-          bycat[cat].push(p);
-        }
-        const cats = Object.keys(bycat);
-        const result = [];
-        let i = 0;
-        while (result.length < limit) {
-          let added = false;
-          for (const cat of cats) {
-            if (result.length >= limit) break;
-            if (bycat[cat][i]) { result.push(bycat[cat][i]); added = true; }
-          }
-          i++;
-          if (!added) break;
-        }
-        return result.slice(0, limit); // Garantit la limite
-      }
-
-      const limited = products;
-      console.log('  📦', feed.name, ':', limited.length, 'produits');
-
-      // Mapping catégories du flux → catégories HiFind
-      const feedCatMap = {
-        'chaussures femme':   'mode-vetements',
-        'chaussures homme':   'mode-vetements',
-        'chaussures enfant':  'mode-vetements',
-        'chaussures':         'mode-vetements',
-        'sneakers':           'mode-vetements',
-        'boots':              'mode-vetements',
-        'sandales':           'mode-vetements',
-        'soin':               'beaute-bienetre',
-        'soins':              'beaute-bienetre',
-        'semelles':           'sante-nutrition',
-        'accessoires':        'mode-vetements',
-        'sport':              'sport-outdoor',
-      };
+      console.log('  📦', feed.name, ':', products.length, 'produits');
 
       const programId = 'effinity_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
       await supabaseUpsert('programs', [{ id:programId, title:feed.name, categories:[], countries:['FR'], updated_at:new Date().toISOString() }]);
 
-      const mapped = limited.filter(p=>p.title&&p.url).map((p, i) => {
-        const feedCatLower = (p.feed_cat||'').toLowerCase().trim();
-        const hifindCat = feed.category ||
-          feedCatMap[feedCatLower] ||
-          Object.entries(feedCatMap).find(([k]) => feedCatLower.includes(k))?.[1] ||
-          detectCategory({ title:p.title, description:p.description, program:{title:feed.name} });
+      const mapped = products.filter(p=>p.title&&p.url).map((p,i) => ({
+        id: programId+'_'+i, affilae_id: programId+'_'+i, program_id: programId,
+        title: p.title, description: p.description||null, price: p.price||null,
+        currency: 'EUR', url: feed.tracking||p.url, tracking_id: null,
+        image_url: p.image_url||null,
+        category: feed.category || detectCategory({ title:p.title, description:p.description||'', program:{title:feed.name} }),
+        lang: 'fr', status: 'enabled', updated_at: new Date().toISOString()
+      }));
 
-        return {
-          id: programId + '_' + i,
-          affilae_id: programId + '_' + i,
-          program_id: programId,
-          title: p.title,
-          description: p.description || null,
-          price: p.price || null,
-          currency: 'EUR',
-          url: feed.tracking || p.url,
-          tracking_id: null,
-          image_url: p.image_url || null,
-          category: hifindCat,
-          lang: 'fr',
-          status: 'enabled',
-          updated_at: new Date().toISOString()
-        };
-      });
-
-      for (let i = 0; i < mapped.length; i += 50) {
-        await supabaseUpsert('products', mapped.slice(i, i+50));
-      }
-      console.log('  ✅', feed.name, ':', mapped.length, 'produits uniques');
-
-      // Stats catégories
-      const cats = {};
-      mapped.forEach(p => { cats[p.category] = (cats[p.category]||0)+1; });
-      console.log('  📊', JSON.stringify(cats));
+      for (let i = 0; i < mapped.length; i += 50) await supabaseUpsert('products', mapped.slice(i,i+50));
+      console.log('  ✅', feed.name, ':', mapped.length, 'insérés');
 
     } catch(e) { console.log('  ⚠️', feed.name, ':', e.message); }
   }
