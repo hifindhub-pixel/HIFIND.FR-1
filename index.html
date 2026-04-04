@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HiFind — Comparateur de Prix</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23FF6B6B'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='18' fill='white'>Hi</text></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23FF6B6B'/><text x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='17' fill='white'>Hi</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -933,17 +935,28 @@ function proxyImage(url) {
   return '/api/image?url=' + encodeURIComponent(url);
 }
 
+function fixEncoding(str) {
+  if (!str) return '';
+  // Corrige l'encodage ISO-8859-1 mal interprété en UTF-8
+  try {
+    return decodeURIComponent(escape(str));
+  } catch(e) {
+    return str;
+  }
+}
+
 function mapAffilaeProduct(item) {
   // Compatible Supabase (programs join) ET Affilae direct
   var programTitle = (item.programs && item.programs.title)
     || (item.program && item.program.title)
     || 'Partenaire';
   var price      = parseFloat(item.price) || 0;
-  // Supabase stocke en euros, Affilae direct en centimes
   if (price > 1000 && !item.program_id) price = price / 100;
   var img        = proxyImage(item.image_url || (item.images && item.images[0] && item.images[0].url) || null);
-  var desc       = (item.description || '').replace(/<[^>]*>/g, '').trim();
+  var rawDesc    = (item.description || '').replace(/<[^>]*>/g, '').trim();
+  var desc       = fixEncoding(rawDesc);
   var shortDesc  = desc.length > 150 ? desc.slice(0, 150).trim() + '...' : desc;
+  var name       = fixEncoding(item.title || item.name || '');
   var trackId    = item.tracking_id || item.trackingId || '';
   var progId     = item.program_id || (item.program && item.program.id) || '';
   var trackingUrl = buildAffilaeLink({ program_id: progId, tracking_id: trackId, url: item.url });
@@ -951,7 +964,7 @@ function mapAffilaeProduct(item) {
 
   return {
     id:        item.id || ('af_' + Math.random().toString(36).slice(2)),
-    name:      item.title || item.name || '',
+    name:      name,
     brand:     programTitle,
     cat:       item.category || 'Général',
     img:       img,
