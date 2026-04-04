@@ -30,6 +30,31 @@ function detectCategory(product) {
   return bestCat || 'autres';
 }
 
+function fixEncoding(str) {
+  if (!str) return str;
+  return str
+    .replace(/Ã©/g, 'é').replace(/Ã¨/g, 'è').replace(/Ãª/g, 'ê').replace(/Ã«/g, 'ë')
+    .replace(/Ã /g, 'à').replace(/Ã¢/g, 'â').replace(/Ã¤/g, 'ä').replace(/Ã¦/g, 'æ')
+    .replace(/Ã®/g, 'î').replace(/Ã¯/g, 'ï').replace(/Ã´/g, 'ô').replace(/Ã¶/g, 'ö')
+    .replace(/Ã¹/g, 'ù').replace(/Ã»/g, 'û').replace(/Ã¼/g, 'ü').replace(/Ã§/g, 'ç')
+    .replace(/Ã‰/g, 'É').replace(/Ã€/g, 'À').replace(/Ã‡/g, 'Ç').replace(/Ã"/g, 'Ó')
+    .replace(/Ã˜/g, 'Ø').replace(/Ã±/g, 'ñ').replace(/Ã³/g, 'ó').replace(/Ã¿/g, 'ÿ')
+    .replace(/â€™/g, "'").replace(/â€œ/g, '"').replace(/â€/g, '"').replace(/â€¦/g, '…')
+    .replace(/â€"/g, '–').replace(/â€"/g, '—').replace(/Â°/g, '°').replace(/Â«/g, '«')
+    .replace(/Â»/g, '»').replace(/Â©/g, '©').replace(/Â®/g, '®').replace(/Âµ/g, 'µ')
+    .replace(/Ã¥/g, 'å').replace(/Ã/g, 'Â');
+}
+
+function cleanTitle(str) {
+  if (!str) return str;
+  return fixEncoding(str)
+    .replace(/\s*-\s*null\s*-\s*/gi, ' - ')
+    .replace(/^null\s*-\s*/gi, '')
+    .replace(/\s*-\s*null$/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 async function supabaseUpsert(table, rows) {
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + table, {
     method: 'POST',
@@ -118,32 +143,6 @@ async function syncEffinity() {
         }
       }
 
-      // Nettoie les titres mal encodés (double encodage UTF-8)
-      function fixEncoding(str) {
-        if (!str) return str;
-        return str
-          .replace(/Ã©/g, 'é').replace(/Ã¨/g, 'è').replace(/Ãª/g, 'ê').replace(/Ã«/g, 'ë')
-          .replace(/Ã /g, 'à').replace(/Ã¢/g, 'â').replace(/Ã¤/g, 'ä').replace(/Ã¦/g, 'æ')
-          .replace(/Ã®/g, 'î').replace(/Ã¯/g, 'ï').replace(/Ã´/g, 'ô').replace(/Ã¶/g, 'ö')
-          .replace(/Ã¹/g, 'ù').replace(/Ã»/g, 'û').replace(/Ã¼/g, 'ü').replace(/Ã§/g, 'ç')
-          .replace(/Ã‰/g, 'É').replace(/Ã€/g, 'À').replace(/Ã‡/g, 'Ç').replace(/Ã"/g, 'Ó')
-          .replace(/Ã˜/g, 'Ø').replace(/Ã±/g, 'ñ').replace(/Ã³/g, 'ó').replace(/Ã¿/g, 'ÿ')
-          .replace(/â€™/g, "'").replace(/â€œ/g, '"').replace(/â€/g, '"').replace(/â€¦/g, '…')
-          .replace(/â€"/g, '–').replace(/â€"/g, '—').replace(/Â°/g, '°').replace(/Â«/g, '«')
-          .replace(/Â»/g, '»').replace(/Â©/g, '©').replace(/Â®/g, '®').replace(/Âµ/g, 'µ')
-          .replace(/Ã¥/g, 'å').replace(/Ã/g, 'Â');
-      }
-
-      // Nettoie les titres (supprime les "null" parasites)
-      function cleanTitle(str) {
-        if (!str) return str;
-        return fixEncoding(str)
-          .replace(/\s*-\s*null\s*-\s*/gi, ' - ')  // "Pneu - null - X" → "Pneu - X"
-          .replace(/^null\s*-\s*/gi, '')             // "null - X" → "X"
-          .replace(/\s*-\s*null$/gi, '')             // "X - null" → "X"
-          .replace(/\s+/g, ' ')                      // espaces multiples
-          .trim();
-      }
 
       const products = [];
       const seen = new Set();
