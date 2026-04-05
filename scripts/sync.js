@@ -219,17 +219,18 @@ async function syncEffinity() {
 const RAKUTEN_COUNTER = '23254453';
 const RAKUTEN_BASE    = 'https://priceminister.effiliation.com/pm/api.html';
 
-const RAKUTEN_CATEGORIES = [
-  { nav: 'Mode',           cat: 'mode-vetements',   limit: 50  },
-  { nav: 'Loisirs',        cat: 'sport-outdoor',    limit: 50  },
-  { nav: 'Soins-Beaute',   cat: 'beaute-bienetre',  limit: 50  },
-  { nav: 'Maison',         cat: 'maison-jardin',    limit: 50  },
-  { nav: 'Informatique',   cat: 'high-tech',        limit: 50  },
-  { nav: 'Hifi',           cat: 'high-tech',        limit: 50  },
-  { nav: 'Enfant',         cat: 'enfants-bebes',    limit: 50  },
-  { nav: 'Electromenager', cat: 'maison-jardin',    limit: 50  },
-  { nav: 'auto-moto',      cat: 'auto-moto',        limit: 50  },
-  { nav: 'Animalerie',     cat: 'animaux',          limit: 50  },
+const RAKUTEN_SEARCHES = [
+  { kw: 'robe',          cat: 'mode-vetements',   nav: 'Mode'        },
+  { kw: 'chaussures',    cat: 'mode-vetements',   nav: 'Mode'        },
+  { kw: 'vélo',          cat: 'sport-outdoor',    nav: 'Loisirs'     },
+  { kw: 'crème visage',  cat: 'beaute-bienetre',  nav: 'Soins-Beaute'},
+  { kw: 'aspirateur',    cat: 'maison-jardin',    nav: 'Maison'      },
+  { kw: 'smartphone',    cat: 'high-tech',        nav: 'Informatique'},
+  { kw: 'casque audio',  cat: 'high-tech',        nav: 'Hifi'        },
+  { kw: 'jouet enfant',  cat: 'enfants-bebes',    nav: 'Enfant'      },
+  { kw: 'cafetière',     cat: 'maison-jardin',    nav: 'Electromenager'},
+  { kw: 'pneu voiture',  cat: 'auto-moto',        nav: 'auto-moto'   },
+  { kw: 'croquettes',    cat: 'animaux',          nav: 'Animalerie'  },
 ];
 
 function parseRakutenXML(xml) {
@@ -275,12 +276,12 @@ async function syncRakuten() {
 
   let totalInserted = 0;
 
-  for (const catConfig of RAKUTEN_CATEGORIES) {
+  for (const search of RAKUTEN_SEARCHES) {
     try {
-      const perPage = Math.min(catConfig.limit, 100);
       const url = RAKUTEN_BASE + '?id_compteur=' + RAKUTEN_COUNTER +
-                  '&nav=' + encodeURIComponent(catConfig.nav) +
-                  '&nbproductsperpage=' + perPage + '&pagenumber=1';
+                  '&kw=' + encodeURIComponent(search.kw) +
+                  '&nav=' + encodeURIComponent(search.nav) +
+                  '&nbproductsperpage=50&pagenumber=1';
 
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 15000);
@@ -301,7 +302,7 @@ async function syncRakuten() {
         url:         p.url,
         tracking_id: null,
         image_url:   p.image_url || null,
-        category:    catConfig.cat,
+        category:    search.cat,
         lang:        'fr',
         status:      'enabled',
         updated_at:  new Date().toISOString()
@@ -310,10 +311,10 @@ async function syncRakuten() {
       if (mapped.length > 0) {
         await supabaseUpsert('products', mapped);
         totalInserted += mapped.length;
-        console.log('  ✅ Rakuten', catConfig.nav, ':', mapped.length, 'produits');
+        console.log('  ✅ Rakuten "'+search.kw+'" :', mapped.length, 'produits');
       }
     } catch(e) {
-      console.log('  ⚠️ Rakuten', catConfig.nav, ':', e.message);
+      console.log('  ⚠️ Rakuten "'+search.kw+'" :', e.message);
     }
   }
   console.log('🎉 Rakuten done:', totalInserted, 'produits');
