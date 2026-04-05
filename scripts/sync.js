@@ -220,13 +220,13 @@ const RAKUTEN_COUNTER = '23254453';
 const RAKUTEN_BASE    = 'https://priceminister.effiliation.com/pm/api.html';
 
 const RAKUTEN_CATEGORIES = [
-  { nav: 'Mode',           cat: 'mode-vetements',   limit: 100 },
-  { nav: 'Loisirs',        cat: 'sport-outdoor',    limit: 100 },
-  { nav: 'Soins-Beaute',   cat: 'beaute-bienetre',  limit: 100 },
-  { nav: 'Maison',         cat: 'maison-jardin',    limit: 100 },
-  { nav: 'Informatique',   cat: 'high-tech',        limit: 100 },
+  { nav: 'Mode',           cat: 'mode-vetements',   limit: 50  },
+  { nav: 'Loisirs',        cat: 'sport-outdoor',    limit: 50  },
+  { nav: 'Soins-Beaute',   cat: 'beaute-bienetre',  limit: 50  },
+  { nav: 'Maison',         cat: 'maison-jardin',    limit: 50  },
+  { nav: 'Informatique',   cat: 'high-tech',        limit: 50  },
   { nav: 'Hifi',           cat: 'high-tech',        limit: 50  },
-  { nav: 'Enfant',         cat: 'enfants-bebes',    limit: 100 },
+  { nav: 'Enfant',         cat: 'enfants-bebes',    limit: 50  },
   { nav: 'Electromenager', cat: 'maison-jardin',    limit: 50  },
   { nav: 'auto-moto',      cat: 'auto-moto',        limit: 50  },
   { nav: 'Animalerie',     cat: 'animaux',          limit: 50  },
@@ -282,7 +282,10 @@ async function syncRakuten() {
                   '&nav=' + encodeURIComponent(catConfig.nav) +
                   '&nbproductsperpage=' + perPage + '&pagenumber=1';
 
-      const res = await fetch(url);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeout);
       if (!res.ok) { console.log('  ❌ Rakuten', catConfig.nav, res.status); continue; }
       const text = await res.text();
       const products = parseRakutenXML(text);
