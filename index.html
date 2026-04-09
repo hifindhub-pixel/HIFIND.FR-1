@@ -924,6 +924,21 @@ function buildAffilaeLink(item) {
   return directUrl + sep + 'ae=' + AFFILAE_PROFILE_ID;
 }
 
+function decodeHtml(str) {
+  if (!str) return str;
+  return str
+    .replace(/&eacute;/g, 'é').replace(/&egrave;/g, 'è').replace(/&ecirc;/g, 'ê')
+    .replace(/&agrave;/g, 'à').replace(/&acirc;/g, 'â').replace(/&ocirc;/g, 'ô')
+    .replace(/&ugrave;/g, 'ù').replace(/&ucirc;/g, 'û').replace(/&ccedil;/g, 'ç')
+    .replace(/&iuml;/g, 'ï').replace(/&icirc;/g, 'î').replace(/&euml;/g, 'ë')
+    .replace(/&oelig;/g, 'œ').replace(/&aelig;/g, 'æ').replace(/&ntilde;/g, 'ñ')
+    .replace(/&Eacute;/g, 'É').replace(/&Agrave;/g, 'À').replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ').replace(/&laquo;/g, '«')
+    .replace(/&raquo;/g, '»').replace(/&deg;/g, '°').replace(/&copy;/g, '©')
+    .replace(/&reg;/g, '®');
+}
+
 function proxyImage(url) {
   if (!url) return null;
   // Extrait l'URL réelle depuis les redirects Effinity/Rakuten
@@ -940,7 +955,7 @@ function proxyImage(url) {
   for (var i = 0; i < directDomains.length; i++) {
     if (url.includes(directDomains[i])) return url;
   }
-  return '/api/image?url=' + encodeURIComponent(url);
+  return '/api/img?url=' + encodeURIComponent(url);
 }
 
 function fixEncoding(str) {
@@ -964,7 +979,7 @@ function mapAffilaeProduct(item) {
   var rawDesc    = (item.description || '').replace(/<[^>]*>/g, '').trim();
   var desc       = fixEncoding(rawDesc);
   var shortDesc  = desc.length > 150 ? desc.slice(0, 150).trim() + '...' : desc;
-  var name       = fixEncoding(item.title || item.name || '');
+  var name       = decodeHtml(fixEncoding(item.title || item.name || ''));
   var trackId    = item.tracking_id || item.trackingId || '';
   var progId     = item.program_id || (item.program && item.program.id) || '';
   var trackingUrl = buildAffilaeLink({ program_id: progId, tracking_id: trackId, url: item.url });
@@ -1160,8 +1175,9 @@ function pcardHTML(p) {
   var isFav = favorites.some(function(f){ return f.id===p.id; });
   var offer  = p.offers[0];
   var imgHtml = p.img
-    ? '<img src="'+p.img+'" alt="'+p.name.replace(/"/g,'&quot;')+'" onerror="this.parentNode.innerHTML=\'<div style=font-size:3rem>🏷️</div>\'">'
-    : '<div style="font-size:3rem;line-height:1">🏷️</div>';
+    ? '<img src="'+p.img+'" alt="'+p.name.replace(/"/g,'&quot;')+'" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' +
+      '<div style="display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;font-size:2rem;color:var(--dim)">🏷️<span style="font-size:.65rem;margin-top:.3rem;color:var(--dim)">'+p.brand+'</span></div>'
+    : '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;font-size:2rem;color:var(--dim)">🏷️<span style="font-size:.65rem;margin-top:.3rem;color:var(--dim)">'+p.brand+'</span></div>';
   var amazonUrl = 'https://www.amazon.fr/s?k='+encodeURIComponent(p.name)+'&tag=hifind05-21';
   var safeId = p.id.replace(/'/g,"\\'");
   var safeName = p.name.replace(/'/g,"&#39;").replace(/"/g,'&quot;');
@@ -1413,7 +1429,7 @@ async function loadModeTab(cat, btn) {
       }).slice(0,12);
     }
     grid.innerHTML = items.map(function(p){
-      var img = p.image_url ? '/api/image?url='+encodeURIComponent(p.image_url) : '';
+      var img = p.image_url ? '/api/img?url='+encodeURIComponent(p.image_url) : '';
       var price = parseFloat(p.price)||0;
       var prog = (p.programs && p.programs.title) || '';
       var tUrl = '/api/products?action=product&id='+p.id;
