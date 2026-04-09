@@ -926,12 +926,20 @@ function buildAffilaeLink(item) {
 
 function proxyImage(url) {
   if (!url) return null;
-  // Ces domaines bloquent le proxy → on sert directement
-  var directDomains = ['medias-norauto.fr', 'vertbaudet.fr', 'blancheporte.fr', 'lunii.fr', 'monpiedceheros.fr'];
+  // Extrait l'URL réelle depuis les redirects Effinity/Rakuten
+  if (url.includes('track.effiliation.com') || url.includes('effi.redir')) {
+    var match = url.match(/[?&]url=([^&]+)/);
+    if (match) url = decodeURIComponent(match[1]);
+  }
+  // Ces domaines servent directement sans proxy
+  var directDomains = [
+    'medias-norauto.fr', 'vertbaudet.fr', 'blancheporte.fr',
+    'lunii.fr', 'monpiedceheros.fr', 'rakuten.com', 'pmcdn.priceminister.com',
+    'shopping.rakuten.com', 'fr.shopping', 'static.affilae.com'
+  ];
   for (var i = 0; i < directDomains.length; i++) {
     if (url.includes(directDomains[i])) return url;
   }
-  // Pour Affilae → proxy pour contourner les bloqueurs de pub
   return '/api/image?url=' + encodeURIComponent(url);
 }
 
@@ -1149,36 +1157,40 @@ function renderResults(list){
 
 // ══ PRODUCT CARD — IDEALO STYLE ══
 function pcardHTML(p) {
-  var isFav  = favorites.some(function(f){ return f.id===p.id; });
+  var isFav = favorites.some(function(f){ return f.id===p.id; });
   var offer  = p.offers[0];
   var imgHtml = p.img
-    ? '<img src="'+p.img+'" alt="'+p.name.replace(/"/g,'&quot;')+'" onerror="this.style.display=\'none\'">'
-    : '<div style="font-size:3.5rem;line-height:1">🏷️</div>';
+    ? '<img src="'+p.img+'" alt="'+p.name.replace(/"/g,'&quot;')+'" onerror="this.parentNode.innerHTML=\'<div style=font-size:3rem>🏷️</div>\'">'
+    : '<div style="font-size:3rem;line-height:1">🏷️</div>';
+  var amazonUrl = 'https://www.amazon.fr/s?k='+encodeURIComponent(p.name)+'&tag=hifind05-21';
+  var safeId = p.id.replace(/'/g,"\\'");
+  var safeName = p.name.replace(/'/g,"&#39;").replace(/"/g,'&quot;');
 
   return (
     '<div class="pcard fade-up" id="pc-'+p.id+'">' +
-      '<div class="pcard-img-col">' +
+      '<a href="'+offer.url+'" target="_blank" rel="noopener sponsored" class="pcard-img-col" style="text-decoration:none">' +
         imgHtml +
-        '<button class="pcard-fav'+(isFav?' on':'')+'" onclick="toggleFav(\''+p.id+'\')">'+(isFav?'❤️':'🤍')+'</button>' +
-      '</div>' +
+        '<button class="pcard-fav'+(isFav?' on':'')+'" onclick="event.preventDefault();event.stopPropagation();toggleFav(\''+safeId+'\')" title="Sauvegarder">'+(isFav?'❤️':'🤍')+'</button>' +
+      '</a>' +
       '<div class="pcard-body">' +
         '<div class="pcard-merchant">'+p.brand+'</div>' +
-        '<div class="pcard-name">'+p.name+'</div>' +
+        '<a href="'+offer.url+'" target="_blank" rel="noopener sponsored" style="text-decoration:none;color:inherit">' +
+          '<div class="pcard-name">'+p.name+'</div>' +
+        '</a>' +
         (p.desc ? '<div class="pcard-desc">'+p.desc+'</div>' : '') +
         '<div class="pcard-bottom">' +
           '<div class="pcard-price-block">' +
             '<span class="pcard-price-from">à partir de</span>' +
             '<div class="pcard-price">'+p.bestPrice.toLocaleString('fr-FR')+' €</div>' +
-            '<div class="pcard-delivery">Livraison gratuite</div>' +
           '</div>' +
           '<div class="pcard-actions">' +
             '<a href="'+offer.url+'" target="_blank" rel="noopener sponsored">' +
               '<button class="pcard-btn-primary">Voir l\'offre ↗</button>' +
             '</a>' +
-            '<a href="https://www.amazon.fr/s?k='+encodeURIComponent(p.name)+'&tag=hifind05-21" target="_blank" rel="noopener sponsored" title="Voir sur Amazon">' +
-              '<button class="pcard-btn-amazon">🛒</button>' +
+            '<a href="'+amazonUrl+'" target="_blank" rel="noopener sponsored" title="Chercher sur Amazon">' +
+              '<button class="pcard-btn-amazon" title="Amazon">🛒</button>' +
             '</a>' +
-            '<button class="pcard-btn-fav" onclick="openDetail(\''+p.id+'\')">📊</button>' +
+            '<button class="pcard-btn-fav" onclick="openDetail(\''+safeId+'\')" title="Historique prix">📊</button>' +
           '</div>' +
         '</div>' +
       '</div>' +
