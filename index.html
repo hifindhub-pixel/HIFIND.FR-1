@@ -97,10 +97,11 @@ nav{background:var(--nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid 
 .section-link:hover{opacity:.75;}
 
 /* CATEGORIES */
-.cats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:.7rem;}
-.cat-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.1rem .7rem;background:var(--bg2);border:1px solid var(--border);border-radius:16px;gap:.4rem;transition:all .2s;}
+.cats-grid{display:flex;flex-wrap:nowrap;gap:.45rem;overflow-x:auto;padding-bottom:.3rem;scrollbar-width:none;}
+.cats-grid::-webkit-scrollbar{display:none;}
+.cat-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.6rem .7rem;background:var(--bg2);border:1px solid var(--border);border-radius:12px;gap:.25rem;transition:all .2s;flex-shrink:0;min-width:72px;}
 .cat-btn:hover{border-color:rgba(255,107,107,.4);transform:translateY(-2px);box-shadow:var(--card-shadow);}
-.cat-icon{font-size:1.8rem;}.cat-name{font-size:.72rem;font-weight:600;color:var(--sub);}
+.cat-icon{font-size:1.3rem;}.cat-name{font-size:.65rem;font-weight:600;color:var(--sub);white-space:nowrap;}
 
 /* ══ ESPACE MODE ══ */
 .mode-section{background:linear-gradient(135deg,#1a0533 0%,#2d1052 50%,#1a0533 100%);padding:2.5rem 1.5rem;margin:2rem 0;}
@@ -466,15 +467,15 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
   <div class="section">
     <div class="section-head"><h2 class="section-title outfit">Catégories</h2><span class="section-link" onclick="showPage('search')">Tout voir ›</span></div>
     <div class="cats-grid">
-      <button class="cat-btn" onclick="searchFor('high-tech')"><span class="cat-icon">📱</span><span class="cat-name">High-Tech</span></button>
+      <button class="cat-btn" onclick="searchFor('high-tech')"><span class="cat-icon">💻</span><span class="cat-name">High-Tech</span></button>
       <button class="cat-btn" onclick="searchFor('gaming')"><span class="cat-icon">🎮</span><span class="cat-name">Gaming</span></button>
-      <button class="cat-btn" onclick="searchFor('mode sport')"><span class="cat-icon">👟</span><span class="cat-name">Mode & Sport</span></button>
-      <button class="cat-btn" onclick="searchFor('maison jardin')"><span class="cat-icon">🏠</span><span class="cat-name">Maison & Jardin</span></button>
-      <button class="cat-btn" onclick="searchFor('animalerie')"><span class="cat-icon">🐶</span><span class="cat-name">Animalerie</span></button>
-      <button class="cat-btn" onclick="searchFor('beauté santé')"><span class="cat-icon">💖</span><span class="cat-name">Beauté & Santé</span></button>
-      <button class="cat-btn" onclick="searchFor('jouets enfants')"><span class="cat-icon">🧸</span><span class="cat-name">Jouets & Enfants</span></button>
-      <button class="cat-btn" onclick="searchFor('cuisine epicerie')"><span class="cat-icon">🍽️</span><span class="cat-name">Cuisine & Épicerie</span></button>
-      <button class="cat-btn" onclick="searchFor('auto moto')"><span class="cat-icon">🚗</span><span class="cat-name">Auto & Moto</span></button>
+      <button class="cat-btn" onclick="searchFor('mode sport')"><span class="cat-icon">👕</span><span class="cat-name">Mode</span></button>
+      <button class="cat-btn" onclick="searchFor('maison jardin')"><span class="cat-icon">🏡</span><span class="cat-name">Maison</span></button>
+      <button class="cat-btn" onclick="searchFor('animalerie')"><span class="cat-icon">🐾</span><span class="cat-name">Animaux</span></button>
+      <button class="cat-btn" onclick="searchFor('beauté santé')"><span class="cat-icon">💄</span><span class="cat-name">Beauté</span></button>
+      <button class="cat-btn" onclick="searchFor('jouets enfants')"><span class="cat-icon">🧸</span><span class="cat-name">Enfants</span></button>
+      <button class="cat-btn" onclick="searchFor('cuisine epicerie')"><span class="cat-icon">🍳</span><span class="cat-name">Cuisine</span></button>
+      <button class="cat-btn" onclick="searchFor('auto moto')"><span class="cat-icon">🚗</span><span class="cat-name">Auto</span></button>
       <button class="cat-btn" onclick="searchFor('accessoires')"><span class="cat-icon">👜</span><span class="cat-name">Accessoires</span></button>
       <a href="https://hiflight.fr" target="_blank" rel="noopener" class="cat-btn" style="text-decoration:none;border-color:rgba(99,179,237,0.4);background:linear-gradient(135deg,var(--bg2),rgba(99,179,237,0.08))"><span class="cat-icon">✈️</span><span class="cat-name" style="color:#63b3ed">Vols</span></a>
     </div>
