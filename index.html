@@ -1508,12 +1508,10 @@ async function loadModeTab(cat, btn) {
     grid.innerHTML = items.map(function(p){
       var img = p.image_url ? '/api/img?url='+encodeURIComponent(p.image_url) : '';
       var price = parseFloat(p.price)||0;
-      var prog = (p.programs && p.programs.title) || '';
-      var tUrl = '/api/products?action=product&id='+p.id;
-      return '<div class="mode-card" onclick="searchFor(\''+p.title.replace(/'/g,'&#39;')+'\')">' +
+      var safeId = p.id.replace(/'/g,"\\'");
+      return '<div class="mode-card" onclick="openDetail(\''+safeId+'\')">' +
         '<div class="mode-card-img">'+(img?'<img src="'+img+'" alt="'+p.title+'">':'<div style="font-size:3rem">🏷️</div>')+'</div>' +
         '<div class="mode-card-body">' +
-          '<div class="mode-card-brand">'+prog+'</div>' +
           '<div class="mode-card-name">'+p.title+'</div>' +
           '<div class="mode-card-price">'+price.toLocaleString('fr-FR')+' €</div>' +
         '</div>' +
