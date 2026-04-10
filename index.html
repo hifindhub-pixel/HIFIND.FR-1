@@ -1637,5 +1637,27 @@ async function initHome() {
 }
 initHome();
 </script>
+
+<script>
+// Génère les dates dynamiques pour les liens HiFlight
+(function() {
+  var depart = new Date();
+  depart.setDate(depart.getDate() + 42); // +6 semaines
+  var retour = new Date(depart);
+  retour.setDate(retour.getDate() + 7);  // +7 jours
+  
+  function fmt(d) {
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  
+  var departStr = fmt(depart);
+  var retourStr = fmt(retour);
+  
+  document.querySelectorAll('a[href*="hiflight.fr/?origin="]').forEach(function(a) {
+    a.href = a.href + '&depart_date=' + departStr + '&return_date=' + retourStr;
+  });
+})();
+</script>
+
 </body>
 </html>
