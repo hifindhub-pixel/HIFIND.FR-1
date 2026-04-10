@@ -202,7 +202,7 @@ async function syncEffinity() {
       const mapped = products.filter(p=>p.title&&p.url).map((p,i) => ({
         id: programId+'_'+i, affilae_id: programId+'_'+i, program_id: programId,
         title: p.title, description: p.description||null, price: p.price||null,
-        currency: 'EUR', url: feed.tracking ? feed.tracking + '?url=' + encodeURIComponent(p.url) : p.url, tracking_id: null,
+        currency: 'EUR', url: p.url, tracking_id: null,
         image_url: p.image_url||null,
         category: feed.category || detectCategory({ title:p.title, description:p.description||'', program:{title:feed.name} }),
         lang: 'fr', status: 'enabled', updated_at: new Date().toISOString()
