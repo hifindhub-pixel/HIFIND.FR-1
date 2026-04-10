@@ -1226,62 +1226,114 @@ function openDetail(id){
 }
 
 function renderDetail(p){
-  const hist30=buildPriceHistory(p.basePrice,30);
-  const minH=Math.min(...hist30.data);
-  const maxH=Math.max(...hist30.data);
-  const allOffersHTML=p.offers.map((o,i)=>`
-    <div class="offer-item ${i===0?'best':'normal'}" style="margin-bottom:.4rem;">
-      <div class="offer-logo">${o.emoji}</div>
-      <div class="offer-details">
-        <div class="offer-name-row">
-          <span class="offer-merchant">${o.merchant}</span>
-          ${i===0?'<span class="badge-best">✓ Meilleur prix</span>':''}
+  const hist30 = buildPriceHistory(p.basePrice, 30);
+  const minH   = Math.min(...hist30.data);
+  const maxH   = Math.max(...hist30.data);
+
+  // Construit la liste des offres — vendeur affilié + Amazon
+  const offers = [];
+
+  // Offre principale (vendeur affilié)
+  if (p.offers && p.offers[0]) {
+    const o = p.offers[0];
+    offers.push({
+      merchant: p.brand || o.merchant || 'Partenaire',
+      price:    p.bestPrice,
+      shipping: 0,
+      url:      o.url,
+      logo:     getMerchantLogo(p.brand),
+      badge:    'Meilleur prix',
+      condition:'Neuf',
+    });
+  }
+
+  // Offre Amazon
+  offers.push({
+    merchant: 'Amazon.fr',
+    price:    null, // prix inconnu sans PA-API
+    shipping: 0,
+    url:      'https://www.amazon.fr/s?k=' + encodeURIComponent(p.name) + '&tag=hifind05-21',
+    logo:     '🛒',
+    badge:    null,
+    condition:'Neuf',
+    isPriceUnknown: true,
+  });
+
+  function getMerchantLogo(brand) {
+    if (!brand) return '🏪';
+    const b = brand.toLowerCase();
+    if (b.includes('norauto'))    return '🔧';
+    if (b.includes('beauty'))     return '💄';
+    if (b.includes('vertbaudet')) return '👶';
+    if (b.includes('blanche'))    return '👗';
+    if (b.includes('lunii'))      return '🎧';
+    if (b.includes('rakuten'))    return '🛍️';
+    if (b.includes('valebio'))    return '🌿';
+    return '🏪';
+  }
+
+  const offersHTML = offers.map((o, i) => `
+    <div style="display:flex;align-items:center;gap:1rem;padding:1.1rem 1.2rem;background:var(--bg2);border:1px solid ${i===0?'var(--coral)':'var(--border)'};border-radius:14px;margin-bottom:.6rem;transition:box-shadow .2s;" onmouseover="this.style.boxShadow='var(--card-shadow)'" onmouseout="this.style.boxShadow='none'">
+      <div style="font-size:2rem;width:48px;text-align:center;flex-shrink:0">${o.logo}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+          <span style="font-weight:700;font-size:.95rem">${o.merchant}</span>
+          ${i===0?'<span style="background:rgba(255,107,107,.15);color:var(--coral);font-size:.7rem;font-weight:700;padding:.15rem .5rem;border-radius:100px;border:1px solid rgba(255,107,107,.3)">✓ Meilleur prix</span>':''}
+          ${o.merchant==='Amazon.fr'?'<span style="background:rgba(255,153,0,.12);color:#ff9900;font-size:.7rem;font-weight:700;padding:.15rem .5rem;border-radius:100px;border:1px solid rgba(255,153,0,.25)">Prime éligible</span>':''}
         </div>
-        <div class="offer-delivery"><span class="${o.stock.includes('limité')?'dot-a':'dot-g'}"></span>${o.stock} · ${o.shipping===0?'Livraison gratuite':'+ '+o.shipping.toLocaleString('fr-FR')+' €'}</div>
+        <div style="font-size:.78rem;color:var(--sub);margin-top:.2rem">
+          <span style="color:#22c55e">●</span> En stock · ${o.shipping===0?'<strong>Livraison gratuite</strong>':'Livraison '+o.shipping+' €'}
+        </div>
+        <div style="font-size:.75rem;color:var(--dim);margin-top:.1rem">${o.condition}</div>
       </div>
-      <div class="offer-price-col">
-        <div class="offer-price">${o.price.toLocaleString('fr-FR')} €</div>
-        ${o.shipping>0?('<div class="offer-total">Total : '+o.total.toLocaleString('fr-FR')+' €</div>'):''}
+      <div style="text-align:right;flex-shrink:0">
+        ${o.isPriceUnknown
+          ? '<div style="font-size:.8rem;color:var(--sub);margin-bottom:.5rem">Voir le prix</div>'
+          : '<div style="font-size:1.4rem;font-weight:800;color:var(--text);font-family:Outfit,sans-serif">' + o.price.toLocaleString('fr-FR') + ' €</div><div style="font-size:.72rem;color:var(--sub)">Livraison incluse</div>'
+        }
+        <a href="${o.url}" target="_blank" rel="noopener sponsored" style="text-decoration:none">
+          <button style="margin-top:.4rem;padding:.5rem 1.1rem;background:${i===0?'var(--coral)':'var(--bg3)'};color:${i===0?'#fff':'var(--text)'};border:${i===0?'none':'1px solid var(--border)'};border-radius:8px;font-weight:700;font-size:.82rem;cursor:pointer;white-space:nowrap;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Voir l'offre ↗</button>
+        </a>
       </div>
-      <a href="${o.url}" target="_blank" rel="noopener"><button class="offer-btn ${i===0?'b':'n'}">Voir l'offre ↗</button></a>
     </div>`).join('');
 
   document.getElementById('detailContent').innerHTML=`
-    <div class="detail-grid">
-      <div class="detail-left">
+    <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:2rem">
+      <!-- Image -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:flex;align-items:center;justify-content:center;min-width:220px;width:220px;height:220px;flex-shrink:0">
         ${p.img
-          ? '<img src="'+p.img+'" alt="'+p.name+'" style="width:200px;height:200px;object-fit:contain;">'
-          : '<div style="font-size:7rem;line-height:1;">📦</div>'
+          ? '<img src="'+p.img+'" alt="'+p.name+'" style="max-width:180px;max-height:180px;object-fit:contain" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'block\'"><div style="display:none;font-size:4rem">📦</div>'
+          : '<div style="font-size:4rem">📦</div>'
         }
-        <div class="detail-badges">
-          <span class="detail-badge hot">🔥 En promotion</span>
-          <span class="detail-badge new">✦ ${p.numOffers} offres</span>
-        </div>
       </div>
-      <div class="detail-right">
-        <div class="detail-brand">${p.brand}</div>
-        <div class="detail-name">${p.name}</div>
-        <div class="detail-price-row">
-          <span class="detail-price-from">à partir de</span>
-          <span class="detail-price">${p.bestPrice.toLocaleString('fr-FR')} €</span>
-          <span class="detail-price-at">chez</span>
-          <span class="detail-price-merchant">${p.bestMerchant}</span>
+
+      <!-- Infos produit -->
+      <div style="flex:1;min-width:280px">
+        <div style="font-size:.78rem;font-weight:700;color:var(--coral);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem">${p.brand}</div>
+        <h1 style="font-family:Outfit,sans-serif;font-size:1.35rem;font-weight:800;line-height:1.3;margin-bottom:1rem;color:var(--text)">${p.name}</h1>
+        <div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.3rem">
+          <span style="font-size:.82rem;color:var(--sub)">à partir de</span>
+          <span style="font-size:2rem;font-weight:900;font-family:Outfit,sans-serif;color:var(--coral)">${p.bestPrice.toLocaleString('fr-FR')} €</span>
         </div>
-        <div class="detail-stats-grid">
-          <div class="detail-stat"><div class="detail-stat-val">${p.numOffers}</div><div class="detail-stat-lbl">Offres disponibles</div></div>
-          <div class="detail-stat"><div class="detail-stat-val">${p.minPrice.toLocaleString('fr-FR')} €</div><div class="detail-stat-lbl">Prix le plus bas</div></div>
-          <div class="detail-stat"><div class="detail-stat-val">${p.maxPrice.toLocaleString('fr-FR')} €</div><div class="detail-stat-lbl">Prix le plus haut</div></div>
-        </div>
-        <div class="detail-actions">
-          <a href="https://www.amazon.fr/s?k=${encodeURIComponent(p.name)}&tag=hifind05-21" target="_blank"><button class="detail-btn-primary">Voir la meilleure offre →</button></a>
-          <button class="detail-btn-secondary" onclick="toggleFav('${p.id}');this.textContent=favorites.some(f=>f.id==='${p.id}')?'❤️ Sauvegardé':'🤍 Sauvegarder'">
+        <div style="font-size:.8rem;color:var(--sub);margin-bottom:1.2rem">chez <strong style="color:var(--text)">${p.brand}</strong> · Livraison gratuite</div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <button onclick="toggleFav('${p.id}');this.innerHTML=favorites.some(f=>f.id==='${p.id}')?'❤️ Sauvegardé':'🤍 Sauvegarder'" style="padding:.55rem 1.1rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-weight:600;font-size:.82rem;color:var(--text);cursor:pointer">
             ${favorites.some(f=>f.id===p.id)?'❤️ Sauvegardé':'🤍 Sauvegarder'}
           </button>
-          <button class="detail-btn-secondary" onclick="showPage('alerts')">🔔 Créer une alerte</button>
+          <button onclick="showPage('alerts')" style="padding:.55rem 1.1rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-weight:600;font-size:.82rem;color:var(--text);cursor:pointer">🔔 Alerte prix</button>
         </div>
       </div>
     </div>
 
+    <!-- Offres -->
+    <div style="margin-bottom:2rem">
+      <div style="font-size:1rem;font-weight:700;margin-bottom:.8rem;display:flex;align-items:center;gap:.5rem">
+        🏪 Comparer les offres <span style="font-size:.75rem;font-weight:500;color:var(--sub)">(${offers.length} vendeur${offers.length>1?'s':''})</span>
+      </div>
+      ${offersHTML}
+    </div>
+
+    <!-- Historique prix -->
     <div class="chart-section">
       <div class="chart-head">
         <div class="chart-title">📊 Historique des prix</div>
@@ -1296,13 +1348,8 @@ function renderDetail(p){
         <div class="chart-stat"><div class="chart-stat-val low">${minH.toLocaleString('fr-FR')} €</div><div class="chart-stat-lbl">Plus bas (30j)</div></div>
         <div class="chart-stat"><div class="chart-stat-val high">${maxH.toLocaleString('fr-FR')} €</div><div class="chart-stat-lbl">Plus haut (30j)</div></div>
         <div class="chart-stat"><div class="chart-stat-val">${Math.round((maxH-minH)/maxH*100)}%</div><div class="chart-stat-lbl">Variation</div></div>
-        <div class="chart-stat"><div class="chart-stat-val">${Math.round((hist30.data.reduce((a,b)=>a+b,0)/hist30.data.length)).toLocaleString('fr-FR')} €</div><div class="chart-stat-lbl">Prix moyen</div></div>
+        <div class="chart-stat"><div class="chart-stat-val">${Math.round(hist30.data.reduce((a,b)=>a+b,0)/hist30.data.length).toLocaleString('fr-FR')} €</div><div class="chart-stat-lbl">Prix moyen</div></div>
       </div>
-    </div>
-
-    <div class="all-offers-section">
-      <div class="all-offers-head">🏪 Toutes les offres (${p.numOffers})</div>
-      ${allOffersHTML}
     </div>`;
 
   setTimeout(()=>renderChart(hist30),100);
