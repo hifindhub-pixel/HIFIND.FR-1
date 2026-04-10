@@ -16,6 +16,7 @@
   --hero-bg:linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#0f172a 100%);
   --card-shadow:0 4px 24px rgba(0,0,0,0.4);
   --nav-bg:rgba(15,23,42,0.96);--chart-grid:rgba(255,255,255,0.06);
+  --find-color:#ffffff;
 }
 [data-theme="light"]{
   --bg:#f8fafc;--bg2:#ffffff;--bg3:#f1f5f9;
@@ -24,6 +25,7 @@
   --hero-bg:linear-gradient(135deg,#fff5f5 0%,#fce7f3 40%,#eff6ff 100%);
   --card-shadow:0 4px 24px rgba(0,0,0,0.08);
   --nav-bg:rgba(255,255,255,0.96);--chart-grid:rgba(0,0,0,0.06);
+  --find-color:#1e3a5f;
 }
 :root{--coral:#FF6B6B;--coral-h:#FF5252;--green:#22c55e;--green-bg:rgba(34,197,94,0.1);--green-border:rgba(34,197,94,0.25);--amber:#f59e0b;}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -99,9 +101,11 @@ nav{background:var(--nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid 
 /* CATEGORIES */
 .cats-grid{display:flex;flex-wrap:nowrap;gap:.45rem;overflow-x:auto;padding-bottom:.3rem;scrollbar-width:none;}
 .cats-grid::-webkit-scrollbar{display:none;}
-.cat-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.6rem .7rem;background:var(--bg2);border:1px solid var(--border);border-radius:12px;gap:.25rem;transition:all .2s;flex-shrink:0;min-width:72px;}
+.cat-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.8rem .9rem;background:var(--bg2);border:1px solid var(--border);border-radius:12px;gap:.3rem;transition:all .2s;flex-shrink:0;min-width:80px;}
 .cat-btn:hover{border-color:rgba(255,107,107,.4);transform:translateY(-2px);box-shadow:var(--card-shadow);}
-.cat-icon{font-size:1.3rem;}.cat-name{font-size:.65rem;font-weight:600;color:var(--sub);white-space:nowrap;}
+.cat-icon{font-size:1.8rem;}.cat-name{font-size:.68rem;font-weight:600;color:var(--sub);white-space:nowrap;}
+.sp-clear{position:absolute;right:.8rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--dim);font-size:1.1rem;cursor:pointer;padding:.2rem;display:none;line-height:1;}
+.sp-clear:hover{color:var(--text);}
 
 /* ══ ESPACE MODE ══ */
 .mode-section{background:linear-gradient(135deg,#1a0533 0%,#2d1052 50%,#1a0533 100%);padding:2.5rem 1.5rem;margin:2rem 0;}
@@ -402,7 +406,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
 <!-- NAVBAR -->
 <nav>
   <div class="nav-inner">
-    <div class="nav-logo" onclick="showPage('home')">HiFind</div>
+    <div class="nav-logo" onclick="showPage('home')">Hi<span style="color:var(--find-color)">Find</span></div>
     <div class="nav-actions">
       <button class="nav-icon-btn" onclick="showPage('favorites')" title="Favoris">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -467,23 +471,23 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
   <div class="section">
     <div class="section-head"><h2 class="section-title outfit">Catégories</h2><span class="section-link" onclick="showPage('search')">Tout voir ›</span></div>
     <div class="cats-grid">
-      <button class="cat-btn" onclick="searchFor('high-tech')"><span class="cat-icon">💻</span><span class="cat-name">High-Tech</span></button>
-      <button class="cat-btn" onclick="searchFor('gaming')"><span class="cat-icon">🎮</span><span class="cat-name">Gaming</span></button>
-      <button class="cat-btn" onclick="searchFor('mode sport')"><span class="cat-icon">👕</span><span class="cat-name">Mode</span></button>
-      <button class="cat-btn" onclick="searchFor('maison jardin')"><span class="cat-icon">🏡</span><span class="cat-name">Maison</span></button>
-      <button class="cat-btn" onclick="searchFor('animalerie')"><span class="cat-icon">🐾</span><span class="cat-name">Animaux</span></button>
-      <button class="cat-btn" onclick="searchFor('beauté santé')"><span class="cat-icon">💄</span><span class="cat-name">Beauté</span></button>
-      <button class="cat-btn" onclick="searchFor('jouets enfants')"><span class="cat-icon">🧸</span><span class="cat-name">Enfants</span></button>
-      <button class="cat-btn" onclick="searchFor('cuisine epicerie')"><span class="cat-icon">🍳</span><span class="cat-name">Cuisine</span></button>
-      <button class="cat-btn" onclick="searchFor('auto moto')"><span class="cat-icon">🚗</span><span class="cat-name">Auto</span></button>
-      <button class="cat-btn" onclick="searchFor('accessoires')"><span class="cat-icon">👜</span><span class="cat-name">Accessoires</span></button>
+      <button class="cat-btn" onclick="loadCategory('high-tech')"><span class="cat-icon">💻</span><span class="cat-name">High-Tech</span></button>
+      <button class="cat-btn" onclick="loadCategory('sport-outdoor')"><span class="cat-icon">🎮</span><span class="cat-name">Gaming</span></button>
+      <button class="cat-btn" onclick="loadCategory('mode-vetements')"><span class="cat-icon">👕</span><span class="cat-name">Mode</span></button>
+      <button class="cat-btn" onclick="loadCategory('maison-jardin')"><span class="cat-icon">🏡</span><span class="cat-name">Maison</span></button>
+      <button class="cat-btn" onclick="loadCategory('animaux')"><span class="cat-icon">🐾</span><span class="cat-name">Animaux</span></button>
+      <button class="cat-btn" onclick="loadCategory('beaute-bienetre')"><span class="cat-icon">💄</span><span class="cat-name">Beauté</span></button>
+      <button class="cat-btn" onclick="loadCategory('enfants-bebes')"><span class="cat-icon">🧸</span><span class="cat-name">Enfants</span></button>
+      <button class="cat-btn" onclick="loadCategory('alimentation-bio')"><span class="cat-icon">🍳</span><span class="cat-name">Cuisine</span></button>
+      <button class="cat-btn" onclick="loadCategory('auto-moto')"><span class="cat-icon">🚗</span><span class="cat-name">Auto</span></button>
+      <button class="cat-btn" onclick="loadCategory('sante-nutrition')"><span class="cat-icon">💊</span><span class="cat-name">Santé</span></button>
       <a href="https://hiflight.fr" target="_blank" rel="noopener" class="cat-btn" style="text-decoration:none;border-color:rgba(99,179,237,0.4);background:linear-gradient(135deg,var(--bg2),rgba(99,179,237,0.08))"><span class="cat-icon">✈️</span><span class="cat-name" style="color:#63b3ed">Vols</span></a>
     </div>
   </div>
 
   <div style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
     <div class="section">
-      <div class="section-head"><h2 class="section-title outfit">⭐ Produits favoris</h2><span class="section-link" onclick="searchFor('iphone')">Voir tout ›</span></div>
+      <div class="section-head"><h2 class="section-title outfit">✨ Nouveautés</h2><span class="section-link" onclick="searchFor('')">Voir tout ›</span></div>
       <div class="prod-grid" id="featuredGrid"></div>
     </div>
   </div>
@@ -560,9 +564,10 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
       <div class="sp-wrap">
         <span class="sp-icon">🔍</span>
         <input class="sp-input" type="text" id="spInput" placeholder="Rechercher un produit..." autocomplete="off"
-          oninput="showSuggestions('spSugg',this.value)"
+          oninput="showSuggestions('spSugg',this.value);document.getElementById('spClear').style.display=this.value?'block':'none';"
           onkeydown="if(event.key==='Enter'){hideSugg('spSugg');doSpSearch();}"
           onblur="setTimeout(()=>hideSugg('spSugg'),200)">
+        <button class="sp-clear" id="spClear" onclick="document.getElementById('spInput').value='';this.style.display='none';document.getElementById('spInput').focus()">✕</button>
         <div class="sp-suggestions hidden" id="spSugg"></div>
       </div>
       <button class="sp-btn" onclick="doSpSearch()">Rechercher</button>
@@ -1063,7 +1068,35 @@ function showPage(p){
 }
 
 // ══ SEARCH ══
-function searchFor(q){document.getElementById('spInput').value=q;showPage('search');runSearch(q);}
+function searchFor(q){
+  document.getElementById('spInput').value=q;
+  document.getElementById('spClear').style.display=q?'block':'none';
+  showPage('search');
+  if(q) runSearch(q);
+}
+
+async function loadCategory(cat) {
+  showPage('search');
+  var container = document.getElementById('resultsContainer');
+  container.innerHTML = '<div class="spinner"><div class="spin"></div><p class="spin-lbl">Chargement...</p></div>';
+  document.getElementById('spInput').value = '';
+  document.getElementById('spClear').style.display = 'none';
+
+  try {
+    var res = await fetch('/api/products?action=category&cat='+encodeURIComponent(cat)+'&limit=60');
+    var data = await res.json();
+    var items = data.data || [];
+    if (items.length > 0) {
+      currentResults = items.map(mapAffilaeProduct);
+      lastQuery = cat;
+      sortResults();
+    } else {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">Aucun produit dans cette catégorie</div></div>';
+    }
+  } catch(e) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Erreur de chargement</div></div>';
+  }
+}
 function doHeroSearch(){const q=document.getElementById('heroInput').value.trim();if(q)searchFor(q);}
 function doSpSearch(){const q=document.getElementById('spInput').value.trim();if(q)runSearch(q);}
 
@@ -1495,15 +1528,12 @@ async function loadModeTab(cat, btn) {
 async function initHome() {
   loadModeTab('beaute-bienetre', document.querySelector('.mode-tab'));
 
-  // Charge un mix de catégories pour la home
   var categories = ['beaute-bienetre', 'sante-nutrition', 'mode-vetements', 'enfants-bebes', 'auto-moto'];
   var allProducts = [];
 
   for (var i = 0; i < categories.length; i++) {
-    var raw = await affilaeCall('category', '', 3);
-    var url = '/api/products?action=category&cat=' + encodeURIComponent(categories[i]) + '&limit=3';
     try {
-      var res = await fetch(url);
+      var res = await fetch('/api/products?action=category&cat=' + encodeURIComponent(categories[i]) + '&limit=3');
       var data = await res.json();
       if (data.data && data.data.length) {
         allProducts = allProducts.concat(data.data.slice(0, 3));
@@ -1511,14 +1541,17 @@ async function initHome() {
     } catch(e) {}
   }
 
-  // Complète avec la liste générale si pas assez
+  // Complète si pas assez
   if (allProducts.length < 12) {
-    var raw = await affilaeCall('list', '', 12);
-    var extra = (raw && raw.data) || [];
-    allProducts = allProducts.concat(extra);
+    try {
+      var res2 = await fetch('/api/products?action=list&limit=12');
+      var data2 = await res2.json();
+      var extra = data2.data || [];
+      var ids = new Set(allProducts.map(function(p){return p.id;}));
+      allProducts = allProducts.concat(extra.filter(function(p){return !ids.has(p.id);}));
+    } catch(e) {}
   }
 
-  // Dédoublonne
   var seen = new Set();
   var unique = allProducts.filter(function(p) {
     if (seen.has(p.id)) return false;
