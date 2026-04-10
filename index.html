@@ -1471,11 +1471,10 @@ function renderAlerts(){
 function miniCard(p, rank, deal) {
   var im = p.img ? '<img src="'+p.img+'" alt="'+p.name.replace(/"/g,'&quot;')+'" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem">🏷️</div>';
   var badge = rank ? '<span class="prod-mini-rank">N°'+rank+'</span>' : (deal ? '<span class="prod-mini-deal">Bon plan</span>' : '');
-  var safeName = p.name.replace(/'/g, '&#39;');
-  return '<div class="prod-mini" onclick="searchFor(\''+safeName+'\')">'+
+  var safeId = p.id.replace(/'/g, "\\'");
+  return '<div class="prod-mini" onclick="openDetail(\''+safeId+'\')">'+
     '<div class="prod-mini-img">'+im+badge+'</div>'+
     '<div class="prod-mini-body">'+
-      '<div class="prod-mini-brand">'+p.brand+'</div>'+
       '<div class="prod-mini-name">'+p.name+'</div>'+
       '<div class="prod-mini-from">à partir de</div>'+
       '<div class="prod-mini-price">'+p.bestPrice.toLocaleString('fr-FR')+' €</div>'+
