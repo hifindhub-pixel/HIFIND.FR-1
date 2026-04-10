@@ -1185,16 +1185,14 @@ function pcardHTML(p) {
   var safeName = p.name.replace(/'/g,"&#39;").replace(/"/g,'&quot;');
 
   return (
-    '<div class="pcard fade-up" id="pc-'+p.id+'">' +
-      '<a href="'+offer.url+'" target="_blank" rel="noopener sponsored" class="pcard-img-col" style="text-decoration:none">' +
+    '<div class="pcard fade-up" id="pc-'+p.id+'" style="cursor:pointer" onclick="openDetail(\''+safeId+'\')">' +
+      '<div class="pcard-img-col">' +
         imgHtml +
-        '<button class="pcard-fav'+(isFav?' on':'')+'" onclick="event.preventDefault();event.stopPropagation();toggleFav(\''+safeId+'\')" title="Sauvegarder">'+(isFav?'❤️':'🤍')+'</button>' +
-      '</a>' +
+        '<button class="pcard-fav'+(isFav?' on':'')+'" onclick="event.stopPropagation();toggleFav(\''+safeId+'\')" title="Sauvegarder">'+(isFav?'❤️':'🤍')+'</button>' +
+      '</div>' +
       '<div class="pcard-body">' +
         '<div class="pcard-merchant">'+p.brand+'</div>' +
-        '<a href="'+offer.url+'" target="_blank" rel="noopener sponsored" style="text-decoration:none;color:inherit">' +
-          '<div class="pcard-name">'+p.name+'</div>' +
-        '</a>' +
+        '<div class="pcard-name">'+p.name+'</div>' +
         (p.desc ? '<div class="pcard-desc">'+p.desc+'</div>' : '') +
         '<div class="pcard-bottom">' +
           '<div class="pcard-price-block">' +
@@ -1202,13 +1200,11 @@ function pcardHTML(p) {
             '<div class="pcard-price">'+p.bestPrice.toLocaleString('fr-FR')+' €</div>' +
           '</div>' +
           '<div class="pcard-actions">' +
-            '<a href="'+offer.url+'" target="_blank" rel="noopener sponsored">' +
-              '<button class="pcard-btn-primary">Voir l\'offre ↗</button>' +
-            '</a>' +
-            '<a href="'+amazonUrl+'" target="_blank" rel="noopener sponsored" title="Chercher sur Amazon">' +
+            '<button class="pcard-btn-primary" onclick="event.stopPropagation();openDetail(\''+safeId+'\')">Comparer ↗</button>' +
+            '<a href="'+amazonUrl+'" target="_blank" rel="noopener sponsored" title="Chercher sur Amazon" onclick="event.stopPropagation()">' +
               '<button class="pcard-btn-amazon" title="Amazon">🛒</button>' +
             '</a>' +
-            '<button class="pcard-btn-fav" onclick="openDetail(\''+safeId+'\')" title="Historique prix">📊</button>' +
+            '<button class="pcard-btn-fav" onclick="event.stopPropagation();openDetail(\''+safeId+'\')" title="Historique prix">📊</button>' +
           '</div>' +
         '</div>' +
       '</div>' +
