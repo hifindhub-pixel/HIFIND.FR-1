@@ -193,6 +193,7 @@ async function syncEffinity() {
 
       console.log('  Feed size:', text.length, 'chars');
       console.log('  Feed start:', text.slice(0, 300).replace(/\n/g,' '));
+      console.log('  Sample URL:', products[0]?.url);
       console.log('  📦', feed.name, ':', products.length, 'produits');
 
       const programId = 'effinity_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
