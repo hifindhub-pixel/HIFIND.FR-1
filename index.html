@@ -1076,6 +1076,7 @@ let currentProduct=null;
 let priceChart=null;
 let favorites=JSON.parse(localStorage.getItem('hf_favs')||'[]');
 let alerts=JSON.parse(localStorage.getItem('hf_alerts')||'[]');
+let homeProductsCache={}; // Cache des produits de la home
 
 function r(a,b){return a+Math.random()*(b-a);}
 
@@ -1297,7 +1298,9 @@ function pcardHTML(p) {
 // ══ PRODUCT DETAIL ══
 async function openDetail(id){
   // Cherche d'abord dans les résultats en mémoire
-  var p = currentResults.find(x=>x.id===id) || favorites.find(x=>x.id===id);
+  var p = currentResults.find(x=>x.id===id)
+       || favorites.find(x=>x.id===id)
+       || homeProductsCache[id];
   if (p) {
     currentProduct = p;
     showPage('detail');
@@ -1311,6 +1314,7 @@ async function openDetail(id){
     var items = data.data || [];
     if (items.length > 0) {
       p = mapAffilaeProduct(items[0]);
+      homeProductsCache[id] = p;
       currentProduct = p;
       showPage('detail');
       renderDetail(p);
@@ -1575,6 +1579,8 @@ async function loadModeTab(cat, btn) {
       var img = p.image_url ? '/api/img?url='+encodeURIComponent(p.image_url) : '';
       var price = parseFloat(p.price)||0;
       var safeId = p.id.replace(/'/g,"\\'");
+      // Cache pour openDetail
+      if (!homeProductsCache[p.id]) homeProductsCache[p.id] = mapAffilaeProduct(p);
       return '<div class="mode-card" onclick="openDetail(\''+safeId+'\')">' +
         '<div class="mode-card-img">'+(img?'<img src="'+img+'" alt="'+p.title+'">':'<div style="font-size:3rem">🏷️</div>')+'</div>' +
         '<div class="mode-card-body">' +
@@ -1623,6 +1629,8 @@ async function initHome() {
   });
 
   var mapped = unique.slice(0, 12).map(mapAffilaeProduct);
+  // Stocke dans le cache pour openDetail
+  mapped.forEach(function(p){ homeProductsCache[p.id] = p; });
 
   var fg = document.getElementById('featuredGrid');
   if (fg) fg.innerHTML = mapped.slice(0, 6).map(function(p){ return miniCard(p, 0, false); }).join('') ||
