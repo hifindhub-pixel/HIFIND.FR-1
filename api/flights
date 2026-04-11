@@ -1,31 +1,30 @@
 const TP_TOKEN = '22ac0b6e6ed865e0c673152376023db4';
 
 const ROUTES = [
-  { origin: 'CDG', destination: 'TUN', label: 'Paris → Tunis' },
-  { origin: 'CDG', destination: 'RAK', label: 'Paris → Marrakech' },
-  { origin: 'CDG', destination: 'BCN', label: 'Paris → Barcelone' },
-  { origin: 'CDG', destination: 'FCO', label: 'Paris → Rome' },
-  { origin: 'CDG', destination: 'DXB', label: 'Paris → Dubai' },
-  { origin: 'MRS', destination: 'ALG', label: 'Marseille → Alger' },
-  { origin: 'CDG', destination: 'ALG', label: 'Paris → Alger' },
-  { origin: 'CDG', destination: 'CMN', label: 'Paris → Casablanca' },
-  { origin: 'CDG', destination: 'LHR', label: 'Paris → Londres' },
-  { origin: 'CDG', destination: 'MAD', label: 'Paris → Madrid' },
-  { origin: 'CDG', destination: 'JFK', label: 'Paris → New York' },
-  { origin: 'CDG', destination: 'DJE', label: 'Paris → Djerba' },
-  { origin: 'MRS', destination: 'TUN', label: 'Marseille → Tunis' },
-  { origin: 'MRS', destination: 'DKR', label: 'Marseille → Dakar' },
-  { origin: 'MRS', destination: 'IST', label: 'Marseille → Istanbul' },
-  { origin: 'MRS', destination: 'YUL', label: 'Marseille → Montréal' },
-  { origin: 'MRS', destination: 'ABJ', label: 'Marseille → Abidjan' },
-  { origin: 'CDG', destination: 'IST', label: 'Paris → Istanbul' },
+  { origin: 'CDG', destination: 'TUN' },
+  { origin: 'CDG', destination: 'RAK' },
+  { origin: 'CDG', destination: 'BCN' },
+  { origin: 'CDG', destination: 'FCO' },
+  { origin: 'CDG', destination: 'DXB' },
+  { origin: 'MRS', destination: 'ALG' },
+  { origin: 'CDG', destination: 'ALG' },
+  { origin: 'CDG', destination: 'CMN' },
+  { origin: 'CDG', destination: 'LHR' },
+  { origin: 'CDG', destination: 'MAD' },
+  { origin: 'CDG', destination: 'JFK' },
+  { origin: 'CDG', destination: 'DJE' },
+  { origin: 'MRS', destination: 'TUN' },
+  { origin: 'MRS', destination: 'DKR' },
+  { origin: 'MRS', destination: 'IST' },
+  { origin: 'MRS', destination: 'YUL' },
+  { origin: 'MRS', destination: 'ABJ' },
+  { origin: 'CDG', destination: 'IST' },
 ];
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=7200');
 
-  // Mois prochain pour avoir des prix
   const now = new Date();
   now.setMonth(now.getMonth() + 1);
   const month = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
@@ -34,21 +33,24 @@ export default async function handler(req, res) {
 
   for (const route of ROUTES) {
     try {
-      const url = `https://api.travelpayouts.com/v1/prices/cheap?origin=${route.origin}&destination=${route.destination}&depart_date=${month}&currency=eur&token=${TP_TOKEN}`;
+      const url = 'https://api.travelpayouts.com/v1/prices/cheap?origin=' + route.origin +
+        '&destination=' + route.destination +
+        '&depart_date=' + month +
+        '&currency=eur&token=' + TP_TOKEN;
+
       const r = await fetch(url, {
         headers: { 'x-access-token': TP_TOKEN }
       });
       if (!r.ok) continue;
       const data = await r.json();
-      
+
       if (data.success && data.data && data.data[route.destination]) {
         const offers = Object.values(data.data[route.destination]);
         if (offers.length > 0) {
-          const minPrice = Math.min(...offers.map(o => o.price));
+          const minPrice = Math.min(...offers.map(function(o) { return o.price; }));
           results.push({
             origin: route.origin,
             destination: route.destination,
-            label: route.label,
             price: minPrice,
           });
         }
@@ -57,4 +59,4 @@ export default async function handler(req, res) {
   }
 
   return res.status(200).json({ data: results });
-}
+};
