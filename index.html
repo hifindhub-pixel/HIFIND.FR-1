@@ -1295,12 +1295,29 @@ function pcardHTML(p) {
 }
 
 // ══ PRODUCT DETAIL ══
-function openDetail(id){
-  const p=currentResults.find(x=>x.id===id)||favorites.find(x=>x.id===id);
-  if(!p)return;
-  currentProduct=p;
-  showPage('detail');
-  renderDetail(p);
+async function openDetail(id){
+  // Cherche d'abord dans les résultats en mémoire
+  var p = currentResults.find(x=>x.id===id) || favorites.find(x=>x.id===id);
+  if (p) {
+    currentProduct = p;
+    showPage('detail');
+    renderDetail(p);
+    return;
+  }
+  // Sinon charge depuis l'API
+  try {
+    var res = await fetch('/api/products?action=product&id=' + encodeURIComponent(id));
+    var data = await res.json();
+    var items = data.data || [];
+    if (items.length > 0) {
+      p = mapAffilaeProduct(items[0]);
+      currentProduct = p;
+      showPage('detail');
+      renderDetail(p);
+    }
+  } catch(e) {
+    console.error('openDetail error:', e);
+  }
 }
 
 function renderDetail(p){
