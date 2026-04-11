@@ -71,12 +71,13 @@ async function syncAffilae() {
   console.log('🔄 Affilae sync...');
   let offset = 0, all = [];
   while (true) {
-    const res = await fetch(AFFILAE_BASE + '/publisher/products.list?limit=' + PAGE_SIZE + '&offset=' + offset, {
+    const res = await fetch(AFFILAE_BASE + '/publisher/products.list?limit=' + PAGE_SIZE + '&offset=' + offset + '&status=enabled,paused,draft', {
       headers: { 'Authorization': 'Bearer ' + AFFILAE_TOKEN }
     });
     const data = await res.json();
     const items = data.data || [];
     if (!items.length) break;
+    if (all.length === 0) console.log('Affilae total count:', data.count);
     all = all.concat(items);
     console.log('Fetched', all.length, '/', data.count);
     if (all.length >= data.count) break;
@@ -216,7 +217,85 @@ async function syncEffinity() {
   console.log('🎉 Effinity done');
 }
 
-// ══ RAKUTEN / PRICEMINISTER ══
+// ══ BCD JEUX (BeezUP) ══
+async function syncBCDJeux() {
+  console.log('🔄 BCD Jeux sync...');
+  const url = 'http://export.beezup.com/BCD_Jeux/Comparateur_BeezUP_CSV_2_FRA/8b4995eb-85a8-5258-ac4e-08fc6d3d39ed';
+  const programId = 'bcdjeux';
+  const AFFILIATE_CODE = '#ae=448';
+  const LIMIT = 500;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) { console.log('  ❌ BCD Jeux:', res.status); return; }
+    const buffer = await res.arrayBuffer();
+    let text;
+    try { text = new TextDecoder('utf-8', { fatal: true }).decode(buffer); }
+    catch(e) { text = new TextDecoder('iso-8859-1').decode(buffer); }
+
+    const lines = text.split('\n').filter(l => l.trim());
+    // Détecte séparateur
+    const sep = lines[0].includes(';') ? ';' : ',';
+    // Format: ID;EAN;Nom;Fabricant;Prix;SKU;Stock;Qte;URL;Image;Image2;Categorie;CatRacine;Origine
+    const products = [];
+    const seen = new Set();
+
+    for (const line of lines.slice(1)) {
+      const cols = line.split(sep).map(v => v.trim().replace(/^"|"$/g, ''));
+      if (cols.length < 9) continue;
+      const [id, ean, nom, fabricant, prix, sku, stock, qte, urlProd, image, , categorie] = cols;
+      if (!nom || !urlProd) continue;
+      if (seen.has(id)) continue;
+      seen.add(id);
+
+      // Ajoute le code affilié à la fin de l'URL
+      const trackUrl = urlProd + AFFILIATE_CODE;
+
+      products.push({
+        id:          'bcdjeux_' + id,
+        title:       cleanTitle(nom),
+        price:       parseFloat(prix.replace(',', '.')) || null,
+        url:         trackUrl,
+        image_url:   image || null,
+        category:    'enfants-bebes', // BCD Jeux = jeux/jouets
+        brand:       fabricant || 'BCD Jeux',
+        ean:         ean || null,
+      });
+      if (products.length >= LIMIT) break;
+    }
+
+    console.log('  📦 BCD Jeux:', products.length, 'produits');
+
+    await supabaseUpsert('programs', [{
+      id: programId, title: 'BCD Jeux', categories: [], countries: ['FR'],
+      updated_at: new Date().toISOString()
+    }]);
+
+    const mapped = products.map(p => ({
+      id:          p.id,
+      affilae_id:  p.id,
+      program_id:  programId,
+      title:       p.title,
+      description: null,
+      price:       p.price,
+      currency:    'EUR',
+      url:         p.url,
+      tracking_id: null,
+      image_url:   p.image_url,
+      category:    p.category,
+      lang:        'fr',
+      status:      'enabled',
+      updated_at:  new Date().toISOString()
+    }));
+
+    for (let i = 0; i < mapped.length; i += 50) await supabaseUpsert('products', mapped.slice(i, i+50));
+    console.log('  ✅ BCD Jeux:', mapped.length, 'insérés');
+
+  } catch(e) {
+    console.log('  ⚠️ BCD Jeux:', e.message);
+  }
+  console.log('🎉 BCD Jeux done');
+}
 const RAKUTEN_COUNTER = '23254453';
 const RAKUTEN_BASE    = 'https://priceminister.effiliation.com/pm/api.html';
 
@@ -325,6 +404,7 @@ async function main() {
   try {
     await syncAffilae();
     await syncEffinity();
+    await syncBCDJeux();
     await syncRakuten();
     console.log('🎉 All done!');
   } catch(e) {
