@@ -191,7 +191,7 @@ async function syncEffinity() {
         const sep = lines[0].includes(';')?';':',';
         const headers = lines[0].split(sep).map(h=>h.trim().replace(/"/g,'').toLowerCase());
         for (const line of lines.slice(1)) {
-          const vals = line.split(sep).map(v=>v.trim().replace(/^"|"$/g,''));
+          const vals = line.split(sep).map(v=>v.trim().replace(/"/g,''));
           const obj = {}; headers.forEach((h,i)=>obj[h]=vals[i]||'');
           const p = { title:cleanTitle(obj.title||obj.name), description:fixEncoding(obj.description||''), price:parseFloat(obj.price||'0'), url:obj.link||obj.url, image_url:obj.image_link||obj.image, feed_cat:obj.category_level2||obj.category_level1||obj.category||'', product_id:obj.id||obj.item_id||'', ean:extractEAN(obj.gtin||obj.ean||obj.barcode), brand:obj.brand||'' };
           if (!p.title || !p.url) continue;
