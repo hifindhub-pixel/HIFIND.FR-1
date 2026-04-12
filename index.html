@@ -1297,23 +1297,33 @@ function pcardHTML(p) {
 
 // ══ PRODUCT DETAIL ══
 async function openDetail(id){
-  // Cherche d'abord dans les résultats en mémoire
   var p = currentResults.find(x=>x.id===id)
        || favorites.find(x=>x.id===id)
        || homeProductsCache[id];
   if (p) {
+    // Charge les offres EAN depuis l'API si pas encore chargées
+    if (!p.ean_offers && p.ean_offers !== false) {
+      try {
+        var r = await fetch('/api/products?action=product&id=' + encodeURIComponent(id));
+        var d = await r.json();
+        if (d.data && d.data.length > 0) {
+          p.ean_offers = d.data[0].ean_offers || false;
+        }
+      } catch(e) {}
+    }
     currentProduct = p;
     showPage('detail');
     renderDetail(p);
     return;
   }
-  // Sinon charge depuis l'API
+  // Charge depuis l'API
   try {
     var res = await fetch('/api/products?action=product&id=' + encodeURIComponent(id));
     var data = await res.json();
     var items = data.data || [];
     if (items.length > 0) {
       p = mapAffilaeProduct(items[0]);
+      p.ean_offers = items[0].ean_offers || null;
       homeProductsCache[id] = p;
       currentProduct = p;
       showPage('detail');
@@ -1329,33 +1339,46 @@ function renderDetail(p){
   const minH   = Math.min(...hist30.data);
   const maxH   = Math.max(...hist30.data);
 
-  // Construit la liste des offres — vendeur affilié + Amazon
+  // Construit la liste des offres
   const offers = [];
 
-  // Offre principale (vendeur affilié)
-  if (p.offers && p.offers[0]) {
-    const o = p.offers[0];
+  // Offres EAN (multi-vendeurs) si disponibles
+  if (p.ean_offers && p.ean_offers.length > 0) {
+    p.ean_offers.forEach(function(o) {
+      offers.push({
+        merchant:  (o.programs && o.programs.title) || 'Partenaire',
+        price:     o.price,
+        url:       o.tracking_url || o.url,
+        logo:      getMerchantLogo((o.programs && o.programs.title) || ''),
+        condition: 'Neuf',
+      });
+    });
+  } else if (p.offers && p.offers[0]) {
+    // Offre unique du vendeur affilié
     offers.push({
-      merchant: p.brand || o.merchant || 'Partenaire',
-      price:    p.bestPrice,
-      shipping: 0,
-      url:      o.url,
-      logo:     getMerchantLogo(p.brand),
-      badge:    'Meilleur prix',
-      condition:'Neuf',
+      merchant:  p.brand || p.offers[0].merchant || 'Partenaire',
+      price:     p.bestPrice,
+      url:       p.offers[0].url,
+      logo:      getMerchantLogo(p.brand),
+      condition: 'Neuf',
     });
   }
 
-  // Offre Amazon
+  // Toujours ajouter Amazon
   offers.push({
-    merchant: 'Amazon.fr',
-    price:    null, // prix inconnu sans PA-API
-    shipping: 0,
-    url:      'https://www.amazon.fr/s?k=' + encodeURIComponent(p.name) + '&tag=hifind05-21',
-    logo:     '🛒',
-    badge:    null,
-    condition:'Neuf',
+    merchant:       'Amazon.fr',
+    price:          null,
+    url:            'https://www.amazon.fr/s?k=' + encodeURIComponent(p.name) + '&tag=hifind05-21',
+    logo:           '🛒',
+    condition:      'Neuf',
     isPriceUnknown: true,
+  });
+
+  // Trie par prix croissant (sauf Amazon)
+  offers.sort(function(a, b) {
+    if (a.isPriceUnknown) return 1;
+    if (b.isPriceUnknown) return -1;
+    return (a.price||999999) - (b.price||999999);
   });
 
   function getMerchantLogo(brand) {
