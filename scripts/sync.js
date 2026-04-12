@@ -31,7 +31,7 @@ function detectCategory(product) {
 }
 
 function fixEncoding(str) {
-  if (!str) return str;
+  if (!str || typeof str !== 'string') return str || '';
   return str
     .replace(/Ã©/g, 'é').replace(/Ã¨/g, 'è').replace(/Ãª/g, 'ê').replace(/Ã«/g, 'ë')
     .replace(/Ã /g, 'à').replace(/Ã¢/g, 'â').replace(/Ã¤/g, 'ä').replace(/Ã¦/g, 'æ')
@@ -57,6 +57,7 @@ function extractEAN(val) {
 }
 
 function cleanTitle(str) {
+  if (!str || typeof str !== 'string') return '';
   return fixEncoding(str)
     .replace(/\s*-\s*null\s*-\s*/gi, ' - ')
     .replace(/^null\s*-\s*/gi, '')
