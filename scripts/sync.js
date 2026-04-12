@@ -45,8 +45,18 @@ function fixEncoding(str) {
     .replace(/Ã¥/g, 'å').replace(/Ã/g, 'Â');
 }
 
+function extractEAN(val) {
+  if (!val) return null;
+  // Prend le premier code numérique valide (8-14 chiffres)
+  const parts = String(val).split(/[\s,;|]+/);
+  for (const part of parts) {
+    const clean = part.trim().replace(/\.0$/, '');
+    if (/^\d{8,14}$/.test(clean)) return clean;
+  }
+  return null;
+}
+
 function cleanTitle(str) {
-  if (!str) return str;
   return fixEncoding(str)
     .replace(/\s*-\s*null\s*-\s*/gi, ' - ')
     .replace(/^null\s*-\s*/gi, '')
@@ -167,7 +177,7 @@ async function syncEffinity() {
             brand:       get('brand')||get('marque')||get('fabricant')||'',
             feed_cat:    get('category_level2')||get('category_level1')||get('category')||get('rayon')||get('categorie')||'',
             product_id:  get('id')||get('item_id')||get('idproduit')||get('codebarre')||'',
-            ean:         get('gtin')||get('ean')||get('barcode')||get('codebarre')||'',
+            ean:         extractEAN(get('gtin')||get('ean')||get('barcode')||get('codebarre')),
           };
           if (!p.title || !p.url) continue;
           const key = p.product_id || (p.title.toLowerCase().trim()+'_'+p.price);
@@ -183,7 +193,7 @@ async function syncEffinity() {
         for (const line of lines.slice(1)) {
           const vals = line.split(sep).map(v=>v.trim().replace(/^"|"$/g,''));
           const obj = {}; headers.forEach((h,i)=>obj[h]=vals[i]||'');
-          const p = { title:cleanTitle(obj.title||obj.name), description:fixEncoding(obj.description||''), price:parseFloat(obj.price||'0'), url:obj.link||obj.url, image_url:obj.image_link||obj.image, feed_cat:obj.category_level2||obj.category_level1||obj.category||'', product_id:obj.id||obj.item_id||'', ean:obj.gtin||obj.ean||obj.barcode||'', brand:obj.brand||'' };
+          const p = { title:cleanTitle(obj.title||obj.name), description:fixEncoding(obj.description||''), price:parseFloat(obj.price||'0'), url:obj.link||obj.url, image_url:obj.image_link||obj.image, feed_cat:obj.category_level2||obj.category_level1||obj.category||'', product_id:obj.id||obj.item_id||'', ean:extractEAN(obj.gtin||obj.ean||obj.barcode), brand:obj.brand||'' };
           if (!p.title || !p.url) continue;
           const key = p.product_id || (p.title.toLowerCase().trim()+'_'+p.price);
           if (seen.has(key)) continue;
@@ -207,7 +217,7 @@ async function syncEffinity() {
         currency: 'EUR', url: p.url, tracking_id: null,
         image_url: p.image_url||null,
         brand: p.brand||null,
-        ean: (p.ean && p.ean.length >= 8) ? p.ean : null,
+        ean: p.ean || null,
         category: feed.category || detectCategory({ title:p.title, description:p.description||'', program:{title:feed.name} }),
         lang: 'fr', status: 'enabled', updated_at: new Date().toISOString()
       }));
