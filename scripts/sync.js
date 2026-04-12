@@ -188,12 +188,33 @@ async function syncEffinity() {
           if (products.length >= feedLimit) break;
         }
       } else {
+        // Parser CSV RFC-4180 (gère les champs avec guillemets et séparateurs internes)
+        function parseCSVLine(line, sep) {
+          const result = [];
+          let field = '';
+          let inQuotes = false;
+          for (let i = 0; i < line.length; i++) {
+            const c = line[i];
+            if (c === '"') {
+              if (inQuotes && line[i+1] === '"') { field += '"'; i++; }
+              else inQuotes = !inQuotes;
+            } else if (c === sep && !inQuotes) {
+              result.push(field); field = '';
+            } else {
+              field += c;
+            }
+          }
+          result.push(field);
+          return result;
+        }
+
         const lines = text.split('\n').filter(l=>l.trim());
-        const sep = lines[0].includes(';')?';':',';
-        const headers = lines[0].split(sep).map(h=>h.trim().replace(/"/g,'').toLowerCase());
+        const sep = lines[0].includes(';') ? ';' : ',';
+        const headers = parseCSVLine(lines[0], sep).map(h=>h.trim().toLowerCase());
         for (const line of lines.slice(1)) {
-          const vals = line.split(sep).map(v=>v ? v.trim().replace(/"/g,'') : '');
-          const obj = {}; headers.forEach((h,i)=>obj[h]=vals[i]||'');
+          if (!line.trim()) continue;
+          const vals = parseCSVLine(line, sep);
+          const obj = {}; headers.forEach((h,i)=>obj[h]=(vals[i]||'').trim());
           const p = { title:cleanTitle(obj.title||obj.name), description:fixEncoding(obj.description||''), price:parseFloat(obj.price||'0'), url:obj.link||obj.url, image_url:obj.image_link||obj.image, feed_cat:obj.category_level2||obj.category_level1||obj.category||'', product_id:obj.id||obj.item_id||'', ean:extractEAN(obj.gtin||obj.ean||obj.barcode), brand:obj.brand||'' };
           if (!p.title || !p.url) continue;
           const key = p.product_id || (p.title.toLowerCase().trim()+'_'+p.price);
