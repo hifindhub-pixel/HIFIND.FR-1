@@ -15,7 +15,10 @@ jobs:
           node-version: '20'
 
       - name: Run sync
-        run: node scripts/sync.js
+        run: |
+          ls -la
+          ls -la scripts/
+          node scripts/sync.js
         env:
           AFFILAE_TOKEN:        ${{ secrets.AFFILAE_TOKEN }}
           SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
