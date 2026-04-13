@@ -20,10 +20,12 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install dependencies
+        run: npm install pg
+
       - name: Run sync
         run: node scripts/sync.js
         env:
           AFFILAE_TOKEN:        ${{ secrets.AFFILAE_TOKEN }}
-          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          NEON_URL:             ${{ secrets.NEON_URL }}
           EFFINITY_FEEDS:       ${{ secrets.EFFINITY_FEEDS }}
