@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23FF6B6B'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='18' fill='white'>Hi</text></svg>">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23FF6B6B'/><text x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='17' fill='white'>Hi</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
 <style>
 [data-theme="dark"]{
   --bg:#0f172a;--bg2:#1e293b;--bg3:#334155;
@@ -411,9 +411,6 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
       <button class="nav-icon-btn" onclick="showPage('favorites')" title="Favoris">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
       </button>
-      <button class="nav-icon-btn" onclick="showPage('alerts')" title="Alertes">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      </button>
       <button class="nav-btn nav-btn-ghost" onclick="showPage('login')">Connexion</button>
       <button class="nav-btn nav-btn-coral" onclick="showPage('register')">Inscription</button>
       <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="Changer le thème">
@@ -529,21 +526,13 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
       <div class="why-grid">
         <div class="why-card"><div class="why-icon" style="background:rgba(255,107,107,.12);">🛍️</div><h3>+1000 marchands</h3><p>Comparez les prix de tous les grands sites e-commerce français en un clic</p></div>
         <div class="why-card"><div class="why-icon" style="background:rgba(34,197,94,.12);">📊</div><h3>Historique des prix</h3><p>Consultez l'évolution des prix sur 30, 90 ou 365 jours</p></div>
-        <div class="why-card"><div class="why-icon" style="background:rgba(59,130,246,.12);">🔔</div><h3>Alertes prix</h3><p>Recevez une notification dès que le prix de votre produit baisse</p></div>
+        
         <div class="why-card"><div class="why-icon" style="background:rgba(245,158,11,.12);">✨</div><h3>100% gratuit</h3><p>Aucune inscription requise, aucun abonnement caché</p></div>
       </div>
     </div>
   </div>
 
-  <div class="newsletter">
-    <div class="newsletter-inner">
-      <h2>Ne ratez plus aucune bonne affaire</h2>
-      <p>Créez des alertes prix et recevez une notification dès que le prix baisse.</p>
-      <div class="newsletter-form">
-        <input type="email" placeholder="Votre email">
-        <button onclick="showPage('alerts')">S'inscrire</button>
       </div>
-    </div>
   </div>
 
   <!-- ══ SECTION VOLS ══ -->
@@ -733,7 +722,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
     <div class="about-grid">
       <div class="about-card"><div class="about-card-icon">🔍</div><h3>Comparaison universelle</h3><p>HiFind agrège Amazon, Fnac, Darty, Cdiscount, Leboncoin, Vinted et bien d'autres en une seule recherche. Fini les 10 onglets ouverts.</p></div>
       <div class="about-card"><div class="about-card-icon">📊</div><h3>Historique des prix</h3><p>Consultez l'évolution du prix sur 30, 90 ou 365 jours. Achetez au meilleur moment et ne vous faites plus jamais avoir par une fausse promo.</p></div>
-      <div class="about-card"><div class="about-card-icon">🔔</div><h3>Alertes intelligentes</h3><p>Définissez votre prix cible et recevez une notification dès qu'il est atteint. Vous n'avez plus besoin de surveiller vous-même.</p></div>
+      
       <div class="about-card"><div class="about-card-icon">🔒</div><h3>100% indépendant</h3><p>HiFind ne favorise aucun marchand. Notre algorithme trie uniquement par prix réel, sans placement payant ni influence commerciale.</p></div>
       <div class="about-card"><div class="about-card-icon">🆓</div><h3>Gratuit pour toujours</h3><p>HiFind est et restera gratuit pour les utilisateurs. Notre modèle repose sur l'affiliation — nous touchons une commission uniquement si vous achetez.</p></div>
       <div class="about-card"><div class="about-card-icon">📱</div><h3>App mobile bientôt</h3><p>Une application iOS et Android est en cours de développement. Inscrivez-vous pour être notifié en avant-première dès le lancement.</p></div>
@@ -765,9 +754,6 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
   <div style="max-width:1280px;margin:0 auto;padding:2rem 1.5rem;"><div id="favsContainer"></div></div>
 </div>
 
-<!-- ══════ ALERTS ══════ -->
-<div id="page-alerts" class="page">
-  <div class="page-hdr"><div class="page-hdr-inner"><button class="page-hdr-back" onclick="showPage('home')">←</button><div class="page-hdr-icon">🔔</div><div><div class="page-hdr-title outfit">Mes Alertes</div><div class="page-hdr-sub" id="alertCount">0 alerte</div></div></div></div>
   <div style="max-width:860px;margin:0 auto;padding:2rem 1.5rem;">
     <div class="alert-form"><h2>Créer une alerte prix</h2><div class="alert-row"><input class="alert-in" type="text" id="alertQuery" placeholder="Produit (ex: iPhone 15 Pro)"><input class="alert-in alert-price-in" type="number" id="alertPrice" placeholder="Prix cible €"><button class="alert-submit" onclick="createAlert()">➕ Créer</button></div></div>
     <div id="alertsContainer"></div>
@@ -1442,7 +1428,6 @@ function renderDetail(p){
           <button onclick="toggleFav('${p.id}');this.innerHTML=favorites.some(f=>f.id==='${p.id}')?'❤️ Sauvegardé':'🤍 Sauvegarder'" style="padding:.55rem 1.1rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-weight:600;font-size:.82rem;color:var(--text);cursor:pointer">
             ${favorites.some(f=>f.id===p.id)?'❤️ Sauvegardé':'🤍 Sauvegarder'}
           </button>
-          <button onclick="showPage('alerts')" style="padding:.55rem 1.1rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-weight:600;font-size:.82rem;color:var(--text);cursor:pointer">🔔 Alerte prix</button>
         </div>
       </div>
     </div>
@@ -1453,28 +1438,8 @@ function renderDetail(p){
         🏪 Comparer les offres <span style="font-size:.75rem;font-weight:500;color:var(--sub)">(${offers.length} vendeur${offers.length>1?'s':''})</span>
       </div>
       ${offersHTML}
-    </div>
-
-    <!-- Historique prix -->
-    <div class="chart-section">
-      <div class="chart-head">
-        <div class="chart-title">📊 Historique des prix</div>
-        <div class="chart-tabs">
-          <button class="chart-tab active" onclick="switchChart(this,30,'${p.id}')">30j</button>
-          <button class="chart-tab" onclick="switchChart(this,90,'${p.id}')">90j</button>
-          <button class="chart-tab" onclick="switchChart(this,365,'${p.id}')">1 an</button>
-        </div>
-      </div>
-      <div class="chart-container"><canvas id="priceChart"></canvas></div>
-      <div class="chart-stats">
-        <div class="chart-stat"><div class="chart-stat-val low">${minH.toLocaleString('fr-FR')} €</div><div class="chart-stat-lbl">Plus bas (30j)</div></div>
-        <div class="chart-stat"><div class="chart-stat-val high">${maxH.toLocaleString('fr-FR')} €</div><div class="chart-stat-lbl">Plus haut (30j)</div></div>
-        <div class="chart-stat"><div class="chart-stat-val">${Math.round((maxH-minH)/maxH*100)}%</div><div class="chart-stat-lbl">Variation</div></div>
-        <div class="chart-stat"><div class="chart-stat-val">${Math.round(hist30.data.reduce((a,b)=>a+b,0)/hist30.data.length).toLocaleString('fr-FR')} €</div><div class="chart-stat-lbl">Prix moyen</div></div>
-      </div>
     </div>`;
 
-  setTimeout(()=>renderChart(hist30),100);
 }
 
 function renderChart(hist){
