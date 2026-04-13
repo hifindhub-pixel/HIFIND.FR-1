@@ -1,0 +1,26 @@
+name: Migrate to Neon
+
+on:
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pg
+        run: npm install pg
+
+      - name: Run migration
+        run: node scripts/migrate.js
+        env:
+          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY:         ${{ secrets.SUPABASE_SERVICE_KEY }}
+          NEON_URL:             ${{ secrets.NEON_URL }}
