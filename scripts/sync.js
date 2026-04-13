@@ -1,9 +1,20 @@
-// HIFIND — Sync Affilae + Effinity
+// HIFIND - Sync Affilae + Effinity -> Neon
 const AFFILAE_TOKEN       = process.env.AFFILAE_TOKEN;
-const SUPABASE_URL        = process.env.SUPABASE_URL;
-const SUPABASE_KEY        = process.env.SUPABASE_SERVICE_KEY;
+const NEON_URL            = process.env.NEON_URL;
 const EFFINITY_FEEDS_JSON = process.env.EFFINITY_FEEDS;
-const AFFILAE_BASE        = 'https://rest.affilae.com';
+
+import pkg from 'pg';
+const { Client } = pkg;
+
+let _neonClient = null;
+async function getNeon() {
+  if (!_neonClient) {
+    _neonClient = new Client({ connectionString: NEON_URL });
+    await _neonClient.connect();
+  }
+  return _neonClient;
+}
+
 const PAGE_SIZE           = 20;
 
 const CATEGORY_RULES = [
@@ -67,15 +78,23 @@ function cleanTitle(str) {
 }
 
 async function supabaseUpsert(table, rows) {
-  const res = await fetch(SUPABASE_URL + '/rest/v1/' + table, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates'
-    },
-    body: JSON.stringify(rows)
-  });
-  if (!res.ok) throw new Error('Supabase ' + table + ': ' + await res.text());
+  if (!rows || rows.length === 0) return;
+  const client = await getNeon();
+  for (const row of rows) {
+    if (table === 'programs') {
+      await client.query(`
+        INSERT INTO programs (id, title, categories, countries, updated_at)
+        VALUES ($1,$2,$3,$4,$5)
+        ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title, updated_at=EXCLUDED.updated_at
+      `, [row.id, row.title, JSON.stringify(row.categories||[]), JSON.stringify(row.countries||[]), row.updated_at||new Date().toISOString()]);
+    } else if (table === 'products') {
+      await client.query(`
+        INSERT INTO products (id,affilae_id,program_id,title,description,price,currency,url,tracking_id,image_url,category,lang,status,ean,brand,updated_at)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+        ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,price=EXCLUDED.price,ean=EXCLUDED.ean,brand=EXCLUDED.brand,image_url=EXCLUDED.image_url,url=EXCLUDED.url,updated_at=EXCLUDED.updated_at
+      `, [row.id,row.affilae_id||row.id,row.program_id,row.title,row.description||null,row.price||null,row.currency||'EUR',row.url||null,row.tracking_id||null,row.image_url||null,row.category||'autres',row.lang||'fr',row.status||'enabled',row.ean||null,row.brand||null,row.updated_at||new Date().toISOString()]);
+    }
+  }
 }
 
 async function syncAffilae() {
@@ -441,9 +460,11 @@ async function main() {
     await syncEffinity();
     await syncBCDJeux();
     await syncRakuten();
+    if (_neonClient) await _neonClient.end();
     console.log('🎉 All done!');
   } catch(e) {
     console.error('❌ Failed:', e.message);
+    if (_neonClient) await _neonClient.end();
     process.exit(1);
   }
 }
