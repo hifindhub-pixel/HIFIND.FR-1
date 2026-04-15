@@ -81,19 +81,45 @@ function cleanTitle(str) {
 async function supabaseUpsert(table, rows) {
   if (!rows || rows.length === 0) return;
   const client = await getNeon();
-  for (const row of rows) {
+  const BATCH = 50;
+
+  for (let i = 0; i < rows.length; i += BATCH) {
+    const batch = rows.slice(i, i + BATCH);
+
     if (table === 'programs') {
+      const vals = batch.map((row, j) => {
+        const b = j * 5;
+        return `($${b+1},$${b+2},$${b+3},$${b+4},$${b+5})`;
+      }).join(',');
+      const params = batch.flatMap(row => [
+        row.id, row.title,
+        JSON.stringify(row.categories||[]),
+        JSON.stringify(row.countries||[]),
+        row.updated_at||new Date().toISOString()
+      ]);
       await client.query(`
-        INSERT INTO programs (id, title, categories, countries, updated_at)
-        VALUES ($1,$2,$3,$4,$5)
+        INSERT INTO programs (id,title,categories,countries,updated_at) VALUES ${vals}
         ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title, updated_at=EXCLUDED.updated_at
-      `, [row.id, row.title, JSON.stringify(row.categories||[]), JSON.stringify(row.countries||[]), row.updated_at||new Date().toISOString()]);
+      `, params);
+
     } else if (table === 'products') {
+      const vals = batch.map((row, j) => {
+        const b = j * 16;
+        return `($${b+1},$${b+2},$${b+3},$${b+4},$${b+5},$${b+6},$${b+7},$${b+8},$${b+9},$${b+10},$${b+11},$${b+12},$${b+13},$${b+14},$${b+15},$${b+16})`;
+      }).join(',');
+      const params = batch.flatMap(row => [
+        row.id, row.affilae_id||row.id, row.program_id,
+        row.title, row.description||null, row.price||null,
+        row.currency||'EUR', row.url||null, row.tracking_id||null,
+        row.image_url||null, row.category||'autres', row.lang||'fr',
+        row.status||'enabled', row.ean||null, row.brand||null,
+        row.updated_at||new Date().toISOString()
+      ]);
       await client.query(`
         INSERT INTO products (id,affilae_id,program_id,title,description,price,currency,url,tracking_id,image_url,category,lang,status,ean,brand,updated_at)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+        VALUES ${vals}
         ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,price=EXCLUDED.price,ean=EXCLUDED.ean,brand=EXCLUDED.brand,image_url=EXCLUDED.image_url,url=EXCLUDED.url,updated_at=EXCLUDED.updated_at
-      `, [row.id,row.affilae_id||row.id,row.program_id,row.title,row.description||null,row.price||null,row.currency||'EUR',row.url||null,row.tracking_id||null,row.image_url||null,row.category||'autres',row.lang||'fr',row.status||'enabled',row.ean||null,row.brand||null,row.updated_at||new Date().toISOString()]);
+      `, params);
     }
   }
 }
