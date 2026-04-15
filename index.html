@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HiFind — Comparateur de Prix</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FF6B6B'/%3E%3Ctext x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='17' fill='white'%3EHi%3C/text%3E%3C/svg%3E">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="/favicon.png">
 <meta property="og:image" content="https://hifind.fr/favicon.png">
@@ -1314,6 +1315,8 @@ async function openDetail(id){
 }
 
 function renderDetail(p){
+  var footer = document.getElementById('global-footer');
+  if (footer) footer.style.display = 'none';
   const hist30 = buildPriceHistory(p.basePrice, 30);
   const minH   = Math.min(...hist30.data);
   const maxH   = Math.max(...hist30.data);
