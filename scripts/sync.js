@@ -2,6 +2,7 @@
 const AFFILAE_TOKEN       = process.env.AFFILAE_TOKEN;
 const NEON_URL            = process.env.NEON_URL;
 const EFFINITY_FEEDS_JSON = process.env.EFFINITY_FEEDS;
+const AFFILAE_BASE        = 'https://rest.affilae.com';
 
 import pkg from 'pg';
 const { Client } = pkg;
