@@ -448,7 +448,7 @@ async function syncRakuten() {
       const timeout = setTimeout(() => controller.abort(), 15000);
       const res = await fetch(url, { signal: controller.signal });
       clearTimeout(timeout);
-      if (!res.ok) { console.log('  ❌ Rakuten', catConfig.nav, res.status); continue; }
+      if (!res.ok) { console.log('  ❌ Rakuten', search.nav, res.status); continue; }
       const text = await res.text();
       const products = parseRakutenXML(text);
 
@@ -481,12 +481,123 @@ async function syncRakuten() {
   console.log('🎉 Rakuten done:', totalInserted, 'produits');
 }
 
+// ══ AWIN (Affiliate Window) ══
+// Supports les flux CSV produits AWIN (datafeeds)
+// Config via env AWIN_FEEDS = JSON array de { name, url, category, limit }
+async function syncAwin() {
+  console.log('🔄 Awin sync...');
+  const AWIN_FEEDS_JSON = process.env.AWIN_FEEDS;
+  if (!AWIN_FEEDS_JSON) { console.log('⚠️ AWIN_FEEDS manquant — skipped'); return; }
+
+  let feeds;
+  try { feeds = JSON.parse(AWIN_FEEDS_JSON); } catch(e) { console.log('❌ AWIN_FEEDS JSON invalide'); return; }
+
+  for (const feed of feeds) {
+    try {
+      const feedLimit = feed.limit || 300;
+      console.log('  →', feed.name, '(limit:', feedLimit, ')');
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      const res = await fetch(feed.url, { signal: controller.signal });
+      clearTimeout(timeout);
+      if (!res.ok) { console.log('  ❌ AWIN', feed.name, res.status); continue; }
+
+      const buffer = await res.arrayBuffer();
+      let text;
+      try { text = new TextDecoder('utf-8', { fatal: true }).decode(buffer); }
+      catch(e) { text = new TextDecoder('iso-8859-1').decode(buffer); }
+
+      const lines = text.split('\n').filter(l => l.trim());
+      if (lines.length < 2) { console.log('  ⚠️ AWIN', feed.name, ': flux vide'); continue; }
+
+      // Détecte le séparateur (TSV ou CSV)
+      const sep = lines[0].includes('\t') ? '\t' : (lines[0].includes(';') ? ';' : ',');
+      const headers = lines[0].split(sep).map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
+
+      const products = [];
+      const seen = new Set();
+
+      for (const line of lines.slice(1)) {
+        if (!line.trim()) continue;
+        // Parser CSV simple (guillemets)
+        const vals = [];
+        let field = '', inQ = false;
+        for (let i = 0; i < line.length; i++) {
+          const c = line[i];
+          if (c === '"') { if (inQ && line[i+1] === '"') { field += '"'; i++; } else inQ = !inQ; }
+          else if (c === sep && !inQ) { vals.push(field); field = ''; }
+          else field += c;
+        }
+        vals.push(field);
+        const obj = {};
+        headers.forEach((h, i) => obj[h] = (vals[i] || '').trim());
+
+        // Champs AWIN standard (nom de colonnes AWIN datafeed)
+        const title = cleanTitle(
+          obj['product_name'] || obj['product name'] || obj['name'] || obj['title'] || ''
+        );
+        const url = obj['aw_deep_link'] || obj['deep_link'] || obj['product_url'] || obj['url'] || '';
+        const price = parseFloat(
+          (obj['search_price'] || obj['price'] || obj['rrp_price'] || '0').replace(',', '.')
+        ) || 0;
+        const image_url = obj['aw_image_url'] || obj['merchant_image_url'] || obj['image_url'] || '';
+        const brand  = obj['brand_name'] || obj['brand'] || obj['manufacturer'] || '';
+        const ean    = extractEAN(obj['ean'] || obj['gtin'] || obj['barcode'] || '');
+        const prodId = obj['aw_product_id'] || obj['merchant_product_id'] || obj['product_id'] || obj['id'] || '';
+
+        if (!title || !url) continue;
+        const key = ean || prodId || (title.toLowerCase().trim() + '_' + price);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        products.push({ title, url, price, image_url, brand, ean, product_id: prodId });
+        if (products.length >= feedLimit) break;
+      }
+
+      console.log('  📦 AWIN', feed.name, ':', products.length, 'produits');
+
+      const programId = 'awin_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      await supabaseUpsert('programs', [{
+        id: programId, title: feed.name, categories: [], countries: ['FR'],
+        updated_at: new Date().toISOString()
+      }]);
+
+      const mapped = products.map((p, i) => ({
+        id:          p.product_id ? programId + '_' + p.product_id : programId + '_' + i,
+        affilae_id:  p.product_id ? programId + '_' + p.product_id : programId + '_' + i,
+        program_id:  programId,
+        title:       p.title,
+        description: null,
+        price:       p.price || null,
+        currency:    'EUR',
+        url:         p.url,
+        tracking_id: null,
+        image_url:   p.image_url || null,
+        brand:       p.brand || null,
+        ean:         p.ean || null,
+        category:    feed.category || detectCategory({ title: p.title, description: '', program: { title: feed.name } }),
+        lang:        'fr',
+        status:      'enabled',
+        updated_at:  new Date().toISOString()
+      }));
+
+      for (let i = 0; i < mapped.length; i += 50) await supabaseUpsert('products', mapped.slice(i, i + 50));
+      console.log('  ✅ AWIN', feed.name, ':', mapped.length, 'insérés');
+
+    } catch(e) {
+      console.log('  ⚠️ AWIN', feed.name, ':', e.message);
+    }
+  }
+  console.log('🎉 Awin done');
+}
+
 async function main() {
   try {
     await syncAffilae();
     await syncEffinity();
     await syncBCDJeux();
     await syncRakuten();
+    await syncAwin();
     if (_neonClient) await _neonClient.end();
     console.log('🎉 All done!');
   } catch(e) {
@@ -498,4 +609,4 @@ async function main() {
 
 main();
 
-// v4 - includes syncRakuten
+// v5 - includes syncAwin (AWIN affiliate feeds)

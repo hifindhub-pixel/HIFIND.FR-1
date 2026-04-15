@@ -3,6 +3,19 @@ const { Client } = pkg;
 
 const AFFILAE_PROFILE_ID = '69c1bc52b682a8edf3205672';
 
+// ══ Programmes exclus du comparateur ══
+// Ajouter ici les programs_id ou titres à masquer
+const EXCLUDED_PROGRAM_PATTERNS = [
+  '%darty pro%',
+  '%pro.darty%',
+  '%b2b%',
+];
+
+// Fragment SQL réutilisable dans tous les WHERE
+const EXCL_SQL = EXCLUDED_PROGRAM_PATTERNS.length
+  ? `AND (pr.title IS NULL OR NOT (${EXCLUDED_PROGRAM_PATTERNS.map(p => `pr.title ILIKE '${p.replace(/'/g, "''")}'`).join(' OR ')}))`
+  : '';
+
 async function getNeonClient() {
   const client = new Client({ connectionString: process.env.NEON_URL });
   await client.connect();
@@ -14,6 +27,7 @@ function makeTrackingUrl(product) {
   if (product.program_id && product.program_id.startsWith('effinity_')) return product.url;
   if (product.program_id && product.program_id.startsWith('rakuten_')) return product.url;
   if (product.program_id && product.program_id.startsWith('bcdjeux')) return product.url;
+  if (product.program_id && product.program_id.startsWith('awin_')) return product.url;
   if (product.program_id) {
     return 'https://track.affilae.com/' + product.program_id +
            '?ae=' + AFFILAE_PROFILE_ID + '&url=' + encodeURIComponent(product.url);
@@ -62,7 +76,9 @@ export default async function handler(req, res) {
       const r = await client.query(`
         SELECT p.*, pr.title as program_title, pr.countries as program_countries
         FROM products p LEFT JOIN programs pr ON p.program_id = pr.id
-        WHERE p.status = 'enabled' AND (p.title ILIKE $1 OR p.description ILIKE $1)
+        WHERE p.status = 'enabled'
+          AND (p.title ILIKE $1 OR p.description ILIKE $1)
+          ${EXCL_SQL}
         ORDER BY p.updated_at DESC LIMIT 200
       `, [term]);
       rows = groupByEAN(r.rows.map(formatRow)).slice(0, limitN);
@@ -80,6 +96,7 @@ export default async function handler(req, res) {
             SELECT p.*, pr.title as program_title FROM products p
             LEFT JOIN programs pr ON p.program_id = pr.id
             WHERE p.ean = $1 AND p.status = 'enabled'
+              ${EXCL_SQL}
             ORDER BY p.price ASC LIMIT 20
           `, [product.ean]);
           if (eanR.rows.length > 1) {
@@ -94,6 +111,7 @@ export default async function handler(req, res) {
         SELECT p.*, pr.title as program_title FROM products p
         LEFT JOIN programs pr ON p.program_id = pr.id
         WHERE p.status = 'enabled' AND p.category = $1
+          ${EXCL_SQL}
         ORDER BY p.updated_at DESC LIMIT 200
       `, [cat]);
       rows = groupByEAN(r.rows.map(formatRow)).slice(0, limitN);
@@ -107,6 +125,7 @@ export default async function handler(req, res) {
         SELECT p.*, pr.title as program_title FROM products p
         LEFT JOIN programs pr ON p.program_id = pr.id
         WHERE p.status = 'enabled'
+          ${EXCL_SQL}
         ORDER BY p.updated_at DESC LIMIT 200 OFFSET $1
       `, [offset]);
       rows = groupByEAN(r.rows.map(formatRow)).slice(0, limitN);
