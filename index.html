@@ -10,7 +10,43 @@
 <meta property="og:image" content="https://hifind.fr/favicon.png">
 <meta property="og:title" content="HiFind — Comparateur de Prix">
 <meta property="og:description" content="Comparez les prix de milliers de produits sur tous les grands marchands français.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hifind.fr/">
+<meta property="og:site_name" content="HiFind">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="HiFind — Comparateur de Prix">
+<meta name="twitter:description" content="Comparez les prix de milliers de produits sur tous les grands marchands français.">
 <meta name="description" content="HiFind.fr est un comparateur de prix en ligne. Comparez les offres de marchands partenaires pour trouver le meilleur prix.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://hifind.fr/">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "HiFind",
+  "url": "https://hifind.fr",
+  "description": "Comparateur de prix en ligne — Trouvez les meilleures offres parmi des milliers de marchands français.",
+  "inLanguage": "fr-FR",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://hifind.fr/?q={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "HiFind",
+  "url": "https://hifind.fr",
+  "logo": "https://hifind.fr/favicon.png",
+  "sameAs": []
+}
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
@@ -1008,27 +1044,40 @@ function mapAffilaeProduct(item) {
   var trackId    = item.tracking_id || item.trackingId || '';
   var progId     = item.program_id || (item.program && item.program.id) || '';
   var trackingUrl = buildAffilaeLink({ program_id: progId, tracking_id: trackId, url: item.url });
-  console.log('mapAffilaeProduct:', item.title, '| progId:', progId, '| trackId:', trackId, '| url:', trackingUrl);
+
+  // ══ EAN multi-offres : groupByEAN depuis l'API renvoie item.offers=[...] ══
+  var mappedOffers;
+  if (item.offers && item.offers.length > 0) {
+    mappedOffers = item.offers.map(function(o) {
+      var oTitle = (o.programs && o.programs.title) || o.program_title || 'Partenaire';
+      var oPrice = parseFloat(o.price) || 0;
+      var oUrl   = o.tracking_url || buildAffilaeLink({ program_id: o.program_id, url: o.url });
+      return { merchant: oTitle, emoji: '🏷️', isAmazon: false,
+               price: oPrice, shipping: 0, total: oPrice, stock: 'En stock', url: oUrl };
+    }).sort(function(a, b) { return a.price - b.price; });
+  } else {
+    mappedOffers = [{ merchant: programTitle, emoji: '🏷️', isAmazon: false,
+                      price: price, shipping: 0, total: price, stock: 'En stock', url: trackingUrl }];
+  }
+
+  var bestP = mappedOffers[0] ? mappedOffers[0].price : price;
 
   return {
     id:        item.id || ('af_' + Math.random().toString(36).slice(2)),
     name:      name,
-    brand:     programTitle,
+    brand:     item.brand || programTitle,
     cat:       item.category || 'Général',
     img:       img,
     desc:      shortDesc,
-    basePrice: price,
+    basePrice: bestP,
+    ean:       item.ean || null,
     rating:    4.5, reviews: 0,
-    offers: [{
-      merchant: programTitle, emoji: '🏷️', isAmazon: false,
-      price: price, shipping: 0, total: price, stock: 'En stock',
-      url: trackingUrl
-    }],
-    get bestPrice()    { return this.offers[0].price; },
-    get bestMerchant() { return this.offers[0].merchant; },
+    offers:    mappedOffers,
+    get bestPrice()    { return this.offers[0] ? this.offers[0].price : 0; },
+    get bestMerchant() { return this.offers[0] ? this.offers[0].merchant : ''; },
     get numOffers()    { return this.offers.length; },
-    get minPrice()     { return this.offers[0].price; },
-    get maxPrice()     { return this.offers[0].price; }
+    get minPrice()     { return this.offers[0] ? this.offers[0].price : 0; },
+    get maxPrice()     { return this.offers[this.offers.length - 1] ? this.offers[this.offers.length - 1].price : 0; }
   };
 }
 
@@ -1229,10 +1278,42 @@ function clearFilters() {
   updateSliderMax(currentResults);
   renderResults(currentResults);
 }
-function renderResults(list){
-  document.getElementById('resultsContainer').innerHTML=list.length
-    ?list.map(p=>pcardHTML(p)).join('')
-    :'<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun produit trouvé</div><div class="empty-sub">Essayez avec d\'autres termes de recherche.</div></div>';
+var _displayedCount = 20;
+
+function renderResults(list) {
+  _displayedCount = 20;
+  var container = document.getElementById('resultsContainer');
+  var existing  = document.getElementById('loadMoreBtn');
+  if (existing) existing.remove();
+
+  if (!list.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun produit trouvé</div><div class="empty-sub">Essayez avec d\'autres termes de recherche.</div></div>';
+    return;
+  }
+  container.innerHTML = list.slice(0, _displayedCount).map(p => pcardHTML(p)).join('');
+  _renderLoadMore(list);
+}
+
+function _renderLoadMore(list) {
+  var existing = document.getElementById('loadMoreBtn');
+  if (existing) existing.remove();
+  if (_displayedCount >= list.length) return;
+  var remaining = list.length - _displayedCount;
+  var wrap = document.createElement('div');
+  wrap.id = 'loadMoreBtn';
+  wrap.style.cssText = 'text-align:center;padding:1.5rem 0 .5rem;';
+  wrap.innerHTML = '<button onclick="_loadMore()" style="padding:.65rem 2.2rem;background:var(--bg2);border:1.5px solid var(--border2);border-radius:100px;color:var(--text);font-weight:600;font-size:.88rem;cursor:pointer;transition:border-color .2s,color .2s" onmouseover="this.style.borderColor=\'var(--coral)\';this.style.color=\'var(--coral)\'" onmouseout="this.style.borderColor=\'var(--border2)\';this.style.color=\'var(--text)\'">Charger '+Math.min(20,remaining)+' produits de plus <span style="color:var(--dim);font-weight:400;">('+remaining+' restants)</span></button>';
+  document.querySelector('.results-col').appendChild(wrap);
+}
+
+function _loadMore() {
+  _displayedCount += 20;
+  var list = currentResults;
+  var container = document.getElementById('resultsContainer');
+  // Ajoute les nouvelles cartes sans tout re-render
+  var frag = list.slice(_displayedCount - 20, _displayedCount).map(p => pcardHTML(p)).join('');
+  container.insertAdjacentHTML('beforeend', frag);
+  _renderLoadMore(list);
 }
 
 // ══ PRODUCT CARD — IDEALO STYLE ══
@@ -1247,6 +1328,18 @@ function pcardHTML(p) {
   var safeId = p.id.replace(/'/g,"\\'");
   var safeName = p.name.replace(/'/g,"&#39;").replace(/"/g,'&quot;');
 
+  var nOffers  = p.numOffers;
+  var savings  = nOffers > 1 && p.maxPrice > p.bestPrice ? Math.round((p.maxPrice - p.bestPrice) * 100) / 100 : 0;
+  var offBadge = nOffers > 1
+    ? '<span style="display:inline-flex;align-items:center;gap:.2rem;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#22c55e;font-size:.62rem;font-weight:700;padding:.1rem .4rem;border-radius:100px;margin-left:.35rem;">'+nOffers+' offres</span>'
+    : '';
+  var savBadge = savings > 0
+    ? '<div style="font-size:.66rem;color:#22c55e;margin-top:.25rem;font-weight:600;">Économisez jusqu\'à '+savings.toLocaleString('fr-FR')+' €</div>'
+    : '';
+  var eanBadge = p.ean
+    ? '<span style="display:inline-flex;align-items:center;gap:.2rem;background:rgba(99,179,237,.1);border:1px solid rgba(99,179,237,.25);color:#63b3ed;font-size:.6rem;font-weight:600;padding:.08rem .38rem;border-radius:100px;margin-left:.3rem;">EAN ✓</span>'
+    : '';
+
   return (
     '<div class="pcard fade-up" id="pc-'+p.id+'" style="cursor:pointer" onclick="openDetail(\''+safeId+'\')">' +
       '<div class="pcard-img-col">' +
@@ -1254,13 +1347,14 @@ function pcardHTML(p) {
         '<button class="pcard-fav'+(isFav?' on':'')+'" onclick="event.stopPropagation();toggleFav(\''+safeId+'\')" title="Sauvegarder">'+(isFav?'❤️':'🤍')+'</button>' +
       '</div>' +
       '<div class="pcard-body">' +
-        '<div class="pcard-merchant">'+p.brand+'</div>' +
+        '<div class="pcard-merchant">'+p.brand+offBadge+eanBadge+'</div>' +
         '<div class="pcard-name">'+p.name+'</div>' +
         (p.desc ? '<div class="pcard-desc">'+p.desc+'</div>' : '') +
         '<div class="pcard-bottom">' +
           '<div class="pcard-price-block">' +
             '<span class="pcard-price-from">à partir de</span>' +
             '<div class="pcard-price">'+p.bestPrice.toLocaleString('fr-FR')+' €</div>' +
+            savBadge +
           '</div>' +
           '<div class="pcard-actions">' +
             '<button class="pcard-btn-primary" onclick="event.stopPropagation();openDetail(\''+safeId+'\')">Comparer ↗</button>' +
@@ -1356,7 +1450,7 @@ function renderDetail(p){
     isPriceUnknown: true,
   });
 
-  // Trie par prix croissant (sauf Amazon)
+  // Trie par prix croissant (Amazon toujours en dernier)
   offers.sort(function(a, b) {
     if (a.isPriceUnknown) return 1;
     if (b.isPriceUnknown) return -1;
@@ -1366,40 +1460,68 @@ function renderDetail(p){
   function getMerchantLogo(brand) {
     if (!brand) return '🏪';
     const b = brand.toLowerCase();
-    if (b.includes('norauto'))    return '🔧';
-    if (b.includes('beauty'))     return '💄';
-    if (b.includes('vertbaudet')) return '👶';
-    if (b.includes('blanche'))    return '👗';
-    if (b.includes('lunii'))      return '🎧';
-    if (b.includes('rakuten'))    return '🛍️';
-    if (b.includes('valebio'))    return '🌿';
+    if (b.includes('norauto'))        return '🔧';
+    if (b.includes('beauty') || b.includes('sephora') || b.includes('marionnaud')) return '💄';
+    if (b.includes('vertbaudet'))     return '👶';
+    if (b.includes('blanche'))        return '👗';
+    if (b.includes('lunii'))          return '🎧';
+    if (b.includes('rakuten'))        return '🛍️';
+    if (b.includes('valebio') || b.includes('bio'))  return '🌿';
+    if (b.includes('fnac'))           return '🎵';
+    if (b.includes('darty'))          return '📺';
+    if (b.includes('cdiscount'))      return '🛒';
+    if (b.includes('leclerc'))        return '🏬';
+    if (b.includes('sport') || b.includes('decathlon')) return '⚽';
+    if (b.includes('pharma') || b.includes('sant'))  return '💊';
+    if (b.includes('jeux') || b.includes('jouet'))   return '🧸';
+    if (b.includes('auto') || b.includes('moto'))    return '🚗';
+    if (b.includes('jardin') || b.includes('maison'))return '🏠';
     return '🏪';
   }
 
-  const offersHTML = offers.map((o, i) => `
-    <div style="display:flex;align-items:center;gap:1rem;padding:1.1rem 1.2rem;background:var(--bg2);border:1px solid ${i===0?'var(--coral)':'var(--border)'};border-radius:14px;margin-bottom:.6rem;transition:box-shadow .2s;" onmouseover="this.style.boxShadow='var(--card-shadow)'" onmouseout="this.style.boxShadow='none'">
-      <div style="font-size:2rem;width:48px;text-align:center;flex-shrink:0">${o.logo}</div>
+  // Calcul des économies (entre meilleur et moins bon prix connus)
+  const knownOffers = offers.filter(o => !o.isPriceUnknown && o.price > 0);
+  const worstPrice  = knownOffers.length > 1 ? knownOffers[knownOffers.length - 1].price : 0;
+  const bestKnown   = knownOffers.length > 0 ? knownOffers[0].price : 0;
+  const totalSavings = worstPrice > bestKnown ? Math.round((worstPrice - bestKnown) * 100) / 100 : 0;
+
+  const offersHTML = offers.map((o, i) => {
+    const isBest    = i === 0 && !o.isPriceUnknown;
+    const savingVs  = (!o.isPriceUnknown && worstPrice > o.price && worstPrice !== o.price)
+                      ? Math.round((worstPrice - o.price) * 100) / 100 : 0;
+    return `
+    <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.2rem;background:var(--bg2);border:1.5px solid ${isBest?'var(--coral)':'var(--border)'};border-radius:14px;margin-bottom:.55rem;transition:box-shadow .2s,border-color .2s;" onmouseover="this.style.boxShadow='var(--card-shadow)';${!isBest?'this.style.borderColor=\'var(--border2)\'':''}" onmouseout="this.style.boxShadow='none';${!isBest?'this.style.borderColor=\'var(--border)\'':''}">
+      <div style="font-size:1.9rem;width:44px;text-align:center;flex-shrink:0">${o.logo}</div>
       <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
-          <span style="font-weight:700;font-size:.95rem">${o.merchant}</span>
-          ${i===0?'<span style="background:rgba(255,107,107,.15);color:var(--coral);font-size:.7rem;font-weight:700;padding:.15rem .5rem;border-radius:100px;border:1px solid rgba(255,107,107,.3)">✓ Meilleur prix</span>':''}
-          ${o.merchant==='Amazon.fr'?'<span style="background:rgba(255,153,0,.12);color:#ff9900;font-size:.7rem;font-weight:700;padding:.15rem .5rem;border-radius:100px;border:1px solid rgba(255,153,0,.25)">Prime éligible</span>':''}
+        <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.2rem">
+          <span style="font-weight:700;font-size:.92rem">${o.merchant}</span>
+          ${isBest?'<span style="background:rgba(255,107,107,.15);color:var(--coral);font-size:.67rem;font-weight:700;padding:.1rem .45rem;border-radius:100px;border:1px solid rgba(255,107,107,.3)">✓ Meilleur prix</span>':''}
+          ${o.merchant==='Amazon.fr'?'<span style="background:rgba(255,153,0,.12);color:#ff9900;font-size:.67rem;font-weight:700;padding:.1rem .45rem;border-radius:100px;border:1px solid rgba(255,153,0,.2)">Prime éligible</span>':''}
+          ${savingVs>0&&!isBest?'<span style="background:rgba(34,197,94,.1);color:#22c55e;font-size:.67rem;font-weight:600;padding:.1rem .4rem;border-radius:100px;">−'+savingVs.toLocaleString('fr-FR')+' €</span>':''}
         </div>
-        <div style="font-size:.78rem;color:var(--sub);margin-top:.2rem">
-          <span style="color:#22c55e">●</span> En stock · ${o.shipping===0?'<strong>Livraison gratuite</strong>':'Livraison '+o.shipping+' €'}
+        <div style="font-size:.75rem;color:var(--sub);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+          <span><span style="color:#22c55e">●</span> En stock</span>
+          <span>${o.shipping===0?'<strong style="color:var(--green)">Livraison gratuite</strong>':'Livraison '+o.shipping+' €'}</span>
+          <span style="color:var(--dim)">${o.condition}</span>
         </div>
-        <div style="font-size:.75rem;color:var(--dim);margin-top:.1rem">${o.condition}</div>
       </div>
-      <div style="text-align:right;flex-shrink:0">
+      <div style="text-align:right;flex-shrink:0;min-width:110px">
         ${o.isPriceUnknown
-          ? '<div style="font-size:.8rem;color:var(--sub);margin-bottom:.5rem">Voir le prix</div>'
-          : '<div style="font-size:1.4rem;font-weight:800;color:var(--text);font-family:Outfit,sans-serif">' + o.price.toLocaleString('fr-FR') + ' €</div><div style="font-size:.72rem;color:var(--sub)">Livraison incluse</div>'
+          ? '<div style="font-size:.8rem;color:var(--sub);margin-bottom:.4rem">Prix variable</div>'
+          : '<div style="font-size:1.45rem;font-weight:900;color:'+(isBest?'var(--coral)':'var(--text)')+';font-family:Outfit,sans-serif;line-height:1">' + o.price.toLocaleString('fr-FR') + ' €</div>'
         }
         <a href="${o.url}" target="_blank" rel="noopener sponsored" style="text-decoration:none">
-          <button style="margin-top:.4rem;padding:.5rem 1.1rem;background:${i===0?'var(--coral)':'var(--bg3)'};color:${i===0?'#fff':'var(--text)'};border:${i===0?'none':'1px solid var(--border)'};border-radius:8px;font-weight:700;font-size:.82rem;cursor:pointer;white-space:nowrap;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Voir l'offre ↗</button>
+          <button style="margin-top:.4rem;padding:.45rem 1rem;background:${isBest?'var(--coral)':'var(--bg3)'};color:${isBest?'#fff':'var(--text)'};border:${isBest?'none':'1px solid var(--border)'};border-radius:8px;font-weight:700;font-size:.8rem;cursor:pointer;white-space:nowrap;transition:opacity .2s" onmouseover="this.style.opacity='.82'" onmouseout="this.style.opacity='1'">Voir l'offre ↗</button>
         </a>
       </div>
     </div>`).join('');
+
+  const savingsBanner = totalSavings > 0
+    ? `<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:.75rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.6rem;font-size:.83rem;">
+        <span style="font-size:1.1rem">💰</span>
+        <span>En choisissant le <strong style="color:#22c55e">meilleur prix</strong>, vous économisez <strong style="color:#22c55e">${totalSavings.toLocaleString('fr-FR')} €</strong> par rapport à l'offre la plus chère.</span>
+       </div>`
+    : '';
 
   document.getElementById('detailContent').innerHTML=`
     <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:2rem">
@@ -1413,15 +1535,16 @@ function renderDetail(p){
 
       <!-- Infos produit -->
       <div style="flex:1;min-width:280px">
-        <div style="font-size:.78rem;font-weight:700;color:var(--coral);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem">${p.brand}</div>
-        <h1 style="font-family:Outfit,sans-serif;font-size:1.35rem;font-weight:800;line-height:1.3;margin-bottom:1rem;color:var(--text)">${p.name}</h1>
-        <div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.3rem">
+        <div style="font-size:.75rem;font-weight:700;color:var(--coral);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.35rem">${p.brand}</div>
+        <h1 style="font-family:Outfit,sans-serif;font-size:1.35rem;font-weight:800;line-height:1.3;margin-bottom:.9rem;color:var(--text)">${p.name}</h1>
+        ${p.ean ? '<div style="font-size:.72rem;color:var(--dim);margin-bottom:.6rem;">EAN : <code style="font-family:monospace;background:var(--bg3);padding:.1rem .4rem;border-radius:4px;">'+p.ean+'</code></div>' : ''}
+        <div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.25rem">
           <span style="font-size:.82rem;color:var(--sub)">à partir de</span>
           <span style="font-size:2rem;font-weight:900;font-family:Outfit,sans-serif;color:var(--coral)">${p.bestPrice.toLocaleString('fr-FR')} €</span>
         </div>
-        <div style="font-size:.8rem;color:var(--sub);margin-bottom:1.2rem">chez <strong style="color:var(--text)">${p.brand}</strong> · Livraison gratuite</div>
+        <div style="font-size:.78rem;color:var(--sub);margin-bottom:1.1rem">chez <strong style="color:var(--text)">${offers[0]&&!offers[0].isPriceUnknown?offers[0].merchant:p.brand}</strong> · Livraison gratuite</div>
         <div style="display:flex;gap:.6rem;flex-wrap:wrap">
-          <button onclick="toggleFav('${p.id}');this.innerHTML=favorites.some(f=>f.id==='${p.id}')?'❤️ Sauvegardé':'🤍 Sauvegarder'" style="padding:.55rem 1.1rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-weight:600;font-size:.82rem;color:var(--text);cursor:pointer">
+          <button onclick="toggleFav('${p.id}');this.innerHTML=favorites.some(f=>f.id==='${p.id}')?'❤️ Sauvegardé':'🤍 Sauvegarder'" style="padding:.5rem 1.1rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-weight:600;font-size:.82rem;color:var(--text);cursor:pointer">
             ${favorites.some(f=>f.id===p.id)?'❤️ Sauvegardé':'🤍 Sauvegarder'}
           </button>
         </div>
@@ -1430,9 +1553,12 @@ function renderDetail(p){
 
     <!-- Offres -->
     <div style="margin-bottom:2rem">
-      <div style="font-size:1rem;font-weight:700;margin-bottom:.8rem;display:flex;align-items:center;gap:.5rem">
-        🏪 Comparer les offres <span style="font-size:.75rem;font-weight:500;color:var(--sub)">(${offers.length} vendeur${offers.length>1?'s':''})</span>
+      <div style="font-size:.95rem;font-weight:700;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem">
+        🏪 Comparer les offres
+        <span style="font-size:.73rem;font-weight:500;color:var(--sub)">${offers.length} vendeur${offers.length>1?'s':''}</span>
+        ${knownOffers.length > 1 ? '<span style="margin-left:auto;font-size:.72rem;font-weight:600;color:#22c55e;background:rgba(34,197,94,.1);padding:.15rem .5rem;border-radius:100px;">'+knownOffers.length+' prix comparés</span>' : ''}
       </div>
+      ${savingsBanner}
       ${offersHTML}
     </div>`;
 
@@ -1545,8 +1671,6 @@ async function loadModeTab(cat, btn) {
   if (!grid) return;
   grid.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.85rem;padding:1rem">Chargement...</div>';
 
-  var raw = await affilaeCall('category', '', 12);
-  // Si pas de catégorie spécifique, charge depuis Supabase par catégorie
   var url = '/api/products?action=category&cat='+encodeURIComponent(cat)+'&limit=12';
   try {
     var res = await fetch(url);
@@ -1579,7 +1703,7 @@ async function loadModeTab(cat, btn) {
 }
 
 async function initHome() {
-  loadModeTab('beaute-bienetre', document.querySelector('.mode-tab'));
+  loadModeTab('mode-vetements', document.querySelector('.mode-tab'));
 
   var categories = ['beaute-bienetre', 'sante-nutrition', 'mode-vetements', 'enfants-bebes', 'auto-moto'];
   var allProducts = [];

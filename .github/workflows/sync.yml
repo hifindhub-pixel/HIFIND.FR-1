@@ -29,3 +29,4 @@ jobs:
           AFFILAE_TOKEN:  ${{ secrets.AFFILAE_TOKEN }}
           NEON_URL:       ${{ secrets.NEON_URL }}
           EFFINITY_FEEDS: ${{ secrets.EFFINITY_FEEDS }}
+          AWIN_FEEDS:     ${{ secrets.AWIN_FEEDS }}
