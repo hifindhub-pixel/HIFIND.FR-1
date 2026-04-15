@@ -1063,16 +1063,17 @@ function mapAffilaeProduct(item) {
   var bestP = mappedOffers[0] ? mappedOffers[0].price : price;
 
   return {
-    id:        item.id || ('af_' + Math.random().toString(36).slice(2)),
-    name:      name,
-    brand:     item.brand || programTitle,
-    cat:       item.category || 'Général',
-    img:       img,
-    desc:      shortDesc,
-    basePrice: bestP,
-    ean:       item.ean || null,
-    rating:    4.5, reviews: 0,
-    offers:    mappedOffers,
+    id:           item.id || ('af_' + Math.random().toString(36).slice(2)),
+    name:         name,
+    brand:        item.brand || null,        // Vraie marque produit (Nike, Apple…) — null si inconnue
+    merchantName: programTitle,              // Nom programme affilié — affiché UNIQUEMENT dans la fiche
+    cat:          item.category || 'autres',
+    img:          img,
+    desc:         shortDesc,
+    basePrice:    bestP,
+    ean:          item.ean || null,
+    rating:       4.5, reviews: 0,
+    offers:       mappedOffers,
     get bestPrice()    { return this.offers[0] ? this.offers[0].price : 0; },
     get bestMerchant() { return this.offers[0] ? this.offers[0].merchant : ''; },
     get numOffers()    { return this.offers.length; },
@@ -1317,28 +1318,37 @@ function _loadMore() {
 }
 
 // ══ PRODUCT CARD — IDEALO STYLE ══
-function pcardHTML(p) {
-  var isFav = favorites.some(function(f){ return f.id===p.id; });
-  var offer  = p.offers[0];
-  var imgHtml = p.img
-    ? '<img src="'+p.img+'" alt="'+p.name.replace(/"/g,'&quot;')+'" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' +
-      '<div style="display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;font-size:2rem;color:var(--dim)">🏷️<span style="font-size:.65rem;margin-top:.3rem;color:var(--dim)">'+p.brand+'</span></div>'
-    : '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;font-size:2rem;color:var(--dim)">🏷️<span style="font-size:.65rem;margin-top:.3rem;color:var(--dim)">'+p.brand+'</span></div>';
-  var amazonUrl = 'https://www.amazon.fr/s?k='+encodeURIComponent(p.name)+'&tag=hifind05-21';
-  var safeId = p.id.replace(/'/g,"\\'");
-  var safeName = p.name.replace(/'/g,"&#39;").replace(/"/g,'&quot;');
+// Règle clé : jamais le nom d'un seul marchand affiché — on est un comparateur.
+const _CAT_LABELS = {
+  'beaute-bienetre':'💄 Beauté & Bien-être','sante-nutrition':'💊 Santé & Nutrition',
+  'mode-vetements':'👗 Mode & Vêtements','maison-jardin':'🏠 Maison & Jardin',
+  'alimentation-bio':'🌿 Alimentation Bio','cbd-chanvre':'🌱 CBD','enfants-bebes':'👶 Enfants & Bébés',
+  'sport-outdoor':'⚽ Sport & Outdoor','high-tech':'📱 High-Tech','animaux':'🐾 Animaux',
+  'auto-moto':'🚗 Auto & Moto'
+};
 
-  var nOffers  = p.numOffers;
-  var savings  = nOffers > 1 && p.maxPrice > p.bestPrice ? Math.round((p.maxPrice - p.bestPrice) * 100) / 100 : 0;
-  var offBadge = nOffers > 1
-    ? '<span style="display:inline-flex;align-items:center;gap:.2rem;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#22c55e;font-size:.62rem;font-weight:700;padding:.1rem .4rem;border-radius:100px;margin-left:.35rem;">'+nOffers+' offres</span>'
-    : '';
-  var savBadge = savings > 0
-    ? '<div style="font-size:.66rem;color:#22c55e;margin-top:.25rem;font-weight:600;">Économisez jusqu\'à '+savings.toLocaleString('fr-FR')+' €</div>'
-    : '';
-  var eanBadge = p.ean
-    ? '<span style="display:inline-flex;align-items:center;gap:.2rem;background:rgba(99,179,237,.1);border:1px solid rgba(99,179,237,.25);color:#63b3ed;font-size:.6rem;font-weight:600;padding:.08rem .38rem;border-radius:100px;margin-left:.3rem;">EAN ✓</span>'
-    : '';
+function pcardHTML(p) {
+  var isFav   = favorites.some(function(f){ return f.id===p.id; });
+  var safeId  = p.id.replace(/'/g,"\\'");
+  var nOffers = p.numOffers;
+  var savings = nOffers > 1 && p.maxPrice > p.bestPrice
+                  ? Math.round((p.maxPrice - p.bestPrice) * 100) / 100 : 0;
+
+  // Image
+  var imgHtml = p.img
+    ? '<img src="'+p.img+'" alt="'+p.name.replace(/"/g,'&quot;')+'" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' +
+      '<div style="display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;font-size:2.2rem;color:var(--dim)">🏷️</div>'
+    : '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;font-size:2.2rem;color:var(--dim)">🏷️</div>';
+
+  // Label de haut de carte : vraie marque (Nike, Apple…) sinon catégorie — JAMAIS le programme affilié
+  var topLabel = p.brand ? p.brand : (_CAT_LABELS[p.cat] || '');
+
+  // Badge offres + savings
+  var offersChip = nOffers > 1
+    ? '<span style="display:inline-flex;align-items:center;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.28);color:#22c55e;font-size:.68rem;font-weight:700;padding:.2rem .6rem;border-radius:100px;">'+nOffers+' offres</span>'
+    : '<span style="display:inline-flex;align-items:center;background:var(--bg3);border:1px solid var(--border);color:var(--dim);font-size:.68rem;font-weight:600;padding:.2rem .6rem;border-radius:100px;">1 offre</span>';
+
+  var ctaLabel = nOffers > 1 ? 'Voir les '+nOffers+' offres ↗' : 'Voir l\'offre ↗';
 
   return (
     '<div class="pcard fade-up" id="pc-'+p.id+'" style="cursor:pointer" onclick="openDetail(\''+safeId+'\')">' +
@@ -1347,21 +1357,21 @@ function pcardHTML(p) {
         '<button class="pcard-fav'+(isFav?' on':'')+'" onclick="event.stopPropagation();toggleFav(\''+safeId+'\')" title="Sauvegarder">'+(isFav?'❤️':'🤍')+'</button>' +
       '</div>' +
       '<div class="pcard-body">' +
-        '<div class="pcard-merchant">'+p.brand+offBadge+eanBadge+'</div>' +
+        // Ligne 1 : marque/catégorie (subtil, pas de marchand !)
+        (topLabel ? '<div style="font-size:.68rem;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem">'+topLabel+'</div>' : '') +
         '<div class="pcard-name">'+p.name+'</div>' +
         (p.desc ? '<div class="pcard-desc">'+p.desc+'</div>' : '') +
         '<div class="pcard-bottom">' +
+          // Prix
           '<div class="pcard-price-block">' +
             '<span class="pcard-price-from">à partir de</span>' +
             '<div class="pcard-price">'+p.bestPrice.toLocaleString('fr-FR')+' €</div>' +
-            savBadge +
+            (savings > 0 ? '<div style="font-size:.66rem;color:#22c55e;font-weight:600;margin-top:.15rem;">Jusqu\'à −'+savings.toLocaleString('fr-FR')+' €</div>' : '') +
           '</div>' +
-          '<div class="pcard-actions">' +
-            '<button class="pcard-btn-primary" onclick="event.stopPropagation();openDetail(\''+safeId+'\')">Comparer ↗</button>' +
-            '<a href="'+amazonUrl+'" target="_blank" rel="noopener sponsored" title="Chercher sur Amazon" onclick="event.stopPropagation()">' +
-              '<button class="pcard-btn-amazon" title="Amazon">🛒</button>' +
-            '</a>' +
-            '<button class="pcard-btn-fav" onclick="event.stopPropagation();openDetail(\''+safeId+'\')" title="Historique prix">📊</button>' +
+          // CTA avec chip offres + bouton
+          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.45rem;">' +
+            offersChip +
+            '<button class="pcard-btn-primary" onclick="event.stopPropagation();openDetail(\''+safeId+'\')">'+ctaLabel+'</button>' +
           '</div>' +
         '</div>' +
       '</div>' +
@@ -1432,10 +1442,10 @@ function renderDetail(p){
   } else if (p.offers && p.offers[0]) {
     // Offre unique du vendeur affilié
     offers.push({
-      merchant:  p.brand || p.offers[0].merchant || 'Partenaire',
+      merchant:  p.offers[0].merchant || p.merchantName || 'Partenaire',
       price:     p.bestPrice,
       url:       p.offers[0].url,
-      logo:      getMerchantLogo(p.brand),
+      logo:      getMerchantLogo(p.offers[0].merchant || p.merchantName || ''),
       condition: 'Neuf',
     });
   }
@@ -1535,14 +1545,14 @@ function renderDetail(p){
 
       <!-- Infos produit -->
       <div style="flex:1;min-width:280px">
-        <div style="font-size:.75rem;font-weight:700;color:var(--coral);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.35rem">${p.brand}</div>
+        <div style="font-size:.75rem;font-weight:700;color:var(--coral);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.35rem">${p.brand || p.merchantName || ''}</div>
         <h1 style="font-family:Outfit,sans-serif;font-size:1.35rem;font-weight:800;line-height:1.3;margin-bottom:.9rem;color:var(--text)">${p.name}</h1>
         ${p.ean ? '<div style="font-size:.72rem;color:var(--dim);margin-bottom:.6rem;">EAN : <code style="font-family:monospace;background:var(--bg3);padding:.1rem .4rem;border-radius:4px;">'+p.ean+'</code></div>' : ''}
         <div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.25rem">
           <span style="font-size:.82rem;color:var(--sub)">à partir de</span>
           <span style="font-size:2rem;font-weight:900;font-family:Outfit,sans-serif;color:var(--coral)">${p.bestPrice.toLocaleString('fr-FR')} €</span>
         </div>
-        <div style="font-size:.78rem;color:var(--sub);margin-bottom:1.1rem">chez <strong style="color:var(--text)">${offers[0]&&!offers[0].isPriceUnknown?offers[0].merchant:p.brand}</strong> · Livraison gratuite</div>
+        <div style="font-size:.78rem;color:var(--sub);margin-bottom:1.1rem">chez <strong style="color:var(--text)">${offers[0]&&!offers[0].isPriceUnknown?offers[0].merchant:(p.merchantName||'')}</strong> · Livraison gratuite</div>
         <div style="display:flex;gap:.6rem;flex-wrap:wrap">
           <button onclick="toggleFav('${p.id}');this.innerHTML=favorites.some(f=>f.id==='${p.id}')?'❤️ Sauvegardé':'🤍 Sauvegarder'" style="padding:.5rem 1.1rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-weight:600;font-size:.82rem;color:var(--text);cursor:pointer">
             ${favorites.some(f=>f.id===p.id)?'❤️ Sauvegardé':'🤍 Sauvegarder'}
