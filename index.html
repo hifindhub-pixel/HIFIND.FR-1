@@ -588,15 +588,6 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
     </div>
   </div>
 
-  <footer>
-    <div class="footer-inner">
-      <div><div class="footer-brand">HiFind</div><p class="footer-desc">Le comparateur de prix qui vous fait vraiment économiser.</p></div>
-      <div class="footer-col"><h4>Catégories</h4><a onclick="searchFor('iphone')">Smartphones</a><a onclick="searchFor('tv')">TV & Audio</a><a onclick="searchFor('macbook')">Ordinateurs</a><a onclick="searchFor('ps5')">Jeux vidéo</a></div>
-      <div class="footer-col"><h4>HiFind</h4><a onclick="showPage('about')">À propos</a><a onclick="showPage('mentions')">Mentions légales</a><a onclick="showPage('cgu')">CGU</a><a onclick="showPage('privacy')">Confidentialité</a></div>
-      <div class="footer-col"><h4>Suivez-nous</h4><a>Twitter</a><a>Facebook</a><a>Instagram</a></div>
-    </div>
-    <div class="footer-bottom">© 2025 HiFind · Certains liens sont des <a onclick="showPage('mentions')" style="color:var(--coral);cursor:pointer;">liens d'affiliation</a> · <a onclick="showPage('mentions')" style="color:var(--coral);cursor:pointer;">Mentions légales</a> · <a onclick="showPage('cgu')" style="color:var(--coral);cursor:pointer;">CGU</a> · <a onclick="showPage('privacy')" style="color:var(--coral);cursor:pointer;">Confidentialité</a></div>
-  </footer>
 </div>
 
 <!-- ══════ SEARCH ══════ -->
@@ -1093,6 +1084,9 @@ function showPage(p){
   // Masque la section vols sauf sur la home
   var vols = document.getElementById('section-vols');
   if (vols) vols.style.display = (p === 'home') ? '' : 'none';
+  // Masque le footer sur la page detail
+  var footer = document.getElementById('global-footer');
+  if (footer) footer.style.display = (p === 'detail') ? 'none' : '';
   if(p==='favorites')renderFavorites();
 }
 
@@ -1659,5 +1653,16 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+
+<!-- ══ FOOTER GLOBAL ══ -->
+<footer id="global-footer">
+  <div class="footer-inner">
+    <div><div class="footer-brand">HiFind</div><p class="footer-desc">Le comparateur de prix qui vous fait vraiment économiser.</p></div>
+    <div class="footer-col"><h4>Catégories</h4><a onclick="searchFor('iphone')">Smartphones</a><a onclick="searchFor('tv')">TV & Audio</a><a onclick="searchFor('macbook')">Ordinateurs</a><a onclick="searchFor('ps5')">Jeux vidéo</a></div>
+    <div class="footer-col"><h4>HiFind</h4><a onclick="showPage('about')">À propos</a><a onclick="showPage('mentions')">Mentions légales</a><a onclick="showPage('cgu')">CGU</a><a onclick="showPage('privacy')">Confidentialité</a></div>
+    <div class="footer-col"><h4>Suivez-nous</h4><a>Twitter</a><a>Facebook</a><a>Instagram</a></div>
+  </div>
+  <div class="footer-bottom">© 2025 HiFind · Certains liens sont des <a onclick="showPage('mentions')" style="color:var(--coral);cursor:pointer;">liens d'affiliation</a> · <a onclick="showPage('mentions')" style="color:var(--coral);cursor:pointer;">Mentions légales</a> · <a onclick="showPage('cgu')" style="color:var(--coral);cursor:pointer;">CGU</a> · <a onclick="showPage('privacy')" style="color:var(--coral);cursor:pointer;">Confidentialité</a></div>
+</footer>
 </body>
 </html>
