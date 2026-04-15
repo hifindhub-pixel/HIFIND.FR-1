@@ -1090,8 +1090,10 @@ function showPage(p){
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
   window.scrollTo(0,0);
+  // Masque la section vols sauf sur la home
+  var vols = document.getElementById('section-vols');
+  if (vols) vols.style.display = (p === 'home') ? '' : 'none';
   if(p==='favorites')renderFavorites();
-  if(p==='alerts')renderAlerts();
 }
 
 // ══ SEARCH ══
@@ -1114,7 +1116,10 @@ async function loadCategory(cat) {
   catBtns.forEach(function(b){ if(b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+cat+"'")) b.classList.add('active'); });
 
   try {
-    var res = await fetch('/api/products?action=category&cat='+encodeURIComponent(cat)+'&limit=60');
+    var apiUrl = cat 
+      ? '/api/products?action=category&cat='+encodeURIComponent(cat)+'&limit=60'
+      : '/api/products?action=list&limit=60';
+    var res = await fetch(apiUrl);
     var data = await res.json();
     var items = data.data || [];
     if (items.length > 0) {
@@ -1168,12 +1173,12 @@ function filterByCategory(cat, btn) {
   activeCategory = cat;
   document.querySelectorAll('.fcat').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  // Si on a des résultats chargés, filtre dessus
-  // Si pas de résultats et cat définie, charge la catégorie
-  if (currentResults.length > 0) {
-    applyFilters();
-  } else if (cat) {
+  // Toujours charger depuis l'API pour avoir tous les produits de la catégorie
+  if (cat) {
     loadCategory(cat);
+  } else {
+    // "Tout" → recharge sans filtre
+    loadCategory('');
   }
 }
 
@@ -1633,40 +1638,23 @@ initHome();
 </script>
 
 <script>
-// Charge les vrais prix Travelpayouts + dates dynamiques
 document.addEventListener('DOMContentLoaded', function() {
-  // Charge les prix vols seulement sur la home
-  function loadFlightPrices() {
-  // Dates dynamiques
   var depart = new Date();
   depart.setDate(depart.getDate() + 42);
   var retour = new Date(depart);
   retour.setDate(retour.getDate() + 7);
   function fmt(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-  var departStr = fmt(depart), retourStr = fmt(retour);
   document.querySelectorAll('a[href*="hiflight.fr/?origin="]').forEach(function(a) {
-    a.href = a.href + '&depart_date=' + departStr + '&return_date=' + retourStr;
+    a.href = a.href + '&depart_date=' + fmt(depart) + '&return_date=' + fmt(retour);
   });
-
-  // Vrais prix depuis API
   fetch('/api/flights').then(function(r){ return r.json(); }).then(function(json) {
     if (!json.data) return;
     json.data.forEach(function(route) {
-      var id = 'fp-' + route.origin + '-' + route.destination;
-      var el = document.getElementById(id);
+      var el = document.getElementById('fp-' + route.origin + '-' + route.destination);
       if (!el || !route.price) return;
-      var prix = route.price.toLocaleString('fr-FR') + ' €';
-      // Carte destination (contient un <span>)
-      if (el.querySelector('span')) {
-        el.innerHTML = '<span style="font-size:.65rem;font-weight:400;color:var(--dim)">dès </span>' + prix;
-      } else {
-        // Ligne liste
-        el.textContent = 'dès ' + prix;
-      }
+      el.innerHTML = '<span style="font-size:.65rem;font-weight:400;color:var(--dim)">dès </span>' + route.price.toLocaleString('fr-FR') + ' €';
     });
-  }).catch(function(e){ console.log('flights error:', e); });
-  }
-  loadFlightPrices();
+  }).catch(function(){});
 });
 </script>
 
