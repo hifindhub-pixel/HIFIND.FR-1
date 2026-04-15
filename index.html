@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HiFind — Comparateur de Prix</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23FF6B6B'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='18' fill='white'>Hi</text></svg>">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23FF6B6B'/><text x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='17' fill='white'>Hi</text></svg>">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/favicon.png">
+<meta property="og:image" content="https://hifind.fr/favicon.png">
+<meta property="og:title" content="HiFind — Comparateur de Prix">
+<meta property="og:description" content="Comparez les prix de milliers de produits sur tous les grands marchands français.">
+<meta name="description" content="HiFind.fr est un comparateur de prix en ligne. Comparez les offres de marchands partenaires pour trouver le meilleur prix.">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
@@ -101,9 +105,9 @@ nav{background:var(--nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid 
 /* CATEGORIES */
 .cats-grid{display:flex;flex-wrap:nowrap;gap:.45rem;overflow-x:auto;padding-bottom:.3rem;scrollbar-width:none;}
 .cats-grid::-webkit-scrollbar{display:none;}
-.cat-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.8rem .9rem;background:var(--bg2);border:1px solid var(--border);border-radius:12px;gap:.3rem;transition:all .2s;flex-shrink:0;min-width:80px;}
+.cat-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem 1.1rem;background:var(--bg2);border:1px solid var(--border);border-radius:12px;gap:.3rem;transition:all .2s;flex-shrink:0;min-width:80px;}
 .cat-btn:hover{border-color:rgba(255,107,107,.4);transform:translateY(-2px);box-shadow:var(--card-shadow);}
-.cat-icon{font-size:1.8rem;}.cat-name{font-size:.68rem;font-weight:600;color:var(--sub);white-space:nowrap;}
+.cat-icon{font-size:2.4rem;}.cat-name{font-size:.68rem;font-weight:600;color:var(--sub);white-space:nowrap;}
 .sp-clear{position:absolute;right:.8rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--dim);font-size:1.1rem;cursor:pointer;padding:.2rem;display:none;line-height:1;}
 .sp-clear:hover{color:var(--text);}
 
@@ -458,7 +462,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
   <div class="trust-bar">
     <div class="trust-inner">
       <div class="trust-item"><span class="trust-num">12M+</span> annonces</div>
-      <div class="trust-item"><span class="trust-num">40+</span> marchands</div>
+      <div class="trust-item"><span class="trust-num">15+</span> marchands</div>
       <div class="trust-item"><span class="trust-num">-31%</span> d'économie moy.</div>
       <div class="trust-item"><span class="trust-num">100%</span> gratuit</div>
 
@@ -524,8 +528,8 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
       <h2>Pourquoi choisir HiFind ?</h2>
       <p class="why-sub">Le comparateur qui fait vraiment la différence</p>
       <div class="why-grid">
-        <div class="why-card"><div class="why-icon" style="background:rgba(255,107,107,.12);">🛍️</div><h3>+1000 marchands</h3><p>Comparez les prix de tous les grands sites e-commerce français en un clic</p></div>
-        <div class="why-card"><div class="why-icon" style="background:rgba(34,197,94,.12);">📊</div><h3>Historique des prix</h3><p>Consultez l'évolution des prix sur 30, 90 ou 365 jours</p></div>
+        <div class="why-card"><div class="why-icon" style="background:rgba(255,107,107,.12);">🛍️</div><h3>15+ marchands</h3><p>Comparez les prix des meilleurs sites e-commerce français en un clic</p></div>
+        <div class="why-card"><div class="why-icon" style="background:rgba(34,197,94,.12);">📊</div><h3>Prix actualisés</h3><p>Les prix sont mis à jour toutes les heures depuis nos marchands partenaires</p></div>
         
         <div class="why-card"><div class="why-icon" style="background:rgba(245,158,11,.12);">✨</div><h3>100% gratuit</h3><p>Aucune inscription requise, aucun abonnement caché</p></div>
       </div>
@@ -536,7 +540,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
   </div>
 
   <!-- ══ SECTION VOLS ══ -->
-  <div style="background:var(--bg2);border-top:1px solid var(--border);padding:2.5rem 1.5rem;">
+  <div id="section-vols" style="background:var(--bg2);border-top:1px solid var(--border);padding:2.5rem 1.5rem;">
     <div style="max-width:1280px;margin:0 auto;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
         <div>
@@ -639,15 +643,10 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
 
       <!-- PRIX -->
       <div class="filter-section">
-        <div class="filter-label">Prix</div>
-        <div class="price-slider-wrap">
-          <input type="range" class="price-slider" id="priceSliderMin" min="0" max="1000" value="0" oninput="updatePriceSlider()">
-          <input type="range" class="price-slider" id="priceSliderMax" min="0" max="1000" value="1000" oninput="updatePriceSlider()">
-        </div>
-        <div class="price-row">
-          <input class="price-in" type="number" placeholder="Min €" id="priceMin" oninput="updatePriceSlider()">
-          <span style="color:var(--sub)">—</span>
-          <input class="price-in" type="number" placeholder="Max €" id="priceMax" oninput="updatePriceSlider()">
+        <div class="filter-label">Prix maximum</div>
+        <input type="range" class="price-slider" id="priceSliderMax" min="0" max="1000" value="1000" oninput="updatePriceSlider()">
+        <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--dim);margin-bottom:.5rem">
+          <span>0 €</span><span id="priceSliderVal">1000 €</span>
         </div>
         <div class="price-ranges" id="priceRanges">
           <button class="price-range-btn" onclick="setPriceRange(0,20)">Moins de 20 €</button>
@@ -656,14 +655,6 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
           <button class="price-range-btn" onclick="setPriceRange(100,99999)">Plus de 100 €</button>
         </div>
         <button class="filter-apply" onclick="applyFilters()">Appliquer</button>
-      </div>
-
-      <!-- PARTENAIRE -->
-      <div class="filter-section">
-        <div class="filter-label">Partenaire</div>
-        <div class="filter-partners" id="filterPartners">
-          <div style="font-size:.75rem;color:var(--dim);">Chargement...</div>
-        </div>
       </div>
 
       <!-- LIVRAISON -->
@@ -711,7 +702,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
   <div class="about-section">
     <div class="about-mission">
       <h2>Notre mission</h2>
-      <p> HiFind est né d'un constat simple : trouver le meilleur prix en ligne est une perte de temps. Nous avons créé le comparateur qui agrège 40+ sources en temps réel pour que vous puissiez économiser sans effort — sur tous vos achats du quotidien.</p>
+      <p>HiFind est né d'un constat simple : trouver le meilleur prix en ligne est une perte de temps. Nous avons créé le comparateur qui agrège 40+ sources en temps réel pour que vous puissiez économiser sans effort — sur tous vos achats du quotidien.</p>
     </div>
     <div class="about-stats">
       <div class="about-stat-card"><div class="about-stat-val">12M+</div><div class="about-stat-lbl">Annonces indexées</div></div>
@@ -1113,10 +1104,14 @@ function searchFor(q){
 
 async function loadCategory(cat) {
   showPage('search');
+  activeCategory = cat;
   var container = document.getElementById('resultsContainer');
   container.innerHTML = '<div class="spinner"><div class="spin"></div><p class="spin-lbl">Chargement...</p></div>';
   document.getElementById('spInput').value = '';
   document.getElementById('spClear').style.display = 'none';
+  document.querySelectorAll('.fcat').forEach(function(b){ b.classList.remove('active'); });
+  var catBtns = document.querySelectorAll('.fcat');
+  catBtns.forEach(function(b){ if(b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+cat+"'")) b.classList.add('active'); });
 
   try {
     var res = await fetch('/api/products?action=category&cat='+encodeURIComponent(cat)+'&limit=60');
@@ -1124,7 +1119,7 @@ async function loadCategory(cat) {
     var items = data.data || [];
     if (items.length > 0) {
       currentResults = items.map(mapAffilaeProduct);
-      lastQuery = cat;
+      updateSliderMax(currentResults);
       sortResults();
     } else {
       container.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">Aucun produit dans cette catégorie</div></div>';
@@ -1146,7 +1141,7 @@ async function runSearch(q) {
   console.log('Affilae items for "'+q+'":', items);
   if (items && items.length > 0) {
     currentResults = items.map(mapAffilaeProduct);
-    loadPartnerFilters(currentResults);
+    updateSliderMax(currentResults);
   } else {
     currentResults = [];
     container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun produit trouvé</div><div class="empty-sub">Essayez avec d\'autres termes : soin, shampoing, CBD, jardin...</div></div>';
@@ -1173,50 +1168,52 @@ function filterByCategory(cat, btn) {
   activeCategory = cat;
   document.querySelectorAll('.fcat').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  applyFilters();
+  // Si on a des résultats chargés, filtre dessus
+  // Si pas de résultats et cat définie, charge la catégorie
+  if (currentResults.length > 0) {
+    applyFilters();
+  } else if (cat) {
+    loadCategory(cat);
+  }
 }
 
 function setPriceRange(min, max) {
-  document.getElementById('priceMin').value = min || '';
-  document.getElementById('priceMax').value = max >= 99999 ? '' : max;
+  var slMax = document.getElementById('priceSliderMax');
+  if (slMax) { slMax.max = slMax.max; slMax.value = max >= 99999 ? slMax.max : max; }
+  var valEl = document.getElementById('priceSliderVal');
+  if (valEl) valEl.textContent = (max >= 99999 ? slMax.max : max) + ' €';
   document.querySelectorAll('.price-range-btn').forEach(b => b.classList.remove('active'));
   event.target.classList.add('active');
   applyFilters();
 }
 
 function updatePriceSlider() {
-  var min = parseFloat(document.getElementById('priceMin').value) || 0;
-  var max = parseFloat(document.getElementById('priceMax').value) || 1000;
-  var slMin = document.getElementById('priceSliderMin');
   var slMax = document.getElementById('priceSliderMax');
-  if (slMin) slMin.value = Math.min(min, 1000);
-  if (slMax) slMax.value = Math.min(max, 1000);
+  var valEl = document.getElementById('priceSliderVal');
+  if (slMax && valEl) valEl.textContent = slMax.value + ' €';
+  applyFilters();
+}
+
+function updateSliderMax(results) {
+  if (!results || results.length === 0) return;
+  var maxPrice = Math.ceil(Math.max(...results.map(p => p.bestPrice || 0)));
+  var slMax = document.getElementById('priceSliderMax');
+  if (slMax) { slMax.max = maxPrice; slMax.value = maxPrice; }
+  var valEl = document.getElementById('priceSliderVal');
+  if (valEl) valEl.textContent = maxPrice + ' €';
 }
 
 function loadPartnerFilters(results) {
-  var partners = {};
-  results.forEach(function(p) { if (p.brand) partners[p.brand] = (partners[p.brand]||0)+1; });
-  var el = document.getElementById('filterPartners');
-  if (!el) return;
-  var sorted = Object.entries(partners).sort((a,b)=>b[1]-a[1]).slice(0,15);
-  el.innerHTML = sorted.map(function(e) {
-    return '<label class="fpartner"><input type="checkbox" class="partner-cb" value="'+e[0]+'"> '+e[0]+' <span style="color:var(--dim);font-size:.7rem;margin-left:auto">('+e[1]+')</span></label>';
-  }).join('');
-  document.querySelectorAll('.partner-cb').forEach(function(cb) {
-    cb.addEventListener('change', applyFilters);
-  });
+  // Supprimé — section partenaires retirée
 }
 
 function applyFilters() {
-  var min = parseFloat(document.getElementById('priceMin').value) || 0;
-  var max = parseFloat(document.getElementById('priceMax').value) || Infinity;
-  var checkedPartners = Array.from(document.querySelectorAll('.partner-cb:checked')).map(function(c){return c.value;});
-  var freeShipping = document.getElementById('filterFreeShipping') && document.getElementById('filterFreeShipping').checked;
+  var slMax = document.getElementById('priceSliderMax');
+  var max = slMax ? parseFloat(slMax.value) : Infinity;
 
   var filtered = currentResults.filter(function(p) {
-    if (p.bestPrice < min || p.bestPrice > max) return false;
+    if (p.bestPrice > max) return false;
     if (activeCategory && p.cat !== activeCategory) return false;
-    if (checkedPartners.length > 0 && !checkedPartners.includes(p.brand)) return false;
     return true;
   });
   renderResults(filtered);
@@ -1225,14 +1222,10 @@ function applyFilters() {
 }
 
 function clearFilters() {
-  document.getElementById('priceMin').value = '';
-  document.getElementById('priceMax').value = '';
   activeCategory = '';
   document.querySelectorAll('.fcat').forEach(function(b,i){b.classList.toggle('active',i===0);});
-  document.querySelectorAll('.partner-cb').forEach(function(c){c.checked=false;});
   document.querySelectorAll('.price-range-btn').forEach(function(b){b.classList.remove('active');});
-  var fs = document.getElementById('filterFreeShipping');
-  if (fs) fs.checked = false;
+  updateSliderMax(currentResults);
   renderResults(currentResults);
 }
 function renderResults(list){
@@ -1628,8 +1621,12 @@ async function initHome() {
   if (tg) tg.innerHTML = mapped.slice(6, 12).map(function(p, i){ return miniCard(p, i+1, false); }).join('') ||
     '<p style="color:var(--sub);font-size:.85rem;padding:.5rem">Chargement des produits...</p>';
 
+  // Bons plans : produits avec les prix les plus bas
+  var dealsRaw = await fetch('/api/products?action=list&limit=30');
+  var dealsData = await dealsRaw.json();
+  var deals = (dealsData.data||[]).map(mapAffilaeProduct).sort(function(a,b){return a.bestPrice-b.bestPrice;}).slice(0,6);
   var bg = document.getElementById('bonsPlansGrid');
-  if (bg) bg.innerHTML = mapped.slice(0, 6).map(function(p){ return miniCard(p, 0, true); }).join('') ||
+  if (bg) bg.innerHTML = deals.map(function(p){ return miniCard(p, 0, true); }).join('') ||
     '<p style="color:var(--sub);font-size:.85rem;padding:.5rem">Chargement des produits...</p>';
 }
 initHome();
@@ -1638,6 +1635,8 @@ initHome();
 <script>
 // Charge les vrais prix Travelpayouts + dates dynamiques
 document.addEventListener('DOMContentLoaded', function() {
+  // Charge les prix vols seulement sur la home
+  function loadFlightPrices() {
   // Dates dynamiques
   var depart = new Date();
   depart.setDate(depart.getDate() + 42);
@@ -1666,6 +1665,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }).catch(function(e){ console.log('flights error:', e); });
+  }
+  loadFlightPrices();
 });
 </script>
 
