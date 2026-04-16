@@ -782,18 +782,35 @@ async function syncAwin() {
 // ══ AWIN MERCHANTS — flux directs avec tracking affilié ══
 const AWIN_PUBLISHER_ID = '2855063';
 
-// Pour ajouter un marchand : fid = Feed ID trouvé dans AWIN > Toolbox > Product Feeds > My Feeds
-// URL de téléchargement fournie directement par l'interface AWIN
 const AWIN_MERCHANTS = [
   {
     id: '105475', name: 'Perfumeria Comas', cat: 'beaute-bienetre',
     feedUrl: 'https://productdata.awin.com/datafeed/download/apikey/9286caa1eff7176a0a48abae76b26893/language/fr/fid/97867/rid/0/hasEnhancedFeeds/0/columns/aw_deep_link,product_name,aw_product_id,merchant_product_id,merchant_image_url,description,merchant_category,search_price,merchant_name,merchant_id,category_name,aw_image_url,currency,store_price,delivery_cost,merchant_deep_link,language,last_updated,display_price,data_feed_id/format/csv/delimiter/%2C/compression/gzip/adultcontent/1/',
   },
-  { id: '12592',  name: 'Acer France',     cat: 'high-tech',       feedUrl: null },
-  { id: '7928',   name: 'Pneus FR',        cat: 'auto-moto',       feedUrl: null },
-  { id: '122426', name: 'IMOU FR',         cat: 'high-tech',       feedUrl: null },
-  { id: '123918', name: 'Planetfoot',      cat: 'sport-outdoor',   feedUrl: null },
-  { id: '114822', name: 'Atmosfera Sport', cat: 'sport-outdoor',   feedUrl: null },
+  {
+    id: '12592', name: 'Acer France', cat: 'high-tech',
+    feedUrl: 'https://productdata.awin.com/datafeed/download/apikey/9286caa1eff7176a0a48abae76b26893/language/fr/fid/33173,54275,65117,104197/rid/0/hasEnhancedFeeds/0/columns/aw_deep_link,product_name,aw_product_id,merchant_product_id,merchant_image_url,description,merchant_category,search_price,merchant_name,merchant_id,category_name,category_id,aw_image_url,currency,store_price,delivery_cost,merchant_deep_link,language,last_updated,display_price,data_feed_id/format/csv/delimiter/%2C/compression/gzip/adultcontent/1/',
+  },
+  {
+    id: '122426', name: 'IMOU FR', cat: 'high-tech',
+    feedUrl: 'https://ui.awin.com/productdata-darwin-download/publisher/2855063/9286caa1eff7176a0a48abae76b26893/1/feed/F2157.csv.gz',
+  },
+  {
+    id: '7928', name: 'Pneus FR', cat: 'auto-moto',
+    feedUrl: 'https://productdata.awin.com/datafeed/download/apikey/9286caa1eff7176a0a48abae76b26893/language/fr/fid/21301/rid/0/hasEnhancedFeeds/0/columns/aw_deep_link,product_name,aw_product_id,merchant_product_id,merchant_image_url,description,merchant_category,search_price,merchant_name,merchant_id,category_name,category_id,aw_image_url,currency,store_price,delivery_cost,merchant_deep_link,language,last_updated,display_price,data_feed_id/format/csv/delimiter/%2C/compression/gzip/adultcontent/1/',
+  },
+  {
+    id: '123918', name: 'Planetfoot', cat: 'sport-outdoor',
+    feedUrl: 'https://ui.awin.com/productdata-darwin-download/publisher/2855063/9286caa1eff7176a0a48abae76b26893/1/feed/F3201.csv.gz',
+  },
+  {
+    id: '114822', name: 'Atmosfera Sport', cat: 'sport-outdoor',
+    feedUrl: 'https://productdata.awin.com/datafeed/download/apikey/9286caa1eff7176a0a48abae76b26893/language/fr/fid/101797/rid/0/hasEnhancedFeeds/0/columns/aw_deep_link,product_name,aw_product_id,merchant_product_id,merchant_image_url,description,merchant_category,search_price,merchant_name,merchant_id,category_name,category_id,aw_image_url,currency,store_price,delivery_cost,merchant_deep_link,language,last_updated,display_price,data_feed_id/format/csv/delimiter/%2C/compression/gzip/adultcontent/1/',
+  },
+  {
+    id: null, name: 'Navimow', cat: 'maison-jardin',
+    feedUrl: 'https://productdata.awin.com/datafeed/download/apikey/9286caa1eff7176a0a48abae76b26893/language/fr/fid/111150/rid/0/hasEnhancedFeeds/0/columns/aw_deep_link,product_name,aw_product_id,merchant_product_id,merchant_image_url,description,merchant_category,search_price,merchant_name,merchant_id,category_name,category_id,aw_image_url,currency,store_price,delivery_cost,merchant_deep_link,language,last_updated,display_price,data_feed_id/format/csv/delimiter/%2C/compression/gzip/adultcontent/1/',
+  },
 ];
 
 function awinTrackUrl(awinmid, productUrl) {
@@ -844,28 +861,31 @@ async function syncAwinMerchants() {
         headers.forEach((h, i) => obj[h] = (vals[i] || '').trim().replace(/^"|"$/g, ''));
 
         const title     = cleanTitle(obj['product_name'] || obj['product name'] || obj['name'] || obj['title'] || '');
-        const productUrl= obj['aw_deep_link'] || obj['deep_link'] || obj['product_url'] || obj['url'] || '';
+        // aw_deep_link already contains AWIN affiliate tracking — use it directly
+        const trackUrl  = obj['aw_deep_link'] || obj['deep_link'] || '';
         const price     = parseFloat((obj['search_price'] || obj['price'] || obj['rrp_price'] || '0').replace(',', '.')) || 0;
         const image_url = obj['aw_image_url'] || obj['merchant_image_url'] || obj['image_url'] || '';
         const brand     = obj['brand_name'] || obj['brand'] || obj['manufacturer'] || '';
         const ean       = extractEAN(obj['ean'] || obj['gtin'] || obj['barcode'] || '');
         const prodId    = obj['aw_product_id'] || obj['merchant_product_id'] || obj['product_id'] || obj['id'] || '';
-        const feedCat   = obj['category_name'] || obj['category'] || obj['merchant_category'] || '';
+        const feedCat   = obj['category_name'] || obj['merchant_category'] || obj['category'] || '';
+        // Read merchant_id from feed data (useful for merchants with id: null like Navimow)
+        const mid = merchant.id || obj['merchant_id'] || '';
 
-        if (!title || !productUrl) continue;
+        if (!title || !trackUrl) continue;
         const key = ean || prodId || (title.toLowerCase().trim() + '_' + price);
         if (seen.has(key)) continue;
         seen.add(key);
 
-        const trackUrl = awinTrackUrl(merchant.id, productUrl);
-
-        products.push({ title, url: trackUrl, price, image_url, brand, ean, product_id: prodId, feed_cat: feedCat });
+        products.push({ title, url: trackUrl, price, image_url, brand, ean, product_id: prodId, feed_cat: feedCat, mid });
         if (products.length >= LIMIT) break;
       }
 
       console.log(`  📦 ${merchant.name}: ${products.length} produits`);
 
-      const programId = 'awin_' + merchant.id;
+      // Use actual merchant_id from feed data if not known upfront (e.g. Navimow)
+      const resolvedMid = merchant.id || (products[0] && products[0].mid) || merchant.name.toLowerCase().replace(/\s+/g,'_');
+      const programId = 'awin_' + resolvedMid;
       await supabaseUpsert('programs', [{
         id: programId, title: merchant.name, categories: [], countries: ['FR'],
         updated_at: new Date().toISOString()
