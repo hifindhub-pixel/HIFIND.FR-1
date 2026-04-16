@@ -776,6 +776,146 @@ async function syncAwin() {
   console.log('🎉 Awin done');
 }
 
+// ══ AWIN MERCHANTS — auto-découverte par merchant ID ══
+const AWIN_API_KEY      = process.env.AWIN_API_KEY;
+const AWIN_PUBLISHER_ID = '2855063';
+
+const AWIN_MERCHANTS = [
+  { id: '105475', name: 'Perfumeria Comas', cat: 'beaute-bienetre', trackMid: '105475' },
+  { id: '12592',  name: 'Acer France',      cat: 'high-tech',       trackMid: '12592'  },
+  { id: '7928',   name: 'Pneus FR',         cat: 'auto-moto',       trackMid: '7928'   },
+  { id: '122426', name: 'IMOU FR',          cat: 'high-tech',       trackMid: '122426' },
+  { id: '123918', name: 'Planetfoot',       cat: 'sport-outdoor',   trackMid: '123918' },
+  { id: '114822', name: 'Atmosfera Sport',  cat: 'sport-outdoor',   trackMid: '114822' },
+];
+
+function awinTrackUrl(awinmid, productUrl) {
+  return `https://www.awin1.com/cread.php?awinmid=${awinmid}&awinaffid=${AWIN_PUBLISHER_ID}&ued=${encodeURIComponent(productUrl)}`;
+}
+
+async function syncAwinMerchants() {
+  console.log('🔄 AWIN Merchants sync...');
+  if (!AWIN_API_KEY) { console.log('⚠️ AWIN_API_KEY manquant — skipped'); return; }
+
+  // 1. Récupère la liste des flux disponibles pour ce publisher
+  let feedList;
+  try {
+    const listRes = await fetch(
+      `https://productdata.awin.com/datafeed/list/apikey/${AWIN_API_KEY}/format/json/`
+    );
+    if (!listRes.ok) {
+      console.log('❌ AWIN feed list HTTP', listRes.status, await listRes.text());
+      return;
+    }
+    feedList = await listRes.json();
+    console.log(`  📋 ${feedList.length} flux disponibles au total`);
+  } catch(e) {
+    console.log('❌ AWIN feed list erreur:', e.message);
+    return;
+  }
+
+  // 2. Pour chaque marchand cible, trouve et télécharge son flux
+  for (const merchant of AWIN_MERCHANTS) {
+    try {
+      // Cherche le flux correspondant au merchantId
+      const feed = feedList.find(f =>
+        String(f.merchantId) === merchant.id || String(f.advertiserCountryCode) === merchant.id
+      );
+
+      if (!feed) {
+        console.log(`  ⚠️ Aucun flux pour ${merchant.name} (id=${merchant.id}) — non approuvé ?`);
+        continue;
+      }
+
+      const feedId  = feed.feedId || feed.id;
+      const dlUrl   = `https://productdata.awin.com/datafeed/download/apikey/${AWIN_API_KEY}/language/fr/fid/${feedId}/format/csv/delimiter/%7C/`;
+      console.log(`  → ${merchant.name} (feedId=${feedId})`);
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 60000);
+      const res = await fetch(dlUrl, { signal: controller.signal });
+      clearTimeout(timeout);
+      if (!res.ok) { console.log(`  ❌ ${merchant.name} HTTP ${res.status}`); continue; }
+
+      const buffer = await res.arrayBuffer();
+      let text;
+      try { text = new TextDecoder('utf-8', { fatal: true }).decode(buffer); }
+      catch(e) { text = new TextDecoder('iso-8859-1').decode(buffer); }
+
+      const lines = text.split('\n').filter(l => l.trim());
+      if (lines.length < 2) { console.log(`  ⚠️ ${merchant.name}: flux vide`); continue; }
+
+      const sep = lines[0].includes('|') ? '|' : (lines[0].includes('\t') ? '\t' : ',');
+      const headers = lines[0].split(sep).map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
+
+      const products = [];
+      const seen = new Set();
+      const LIMIT = 500;
+
+      for (const line of lines.slice(1)) {
+        if (!line.trim()) continue;
+        const vals = line.split(sep);
+        const obj = {};
+        headers.forEach((h, i) => obj[h] = (vals[i] || '').trim().replace(/^"|"$/g, ''));
+
+        const title     = cleanTitle(obj['product_name'] || obj['product name'] || obj['name'] || obj['title'] || '');
+        const productUrl= obj['aw_deep_link'] || obj['deep_link'] || obj['product_url'] || obj['url'] || '';
+        const price     = parseFloat((obj['search_price'] || obj['price'] || obj['rrp_price'] || '0').replace(',', '.')) || 0;
+        const image_url = obj['aw_image_url'] || obj['merchant_image_url'] || obj['image_url'] || '';
+        const brand     = obj['brand_name'] || obj['brand'] || obj['manufacturer'] || '';
+        const ean       = extractEAN(obj['ean'] || obj['gtin'] || obj['barcode'] || '');
+        const prodId    = obj['aw_product_id'] || obj['merchant_product_id'] || obj['product_id'] || obj['id'] || '';
+        const feedCat   = obj['category_name'] || obj['category'] || obj['merchant_category'] || '';
+
+        if (!title || !productUrl) continue;
+        const key = ean || prodId || (title.toLowerCase().trim() + '_' + price);
+        if (seen.has(key)) continue;
+        seen.add(key);
+
+        // Construit l'URL de tracking AWIN pour ce produit
+        const trackUrl = awinTrackUrl(merchant.trackMid, productUrl);
+
+        products.push({ title, url: trackUrl, price, image_url, brand, ean, product_id: prodId, feed_cat: feedCat });
+        if (products.length >= LIMIT) break;
+      }
+
+      console.log(`  📦 ${merchant.name}: ${products.length} produits`);
+
+      const programId = 'awin_' + merchant.id;
+      await supabaseUpsert('programs', [{
+        id: programId, title: merchant.name, categories: [], countries: ['FR'],
+        updated_at: new Date().toISOString()
+      }]);
+
+      const mapped = products.map((p, i) => ({
+        id:          p.product_id ? programId + '_' + p.product_id : programId + '_' + i,
+        affilae_id:  p.product_id ? programId + '_' + p.product_id : programId + '_' + i,
+        program_id:  programId,
+        title:       p.title,
+        description: null,
+        price:       p.price || null,
+        currency:    'EUR',
+        url:         p.url,
+        tracking_id: null,
+        image_url:   p.image_url || null,
+        brand:       p.brand || null,
+        ean:         p.ean || null,
+        category:    merchant.cat || mapFeedCategory(p.feed_cat) || detectCategory({ title: p.title, description: '', program: { title: merchant.name }, brand: p.brand || '' }),
+        lang:        'fr',
+        status:      'enabled',
+        updated_at:  new Date().toISOString()
+      }));
+
+      for (let i = 0; i < mapped.length; i += 50) await supabaseUpsert('products', mapped.slice(i, i + 50));
+      console.log(`  ✅ ${merchant.name}: ${mapped.length} insérés`);
+
+    } catch(e) {
+      console.log(`  ⚠️ ${merchant.name}:`, e.message);
+    }
+  }
+  console.log('🎉 AWIN Merchants done');
+}
+
 async function main() {
   try {
     await syncAffilae();
@@ -783,6 +923,7 @@ async function main() {
     await syncBCDJeux();
     await syncRakuten();
     await syncAwin();
+    await syncAwinMerchants();
     if (_neonClient) await _neonClient.end();
     console.log('🎉 All done!');
   } catch(e) {

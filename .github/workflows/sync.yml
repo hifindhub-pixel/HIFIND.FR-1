@@ -30,3 +30,4 @@ jobs:
           NEON_URL:       ${{ secrets.NEON_URL }}
           EFFINITY_FEEDS: ${{ secrets.EFFINITY_FEEDS }}
           AWIN_FEEDS:     ${{ secrets.AWIN_FEEDS }}
+          AWIN_API_KEY:   ${{ secrets.AWIN_API_KEY }}
