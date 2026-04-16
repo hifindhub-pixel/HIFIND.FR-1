@@ -354,9 +354,76 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
 .chart-stat-val.high{color:var(--coral);}
 .chart-stat-lbl{font-size:.68rem;color:var(--sub);margin-top:.1rem;}
 
-/* ALL OFFERS TABLE */
-.all-offers-section{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:1.5rem;}
-.all-offers-head{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:1rem;}
+/* ══ IDEALO-STYLE DETAIL PAGE ══ */
+.idealo-detail{max-width:1180px;margin:0 auto;}
+.idealo-top{display:grid;grid-template-columns:220px 1fr 310px;gap:2rem;align-items:start;margin-bottom:2rem;}
+.idealo-img-box{position:relative;background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:1.5rem;display:flex;align-items:center;justify-content:center;min-height:200px;}
+.idealo-img-box img{max-width:100%;max-height:180px;object-fit:contain;}
+.idealo-discount-badge{position:absolute;top:10px;left:10px;background:#e53e3e;color:#fff;font-size:.75rem;font-weight:800;padding:.22rem .55rem;border-radius:6px;z-index:1;}
+.idealo-info{}
+.idealo-brand{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:.3rem;}
+.idealo-title{font-family:'Outfit',sans-serif;font-size:1.45rem;font-weight:800;line-height:1.3;margin-bottom:.65rem;color:var(--text);}
+.idealo-desc{font-size:.82rem;color:var(--sub);line-height:1.6;margin-bottom:.8rem;max-width:500px;}
+.idealo-stars{color:#f59e0b;font-size:1rem;margin-bottom:.8rem;letter-spacing:.05em;}
+.idealo-price-block{margin-bottom:.8rem;}
+.idealo-from-lbl{font-size:.78rem;color:var(--sub);margin-bottom:.1rem;}
+.idealo-big-price{font-family:'Outfit',sans-serif;font-size:2.2rem;font-weight:900;color:var(--coral);line-height:1;}
+.idealo-price-at{font-size:.8rem;color:var(--sub);margin-top:.2rem;}
+.idealo-savings-pill{display:inline-flex;align-items:center;gap:.4rem;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#16a34a;font-size:.82rem;padding:.35rem .8rem;border-radius:100px;margin-top:.5rem;}
+.idealo-fav-btn{margin-top:.8rem;padding:.45rem 1.1rem;background:var(--bg2);border:1.5px solid var(--border2);border-radius:8px;font-size:.82rem;font-weight:600;color:var(--sub);cursor:pointer;transition:all .2s;}
+.idealo-fav-btn:hover{border-color:var(--coral);color:var(--coral);}
+.idealo-chart-col{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:1.2rem;}
+.idealo-chart-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;gap:.5rem;flex-wrap:wrap;}
+.idealo-chart-head span{font-size:.82rem;font-weight:700;color:var(--text);}
+.idealo-chart-body{position:relative;height:130px;}
+
+/* Compare table */
+.compare-section{background:var(--bg2);border:1px solid var(--border);border-radius:18px;overflow:hidden;}
+.compare-section-head{display:flex;align-items:center;gap:.8rem;padding:1.1rem 1.4rem;border-bottom:1px solid var(--border);}
+.compare-section-title{font-family:'Outfit',sans-serif;font-size:1.05rem;font-weight:800;}
+.compare-count-badge{background:var(--bg3);border:1px solid var(--border);color:var(--sub);font-size:.72rem;font-weight:600;padding:.15rem .55rem;border-radius:100px;}
+.compare-col-heads{display:flex;align-items:center;gap:1rem;padding:.6rem 1.4rem;background:var(--bg3);border-bottom:1px solid var(--border);font-size:.72rem;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;}
+.offer-row{display:flex;align-items:center;gap:1rem;padding:1rem 1.4rem;border-bottom:1px solid var(--border);transition:background .15s;}
+.offer-row:last-child{border-bottom:none;}
+.offer-row:hover{background:var(--bg3);}
+.offer-row-best{background:rgba(255,107,107,.04);border-left:3px solid var(--coral);}
+.offer-row-best:hover{background:rgba(255,107,107,.08);}
+.offer-name-col{flex:2.2;min-width:0;}
+.offer-merchant-badge{display:inline-block;font-size:.68rem;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--sub);padding:.12rem .5rem;border-radius:6px;margin-bottom:.25rem;}
+.offer-title-text{font-size:.83rem;font-weight:600;color:var(--text);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px;}
+.best-price-badge{display:inline-block;margin-top:.2rem;font-size:.65rem;font-weight:700;background:rgba(255,107,107,.12);color:var(--coral);border:1px solid rgba(255,107,107,.25);padding:.12rem .45rem;border-radius:4px;}
+.savings-row-badge{display:inline-block;margin-top:.2rem;font-size:.65rem;font-weight:600;background:rgba(34,197,94,.1);color:#16a34a;padding:.1rem .4rem;border-radius:4px;}
+.offer-price-col{flex:1.1;text-align:right;flex-shrink:0;}
+.offer-price-val{font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:900;color:var(--text);line-height:1;}
+.offer-price-val.best{color:var(--coral);}
+.offer-shipping-lbl{font-size:.68rem;color:var(--sub);margin-top:.15rem;}
+.offer-price-unknown{font-size:.8rem;color:var(--sub);}
+.offer-pay-col{flex:.9;text-align:center;flex-shrink:0;}
+.pay-pill{display:inline-block;font-size:.58rem;font-weight:800;letter-spacing:.03em;padding:.15rem .38rem;border-radius:4px;margin:.1rem .05rem;}
+.pay-visa{background:#1a1f71;color:#fff;}
+.pay-mc{background:#eb001b;color:#fff;}
+.pay-pp{background:#003087;color:#fff;}
+.offer-delivery-col{flex:1;flex-shrink:0;}
+.delivery-dot{color:#22c55e;font-size:.6rem;margin-right:.3rem;}
+.delivery-lbl{font-size:.77rem;color:var(--text);font-weight:500;}
+.offer-merchant-col{flex:1.4;flex-shrink:0;}
+.merchant-display-name{font-size:.82rem;font-weight:700;color:var(--text);}
+.merchant-stars-row{font-size:.7rem;color:#f59e0b;margin-top:.15rem;}
+.offer-cta-col{flex-shrink:0;}
+.see-offer-btn{padding:.5rem 1.1rem;background:#16a34a;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.8rem;cursor:pointer;white-space:nowrap;transition:opacity .2s;}
+.see-offer-btn:hover{opacity:.85;}
+.offer-amazon-row{background:rgba(255,153,0,.04);}
+.offer-amazon-row .offer-price-val{color:#cc6600;}
+
+/* Responsive detail */
+@media(max-width:900px){
+  .idealo-top{grid-template-columns:1fr 1fr;}.idealo-chart-col{grid-column:1/-1;}
+}
+@media(max-width:600px){
+  .idealo-top{grid-template-columns:1fr;}.compare-col-heads{display:none;}
+  .offer-row{flex-wrap:wrap;}.offer-pay-col,.offer-delivery-col{display:none;}
+  .offer-name-col{flex:1 1 100%;}.offer-merchant-col{flex:1;}
+}
 
 /* ABOUT PAGE */
 .about-hero{background:var(--hero-bg);padding:5rem 1.5rem;text-align:center;position:relative;overflow:hidden;}
@@ -1418,160 +1485,202 @@ async function openDetail(id){
   }
 }
 
-function renderDetail(p){
+function getMerchantEmoji(name) {
+  if (!name) return '🏪';
+  const b = name.toLowerCase();
+  if (b.includes('rakuten'))                                 return '🛍️';
+  if (b.includes('fnac'))                                    return '🎵';
+  if (b.includes('darty'))                                   return '📺';
+  if (b.includes('cdiscount'))                               return '🛒';
+  if (b.includes('amazon'))                                  return '📦';
+  if (b.includes('decathlon') || b.includes('sport'))        return '⚽';
+  if (b.includes('leclerc'))                                 return '🏬';
+  if (b.includes('norauto'))                                 return '🔧';
+  if (b.includes('vertbaudet'))                              return '👶';
+  if (b.includes('blanche'))                                 return '👗';
+  if (b.includes('lunii'))                                   return '🎧';
+  if (b.includes('bio') || b.includes('valebio'))            return '🌿';
+  if (b.includes('pharma') || b.includes('sant'))            return '💊';
+  if (b.includes('jeux') || b.includes('jouet'))             return '🧸';
+  if (b.includes('maison') || b.includes('jardin'))          return '🏠';
+  if (b.includes('auto') || b.includes('moto'))              return '🚗';
+  if (b.includes('beauty') || b.includes('sephora'))         return '💄';
+  return '🏪';
+}
+
+function renderDetail(p) {
   var footer = document.getElementById('global-footer');
   if (footer) footer.style.display = 'none';
-  const hist30 = buildPriceHistory(p.basePrice, 30);
-  const minH   = Math.min(...hist30.data);
-  const maxH   = Math.max(...hist30.data);
 
-  // Construit la liste des offres
+  // ── Build offers list ──────────────────────────────
   const offers = [];
-
-  // Offres EAN (multi-vendeurs) si disponibles
   if (p.ean_offers && p.ean_offers.length > 0) {
     p.ean_offers.forEach(function(o) {
+      var price = parseFloat(o.price) || 0;
       offers.push({
-        merchant:  (o.programs && o.programs.title) || 'Partenaire',
-        price:     o.price,
-        url:       o.tracking_url || o.url,
-        logo:      getMerchantLogo((o.programs && o.programs.title) || ''),
-        condition: 'Neuf',
+        merchant: (o.programs && o.programs.title) || 'Partenaire',
+        title:    decodeHtml(o.title || p.name),
+        price:    price,
+        url:      o.tracking_url || o.url,
+        shipping: 0,
       });
     });
-  } else if (p.offers && p.offers[0]) {
-    // Offre unique du vendeur affilié
-    offers.push({
-      merchant:  p.offers[0].merchant || p.merchantName || 'Partenaire',
-      price:     p.bestPrice,
-      url:       p.offers[0].url,
-      logo:      getMerchantLogo(p.offers[0].merchant || p.merchantName || ''),
-      condition: 'Neuf',
+  } else if (p.offers && p.offers.length > 0) {
+    p.offers.forEach(function(o) {
+      offers.push({
+        merchant: o.merchant || p.merchantName || 'Partenaire',
+        title:    p.name,
+        price:    parseFloat(o.price) || p.bestPrice,
+        url:      o.url,
+        shipping: o.shipping || 0,
+      });
     });
   }
-
-  // Toujours ajouter Amazon
   offers.push({
-    merchant:       'Amazon.fr',
-    price:          null,
-    url:            'https://www.amazon.fr/s?k=' + encodeURIComponent(p.name) + '&tag=hifind05-21',
-    logo:           '🛒',
-    condition:      'Neuf',
+    merchant: 'Amazon.fr',
+    title:    p.name,
+    price:    null,
+    url:      'https://www.amazon.fr/s?k=' + encodeURIComponent(p.name) + '&tag=hifind05-21',
+    shipping: 0,
     isPriceUnknown: true,
   });
-
-  // Trie par prix croissant (Amazon toujours en dernier)
   offers.sort(function(a, b) {
     if (a.isPriceUnknown) return 1;
     if (b.isPriceUnknown) return -1;
-    return (a.price||999999) - (b.price||999999);
+    return (a.price || 999999) - (b.price || 999999);
   });
 
-  function getMerchantLogo(brand) {
-    if (!brand) return '🏪';
-    const b = brand.toLowerCase();
-    if (b.includes('norauto'))        return '🔧';
-    if (b.includes('beauty') || b.includes('sephora') || b.includes('marionnaud')) return '💄';
-    if (b.includes('vertbaudet'))     return '👶';
-    if (b.includes('blanche'))        return '👗';
-    if (b.includes('lunii'))          return '🎧';
-    if (b.includes('rakuten'))        return '🛍️';
-    if (b.includes('valebio') || b.includes('bio'))  return '🌿';
-    if (b.includes('fnac'))           return '🎵';
-    if (b.includes('darty'))          return '📺';
-    if (b.includes('cdiscount'))      return '🛒';
-    if (b.includes('leclerc'))        return '🏬';
-    if (b.includes('sport') || b.includes('decathlon')) return '⚽';
-    if (b.includes('pharma') || b.includes('sant'))  return '💊';
-    if (b.includes('jeux') || b.includes('jouet'))   return '🧸';
-    if (b.includes('auto') || b.includes('moto'))    return '🚗';
-    if (b.includes('jardin') || b.includes('maison'))return '🏠';
-    return '🏪';
-  }
+  // ── Savings ────────────────────────────────────────
+  const known     = offers.filter(function(o){ return !o.isPriceUnknown && o.price > 0; });
+  const bestPrice = known.length > 0 ? known[0].price : p.bestPrice;
+  const worstPrice= known.length > 1 ? known[known.length-1].price : 0;
+  const savings   = worstPrice > bestPrice ? Math.round((worstPrice - bestPrice)*100)/100 : 0;
+  const savingsPct= worstPrice > 0 && savings > 0 ? Math.round((savings/worstPrice)*100) : 0;
+  const isFav     = favorites.some(function(f){ return f.id === p.id; });
 
-  // Calcul des économies (entre meilleur et moins bon prix connus)
-  const knownOffers = offers.filter(o => !o.isPriceUnknown && o.price > 0);
-  const worstPrice  = knownOffers.length > 1 ? knownOffers[knownOffers.length - 1].price : 0;
-  const bestKnown   = knownOffers.length > 0 ? knownOffers[0].price : 0;
-  const totalSavings = worstPrice > bestKnown ? Math.round((worstPrice - bestKnown) * 100) / 100 : 0;
+  // ── Offer rows HTML ────────────────────────────────
+  const rowsHTML = offers.map(function(o, i) {
+    const isBest  = i === 0 && !o.isPriceUnknown;
+    const isAZ    = o.merchant === 'Amazon.fr';
+    const rowSav  = (!o.isPriceUnknown && worstPrice > o.price && !isBest)
+                    ? Math.round((worstPrice - o.price)*100)/100 : 0;
+    const emoji   = getMerchantEmoji(o.merchant);
+    const titleShort = (o.title||o.merchant).length > 60
+                       ? (o.title||o.merchant).slice(0,60)+'…' : (o.title||o.merchant);
+    return '<div class="offer-row' + (isBest?' offer-row-best':'') + (isAZ?' offer-amazon-row':'') + '">' +
+      // Col 1 — offer name
+      '<div class="offer-name-col">' +
+        '<div class="offer-merchant-badge">' + emoji + ' ' + o.merchant + '</div>' +
+        '<div class="offer-title-text">' + titleShort + '</div>' +
+        (isBest ? '<div class="best-price-badge">✓ Meilleur prix total</div>' : '') +
+        (rowSav > 0 ? '<div class="savings-row-badge">−' + rowSav.toLocaleString('fr-FR') + ' €</div>' : '') +
+      '</div>' +
+      // Col 2 — price
+      '<div class="offer-price-col">' +
+        (o.isPriceUnknown
+          ? '<div class="offer-price-unknown">Prix variable</div>'
+          : '<div class="offer-price-val' + (isBest?' best':'') + '">' + parseFloat(o.price).toLocaleString('fr-FR') + ' €</div>' +
+            '<div class="offer-shipping-lbl">' + (o.shipping===0?'livraison incluse':o.shipping.toLocaleString('fr-FR')+' € livraison') + '</div>'
+        ) +
+      '</div>' +
+      // Col 3 — payment
+      '<div class="offer-pay-col">' +
+        '<span class="pay-pill pay-visa">VISA</span>' +
+        '<span class="pay-pill pay-mc">MC</span>' +
+        (isAZ ? '<span class="pay-pill pay-pp">Pay</span>' : '') +
+      '</div>' +
+      // Col 4 — delivery
+      '<div class="offer-delivery-col">' +
+        '<span class="delivery-dot">●</span>' +
+        '<span class="delivery-lbl">' + (o.shipping===0?'Livraison gratuite':'Livraison '+parseFloat(o.shipping).toLocaleString('fr-FR')+' €') + '</span>' +
+      '</div>' +
+      // Col 5 — merchant
+      '<div class="offer-merchant-col">' +
+        '<div class="merchant-display-name">' + o.merchant + '</div>' +
+        '<div class="merchant-stars-row">★★★★☆</div>' +
+      '</div>' +
+      // Col 6 — CTA
+      '<div class="offer-cta-col">' +
+        '<a href="' + o.url + '" target="_blank" rel="noopener sponsored" style="text-decoration:none">' +
+          '<button class="see-offer-btn">Voir l\'offre ↗</button>' +
+        '</a>' +
+      '</div>' +
+    '</div>';
+  }).join('');
 
-  const offersHTML = offers.map((o, i) => {
-    const isBest    = i === 0 && !o.isPriceUnknown;
-    const savingVs  = (!o.isPriceUnknown && worstPrice > o.price && worstPrice !== o.price)
-                      ? Math.round((worstPrice - o.price) * 100) / 100 : 0;
-    return `
-    <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.2rem;background:var(--bg2);border:1.5px solid ${isBest?'var(--coral)':'var(--border)'};border-radius:14px;margin-bottom:.55rem;transition:box-shadow .2s,border-color .2s;" onmouseover="this.style.boxShadow='var(--card-shadow)';${!isBest?'this.style.borderColor=\'var(--border2)\'':''}" onmouseout="this.style.boxShadow='none';${!isBest?'this.style.borderColor=\'var(--border)\'':''}">
-      <div style="font-size:1.9rem;width:44px;text-align:center;flex-shrink:0">${o.logo}</div>
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.2rem">
-          <span style="font-weight:700;font-size:.92rem">${o.merchant}</span>
-          ${isBest?'<span style="background:rgba(255,107,107,.15);color:var(--coral);font-size:.67rem;font-weight:700;padding:.1rem .45rem;border-radius:100px;border:1px solid rgba(255,107,107,.3)">✓ Meilleur prix</span>':''}
-          ${o.merchant==='Amazon.fr'?'<span style="background:rgba(255,153,0,.12);color:#ff9900;font-size:.67rem;font-weight:700;padding:.1rem .45rem;border-radius:100px;border:1px solid rgba(255,153,0,.2)">Prime éligible</span>':''}
-          ${savingVs>0&&!isBest?'<span style="background:rgba(34,197,94,.1);color:#22c55e;font-size:.67rem;font-weight:600;padding:.1rem .4rem;border-radius:100px;">−'+savingVs.toLocaleString('fr-FR')+' €</span>':''}
-        </div>
-        <div style="font-size:.75rem;color:var(--sub);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
-          <span><span style="color:#22c55e">●</span> En stock</span>
-          <span>${o.shipping===0?'<strong style="color:var(--green)">Livraison gratuite</strong>':'Livraison '+o.shipping+' €'}</span>
-          <span style="color:var(--dim)">${o.condition}</span>
-        </div>
-      </div>
-      <div style="text-align:right;flex-shrink:0;min-width:110px">
-        ${o.isPriceUnknown
-          ? '<div style="font-size:.8rem;color:var(--sub);margin-bottom:.4rem">Prix variable</div>'
-          : '<div style="font-size:1.45rem;font-weight:900;color:'+(isBest?'var(--coral)':'var(--text)')+';font-family:Outfit,sans-serif;line-height:1">' + o.price.toLocaleString('fr-FR') + ' €</div>'
-        }
-        <a href="${o.url}" target="_blank" rel="noopener sponsored" style="text-decoration:none">
-          <button style="margin-top:.4rem;padding:.45rem 1rem;background:${isBest?'var(--coral)':'var(--bg3)'};color:${isBest?'#fff':'var(--text)'};border:${isBest?'none':'1px solid var(--border)'};border-radius:8px;font-weight:700;font-size:.8rem;cursor:pointer;white-space:nowrap;transition:opacity .2s" onmouseover="this.style.opacity='.82'" onmouseout="this.style.opacity='1'">Voir l'offre ↗</button>
-        </a>
-      </div>
-    </div>`}).join('');
+  // ── Build & inject HTML ────────────────────────────
+  document.getElementById('detailContent').innerHTML =
+    '<div class="idealo-detail">' +
 
-  const savingsBanner = totalSavings > 0
-    ? `<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:.75rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.6rem;font-size:.83rem;">
-        <span style="font-size:1.1rem">💰</span>
-        <span>En choisissant le <strong style="color:#22c55e">meilleur prix</strong>, vous économisez <strong style="color:#22c55e">${totalSavings.toLocaleString('fr-FR')} €</strong> par rapport à l'offre la plus chère.</span>
-       </div>`
-    : '';
+      // ── Top 3-col grid ──
+      '<div class="idealo-top">' +
 
-  document.getElementById('detailContent').innerHTML=`
-    <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:2rem">
-      <!-- Image -->
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:flex;align-items:center;justify-content:center;min-width:220px;width:220px;height:220px;flex-shrink:0">
-        ${p.img
-          ? '<img src="'+p.img+'" alt="'+p.name+'" style="max-width:180px;max-height:180px;object-fit:contain" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'block\'"><div style="display:none;font-size:4rem">📦</div>'
-          : '<div style="font-size:4rem">📦</div>'
-        }
-      </div>
+        // Image
+        '<div class="idealo-img-box">' +
+          (savingsPct > 0 ? '<div class="idealo-discount-badge">−' + savingsPct + '%</div>' : '') +
+          (p.img
+            ? '<img src="' + p.img + '" alt="' + p.name.replace(/"/g,'&quot;') + '" style="max-width:100%;max-height:180px;object-fit:contain" onerror="this.style.display=\'none\'">'
+            : '<div style="font-size:4rem">📦</div>'
+          ) +
+        '</div>' +
 
-      <!-- Infos produit -->
-      <div style="flex:1;min-width:280px">
-        <div style="font-size:.75rem;font-weight:700;color:var(--coral);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.35rem">${p.brand || p.merchantName || ''}</div>
-        <h1 style="font-family:Outfit,sans-serif;font-size:1.35rem;font-weight:800;line-height:1.3;margin-bottom:.9rem;color:var(--text)">${p.name}</h1>
-        ${p.ean ? '<div style="font-size:.72rem;color:var(--dim);margin-bottom:.6rem;">EAN : <code style="font-family:monospace;background:var(--bg3);padding:.1rem .4rem;border-radius:4px;">'+p.ean+'</code></div>' : ''}
-        <div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.25rem">
-          <span style="font-size:.82rem;color:var(--sub)">à partir de</span>
-          <span style="font-size:2rem;font-weight:900;font-family:Outfit,sans-serif;color:var(--coral)">${p.bestPrice.toLocaleString('fr-FR')} €</span>
-        </div>
-        <div style="font-size:.78rem;color:var(--sub);margin-bottom:1.1rem">chez <strong style="color:var(--text)">${offers[0]&&!offers[0].isPriceUnknown?offers[0].merchant:(p.merchantName||'')}</strong> · Livraison gratuite</div>
-        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
-          <button onclick="toggleFav('${p.id}');this.innerHTML=favorites.some(f=>f.id==='${p.id}')?'❤️ Sauvegardé':'🤍 Sauvegarder'" style="padding:.5rem 1.1rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-weight:600;font-size:.82rem;color:var(--text);cursor:pointer">
-            ${favorites.some(f=>f.id===p.id)?'❤️ Sauvegardé':'🤍 Sauvegarder'}
-          </button>
-        </div>
-      </div>
-    </div>
+        // Product info
+        '<div class="idealo-info">' +
+          (p.brand ? '<div class="idealo-brand">' + p.brand + '</div>' : '') +
+          '<h1 class="idealo-title">' + p.name + '</h1>' +
+          (p.desc ? '<p class="idealo-desc">' + p.desc + '</p>' : '') +
+          (p.ean ? '<div style="font-size:.7rem;color:var(--dim);margin-bottom:.6rem">EAN <code style="background:var(--bg3);padding:.1rem .35rem;border-radius:4px;font-family:monospace">' + p.ean + '</code></div>' : '') +
+          '<div class="idealo-price-block">' +
+            '<div class="idealo-from-lbl">à partir de</div>' +
+            '<div class="idealo-big-price">' + bestPrice.toLocaleString('fr-FR') + ' €</div>' +
+            '<div class="idealo-price-at">chez <strong>' + (known[0] ? known[0].merchant : 'nos partenaires') + '</strong> · Livraison gratuite</div>' +
+          '</div>' +
+          (savings > 0 ? '<div class="idealo-savings-pill">💰 Vous économisez <strong>' + savings.toLocaleString('fr-FR') + ' € (−' + savingsPct + '%)</strong></div>' : '') +
+          '<button class="idealo-fav-btn" onclick="toggleFav(\'' + p.id.replace(/'/g,"\\'") + '\');this.innerHTML=favorites.some(function(f){return f.id===\'' + p.id.replace(/'/g,"\\'") + '\';})?\'❤️ Sauvegardé\':\'🤍 Sauvegarder\'">' +
+            (isFav ? '❤️ Sauvegardé' : '🤍 Sauvegarder') +
+          '</button>' +
+        '</div>' +
 
-    <!-- Offres -->
-    <div style="margin-bottom:2rem">
-      <div style="font-size:.95rem;font-weight:700;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem">
-        🏪 Comparer les offres
-        <span style="font-size:.73rem;font-weight:500;color:var(--sub)">${offers.length} vendeur${offers.length>1?'s':''}</span>
-        ${knownOffers.length > 1 ? '<span style="margin-left:auto;font-size:.72rem;font-weight:600;color:#22c55e;background:rgba(34,197,94,.1);padding:.15rem .5rem;border-radius:100px;">'+knownOffers.length+' prix comparés</span>' : ''}
-      </div>
-      ${savingsBanner}
-      ${offersHTML}
-    </div>`;
+        // Chart
+        '<div class="idealo-chart-col">' +
+          '<div class="idealo-chart-head">' +
+            '<span>Évolution du prix</span>' +
+            '<div class="chart-tabs">' +
+              '<button class="chart-tab active" onclick="switchChart(this,30,\'' + p.id + '\')">1m.</button>' +
+              '<button class="chart-tab" onclick="switchChart(this,90,\'' + p.id + '\')">3m.</button>' +
+              '<button class="chart-tab" onclick="switchChart(this,365,\'' + p.id + '\')">1a.</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="idealo-chart-body"><canvas id="priceChart"></canvas></div>' +
+        '</div>' +
 
+      '</div>' + // end idealo-top
+
+      // ── Comparison table ──
+      '<div class="compare-section">' +
+        '<div class="compare-section-head">' +
+          '<span class="compare-section-title">🏪 Comparer les prix</span>' +
+          '<span class="compare-count-badge">' + known.length + ' offre' + (known.length > 1 ? 's' : '') + '</span>' +
+          (savings > 0 ? '<span style="margin-left:auto;font-size:.75rem;font-weight:600;color:#16a34a">Jusqu\'à −' + savings.toLocaleString('fr-FR') + ' € d\'économie</span>' : '') +
+        '</div>' +
+        '<div class="compare-col-heads">' +
+          '<div style="flex:2.2">Offre</div>' +
+          '<div style="flex:1.1;text-align:right">Prix &amp; frais</div>' +
+          '<div style="flex:.9;text-align:center">Paiement</div>' +
+          '<div style="flex:1">Livraison</div>' +
+          '<div style="flex:1.4">Marchand</div>' +
+          '<div style="flex:.8"></div>' +
+        '</div>' +
+        rowsHTML +
+      '</div>' + // end compare-section
+
+    '</div>'; // end idealo-detail
+
+  // Render chart after DOM is updated
+  setTimeout(function() {
+    const hist = buildPriceHistory(p.basePrice, 30);
+    renderChart(hist);
+  }, 50);
 }
 
 function renderChart(hist){
