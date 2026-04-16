@@ -317,7 +317,7 @@ async function syncAffilae() {
       price: p.price ? p.price/100 : null, currency: 'EUR',
       url: p.url||null, tracking_id: p.trackingId||null,
       image_url: p.images&&p.images[0] ? p.images[0].url : null,
-      brand: p.brand||null, ean: null,
+      brand: p.brand||null, ean: extractEAN(p.gtin || p.ean || p.barcode || null),
       category, lang: p.lang||'fr',
       status: 'enabled', updated_at: new Date().toISOString()
     };
@@ -594,10 +594,10 @@ function parseRakutenXML(xml) {
     const title = cleanTitle(get('headline'));
     const url   = get('url');
     const price = parseFloat(getDeep('advertprice','amount')||'0');
-    // Image : extrait l'URL réelle depuis le redirect Effinity
     const imgRedirect = getDeep('image','url');
     const imgMatch = imgRedirect.match(/url=([^&]+)/);
     const image_url = imgMatch ? decodeURIComponent(imgMatch[1]) : '';
+    const ean = extractEAN(get('gtin') || get('ean') || get('isbn') || get('barcode') || '');
 
     if (!title || !url) continue;
     products.push({
@@ -606,6 +606,7 @@ function parseRakutenXML(xml) {
       price,
       url,
       image_url,
+      ean,
       category:    get('category'),
       brand:       get('caption'),
       product_id:  get('productid'),
@@ -651,6 +652,8 @@ async function syncRakuten() {
         url:         p.url,
         tracking_id: null,
         image_url:   p.image_url || null,
+        brand:       p.brand || null,
+        ean:         p.ean || null,
         category:    search.cat,
         lang:        'fr',
         status:      'enabled',

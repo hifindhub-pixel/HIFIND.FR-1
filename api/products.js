@@ -35,6 +35,25 @@ function makeTrackingUrl(product) {
   return product.url;
 }
 
+// For a list of rows, pull in all EAN siblings from DB so every
+// product with an EAN shows all available merchant offers.
+async function enrichWithEANSiblings(client, rows) {
+  const eans = [...new Set(rows.map(r => r.ean).filter(e => e && e.length >= 8))];
+  if (!eans.length) return rows;
+  const placeholders = eans.map((_, i) => `$${i + 1}`).join(',');
+  const r = await client.query(`
+    SELECT p.*, pr.title as program_title FROM products p
+    LEFT JOIN programs pr ON p.program_id = pr.id
+    WHERE p.ean = ANY(ARRAY[${placeholders}]) AND p.status = 'enabled'
+      ${EXCL_SQL}
+    ORDER BY p.price ASC NULLS LAST
+  `, eans);
+  // Merge siblings into rows (deduplicate by id)
+  const existingIds = new Set(rows.map(r => r.id));
+  const siblings = r.rows.map(formatRow).filter(p => !existingIds.has(p.id));
+  return [...rows, ...siblings];
+}
+
 function groupByEAN(products) {
   const eanMap = {};
   const noEAN = [];
@@ -81,7 +100,8 @@ export default async function handler(req, res) {
           ${EXCL_SQL}
         ORDER BY p.updated_at DESC LIMIT 500
       `, [term]);
-      rows = groupByEAN(r.rows.map(formatRow)).slice(0, limitN);
+      const enriched = await enrichWithEANSiblings(client, r.rows.map(formatRow));
+      rows = groupByEAN(enriched).slice(0, limitN);
 
     } else if (action === 'product' && id) {
       const r = await client.query(`
@@ -114,7 +134,8 @@ export default async function handler(req, res) {
           ${EXCL_SQL}
         ORDER BY p.updated_at DESC LIMIT 500
       `, [cat]);
-      rows = groupByEAN(r.rows.map(formatRow)).slice(0, limitN);
+      const enriched = await enrichWithEANSiblings(client, r.rows.map(formatRow));
+      rows = groupByEAN(enriched).slice(0, limitN);
 
     } else if (action === 'programs') {
       const r = await client.query('SELECT * FROM programs ORDER BY title');
