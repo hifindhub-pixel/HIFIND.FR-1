@@ -275,39 +275,48 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
 .results-col{flex:1;min-width:0;}
 
 /* RESULTS */
-.results-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;}
+.results-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;padding:.65rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:12px;}
 .results-count{font-size:.85rem;color:var(--sub);}
 .results-count strong{color:var(--text);}
-.sort-select{padding:.4rem .7rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.78rem;outline:none;}
+.sort-select{padding:.4rem .7rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.78rem;outline:none;}
+.sort-select:focus{border-color:var(--coral);}
+/* Active category banner */
+.active-cat-bar{display:flex;align-items:center;gap:.55rem;margin-bottom:.75rem;flex-wrap:wrap;}
+.active-cat-pill{display:inline-flex;align-items:center;gap:.35rem;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.3);color:var(--coral);font-size:.78rem;font-weight:600;padding:.28rem .75rem;border-radius:100px;}
+.active-cat-pill button{background:none;border:none;color:var(--coral);font-size:.85rem;cursor:pointer;line-height:1;padding:0 0 0 .2rem;opacity:.7;}
+.active-cat-pill button:hover{opacity:1;}
 
 /* ══ PRODUCT CARD — IDEALO STYLE ══ */
-.pcard{background:var(--bg2);border:1px solid var(--border);border-radius:16px;margin-bottom:1rem;overflow:hidden;display:flex;flex-direction:row;min-height:180px;transition:border-color .2s,box-shadow .2s,transform .2s;}
-.pcard:hover{border-color:rgba(255,107,107,.35);box-shadow:var(--card-shadow);transform:translateY(-1px);}
-.pcard-img-col{width:200px;flex-shrink:0;background:#fff;display:flex;align-items:center;justify-content:center;padding:1rem;position:relative;border-right:1px solid var(--border);}
-.pcard-img-col img{width:165px;height:165px;object-fit:contain;}
-.pcard-fav{position:absolute;top:.5rem;right:.5rem;width:30px;height:30px;border-radius:50%;border:none;background:rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:.8rem;transition:all .2s;}
+.pcard{background:var(--bg2);border:1px solid var(--border);border-radius:16px;margin-bottom:.75rem;overflow:hidden;display:flex;flex-direction:row;min-height:168px;transition:border-color .2s,box-shadow .2s,transform .2s;cursor:pointer;}
+.pcard:hover{border-color:rgba(255,107,107,.4);box-shadow:0 6px 28px rgba(0,0,0,.32);transform:translateY(-1px);}
+.pcard-img-col{width:185px;flex-shrink:0;background:#fff;display:flex;align-items:center;justify-content:center;padding:.85rem;position:relative;border-right:1px solid var(--border);}
+.pcard-img-col img{width:145px;height:145px;object-fit:contain;}
+.pcard-fav{position:absolute;top:.5rem;right:.5rem;width:28px;height:28px;border-radius:50%;border:none;background:rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:.75rem;transition:all .2s;}
 .pcard-fav:hover{background:rgba(255,107,107,.2);}
-.pcard-fav.on{background:var(--coral);}
-.pcard-body{flex:1;padding:1.2rem 1.5rem;display:flex;flex-direction:column;gap:.55rem;min-width:0;}
-.pcard-merchant{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--coral);}
-.pcard-name{font-family:'Outfit',sans-serif;font-size:1.05rem;font-weight:700;line-height:1.35;color:var(--text);}
-.pcard-desc{font-size:.78rem;color:var(--sub);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.pcard-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:.7rem;border-top:1px solid var(--border);flex-wrap:wrap;gap:.5rem;}
-.pcard-price-block{}
-.pcard-price-from{font-size:.65rem;color:var(--dim);display:block;margin-bottom:.1rem;}
-.pcard-price{font-family:'Outfit',sans-serif;font-size:1.7rem;font-weight:900;color:var(--coral);line-height:1;}
-.pcard-delivery{font-size:.7rem;color:var(--green);margin-top:.2rem;}
-.pcard-actions{display:flex;gap:.5rem;align-items:center;}
-.pcard-btn-primary{padding:.6rem 1.5rem;background:var(--coral);color:#fff;border:none;border-radius:100px;font-size:.84rem;font-weight:700;transition:background .2s;white-space:nowrap;}
+.pcard-fav.on{background:var(--coral);color:#fff;}
+.pcard-body{flex:1;padding:1rem 1.2rem;display:flex;flex-direction:column;gap:.35rem;min-width:0;}
+.pcard-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);}
+.pcard-name{font-family:'Outfit',sans-serif;font-size:.98rem;font-weight:700;line-height:1.35;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.pcard-desc{font-size:.75rem;color:var(--sub);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.pcard-ean{font-size:.64rem;color:var(--dim);margin-top:auto;padding-top:.4rem;}
+/* Right price column */
+.pcard-price-col{width:205px;flex-shrink:0;display:flex;flex-direction:column;align-items:stretch;padding:.95rem 1.1rem;border-left:1px solid var(--border);background:rgba(255,255,255,.018);gap:.35rem;}
+[data-theme="light"] .pcard-price-col{background:rgba(0,0,0,.018);}
+.pcard-offers-chip{display:inline-flex;align-items:center;justify-content:center;background:rgba(34,197,94,.13);border:1px solid rgba(34,197,94,.3);color:#16a34a;font-size:.7rem;font-weight:700;padding:.22rem .65rem;border-radius:100px;align-self:flex-start;white-space:nowrap;}
+.pcard-offers-chip.one{background:var(--bg3);border-color:var(--border);color:var(--dim);}
+.pcard-price-from{font-size:.63rem;color:var(--dim);margin-top:.3rem;}
+.pcard-price{font-family:'Outfit',sans-serif;font-size:1.65rem;font-weight:900;color:var(--coral);line-height:1;}
+.pcard-price-savings{font-size:.65rem;color:#16a34a;font-weight:600;}
+.pcard-btn-primary{margin-top:auto;padding:.58rem 0;background:var(--coral);color:#fff;border:none;border-radius:10px;font-size:.81rem;font-weight:700;transition:background .2s;text-align:center;cursor:pointer;white-space:nowrap;width:100%;}
 .pcard-btn-primary:hover{background:var(--coral-h);}
-.pcard-btn-amazon{padding:.6rem .8rem;background:#FF9900;color:#fff;border:none;border-radius:100px;font-size:.84rem;font-weight:700;transition:background .2s;}
-.pcard-btn-amazon:hover{background:#e68a00;}
-.pcard-btn-fav{padding:.6rem .9rem;background:transparent;border:1.5px solid var(--border2);border-radius:100px;font-size:.84rem;color:var(--sub);transition:all .2s;white-space:nowrap;}
-.pcard-btn-fav:hover{border-color:var(--coral);color:var(--coral);}
-@media(max-width:640px){
+@media(max-width:768px){
   .pcard{flex-direction:column;}
-  .pcard-img-col{width:100%;height:180px;border-right:none;border-bottom:1px solid var(--border);}
-  .pcard-img-col img{width:140px;height:140px;}
+  .pcard-img-col{width:100%;height:160px;border-right:none;border-bottom:1px solid var(--border);}
+  .pcard-img-col img{width:130px;height:130px;}
+  .pcard-price-col{width:100%;border-left:none;border-top:1px solid var(--border);flex-direction:row;flex-wrap:wrap;gap:.5rem;align-items:center;padding:.75rem 1rem;}
+  .pcard-price-col .pcard-offers-chip{order:-1;}
+  .pcard-price{font-size:1.35rem;}
+  .pcard-btn-primary{width:auto;margin-top:0;padding:.5rem 1.2rem;}
 }
 
 /* ══ PRODUCT DETAIL PAGE ══ */
@@ -761,14 +770,16 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
     </aside>
 
     <div class="results-col">
+      <div class="active-cat-bar" id="activeCatBar" style="display:none"></div>
       <div class="results-top">
         <div class="results-count" id="resultsCount"><strong>0</strong> produits trouvés</div>
         <div style="display:flex;align-items:center;gap:.5rem;">
-          <span style="font-size:.78rem;color:var(--sub);">Trier :</span>
+          <span style="font-size:.78rem;color:var(--sub);">Trier par :</span>
           <select class="sort-select" id="sortSelect" onchange="sortResults()">
             <option value="relevance">Pertinence</option>
-            <option value="price_asc">Prix croissant</option>
-            <option value="price_desc">Prix décroissant</option>
+            <option value="price_asc">Prix croissant ↑</option>
+            <option value="price_desc">Prix décroissant ↓</option>
+            <option value="offers">Nombre d'offres</option>
           </select>
         </div>
       </div>
@@ -1276,6 +1287,19 @@ function sortResults(){
   const el=document.getElementById('resultsCount');
   var label = lastQuery && lastQuery !== activeCategory ? ' pour "<strong>'+lastQuery+'</strong>"' : '';
   if(el)el.innerHTML='<strong>'+currentResults.length+'</strong> produit'+(currentResults.length>1?'s':'')+' trouvé'+(currentResults.length>1?'s':'')+label;
+  // Active category pill
+  var bar=document.getElementById('activeCatBar');
+  if(bar){
+    if(activeCategory && _CAT_LABELS[activeCategory]){
+      bar.innerHTML='<div class="active-cat-pill">'+_CAT_LABELS[activeCategory]+' <button onclick="filterByCategory(\'\',null);document.getElementById(\'spInput\').value=\'\';document.querySelectorAll(\'.fcat\').forEach(function(b,i){b.classList.toggle(\'active\',i===0)});loadCategory(\'\')">✕</button></div>';
+      bar.style.display='flex';
+    } else if(lastQuery){
+      bar.innerHTML='<div class="active-cat-pill">🔍 "'+lastQuery+'" <button onclick="clearFilters();document.getElementById(\'spInput\').value=\'\';document.getElementById(\'spClear\').style.display=\'none\';">✕</button></div>';
+      bar.style.display='flex';
+    } else {
+      bar.innerHTML='';bar.style.display='none';
+    }
+  }
 }
 
 // ══ FILTRES ══
@@ -1404,44 +1428,39 @@ function pcardHTML(p) {
   // Image
   var imgHtml = p.img
     ? '<img src="'+p.img+'" alt="'+p.name.replace(/"/g,'&quot;')+'" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' +
-      '<div style="display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;font-size:2.2rem;color:var(--dim)">🏷️</div>'
-    : '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;font-size:2.2rem;color:var(--dim)">🏷️</div>';
+      '<div style="display:none;align-items:center;justify-content:center;width:100%;height:100%;font-size:2.5rem;color:var(--dim)">🏷️</div>'
+    : '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:2.5rem;color:var(--dim)">🏷️</div>';
 
-  // Label de haut de carte : vraie marque (Nike, Apple…) sinon catégorie — JAMAIS le programme affilié
+  // Label : vraie marque sinon catégorie — jamais nom de programme affilié
   var topLabel = p.brand ? p.brand : (_CAT_LABELS[p.cat] || '');
 
-  // Badge offres + savings
-  var offersChip = nOffers > 1
-    ? '<span style="display:inline-flex;align-items:center;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.28);color:#22c55e;font-size:.68rem;font-weight:700;padding:.2rem .6rem;border-radius:100px;">'+nOffers+' offres</span>'
-    : '<span style="display:inline-flex;align-items:center;background:var(--bg3);border:1px solid var(--border);color:var(--dim);font-size:.68rem;font-weight:600;padding:.2rem .6rem;border-radius:100px;">1 offre</span>';
-
-  var ctaLabel = nOffers > 1 ? 'Voir les '+nOffers+' offres ↗' : 'Voir l\'offre ↗';
+  // Chip offers
+  var chipClass = nOffers > 1 ? 'pcard-offers-chip' : 'pcard-offers-chip one';
+  var chipText  = nOffers > 1 ? '✓ ' + nOffers + ' offres' : '1 offre';
+  var ctaLabel  = nOffers > 1 ? 'Voir les ' + nOffers + ' offres ↗' : 'Voir l\'offre ↗';
 
   return (
-    '<div class="pcard fade-up" id="pc-'+p.id+'" style="cursor:pointer" onclick="openDetail(\''+safeId+'\')">' +
-      '<div class="pcard-img-col">' +
-        imgHtml +
-        '<button class="pcard-fav'+(isFav?' on':'')+'" onclick="event.stopPropagation();toggleFav(\''+safeId+'\')" title="Sauvegarder">'+(isFav?'❤️':'🤍')+'</button>' +
-      '</div>' +
-      '<div class="pcard-body">' +
-        // Ligne 1 : marque/catégorie (subtil, pas de marchand !)
-        (topLabel ? '<div style="font-size:.68rem;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem">'+topLabel+'</div>' : '') +
-        '<div class="pcard-name">'+p.name+'</div>' +
-        (p.desc ? '<div class="pcard-desc">'+p.desc+'</div>' : '') +
-        '<div class="pcard-bottom">' +
-          // Prix
-          '<div class="pcard-price-block">' +
-            '<span class="pcard-price-from">à partir de</span>' +
-            '<div class="pcard-price">'+p.bestPrice.toLocaleString('fr-FR')+' €</div>' +
-            (savings > 0 ? '<div style="font-size:.66rem;color:#22c55e;font-weight:600;margin-top:.15rem;">Jusqu\'à −'+savings.toLocaleString('fr-FR')+' €</div>' : '') +
-          '</div>' +
-          // CTA avec chip offres + bouton
-          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:.45rem;">' +
-            offersChip +
-            '<button class="pcard-btn-primary" onclick="event.stopPropagation();openDetail(\''+safeId+'\')">'+ctaLabel+'</button>' +
-          '</div>' +
-        '</div>' +
-      '</div>' +
+    '<div class="pcard fade-up" id="pc-'+p.id+'" onclick="openDetail(\''+safeId+'\')">'+
+      // Col 1 — Image
+      '<div class="pcard-img-col">'+
+        imgHtml+
+        '<button class="pcard-fav'+(isFav?' on':'')+'" onclick="event.stopPropagation();toggleFav(\''+safeId+'\')" title="Sauvegarder">'+(isFav?'❤️':'🤍')+'</button>'+
+      '</div>'+
+      // Col 2 — Product info
+      '<div class="pcard-body">'+
+        (topLabel?'<div class="pcard-label">'+topLabel+'</div>':'')+
+        '<div class="pcard-name">'+p.name+'</div>'+
+        (p.desc?'<div class="pcard-desc">'+p.desc+'</div>':'')+
+        (p.ean?'<div class="pcard-ean">EAN : '+p.ean+'</div>':'')+
+      '</div>'+
+      // Col 3 — Price panel (Idealo-style right column)
+      '<div class="pcard-price-col">'+
+        '<span class="'+chipClass+'">'+chipText+'</span>'+
+        '<div class="pcard-price-from">à partir de</div>'+
+        '<div class="pcard-price">'+p.bestPrice.toLocaleString('fr-FR')+' €</div>'+
+        (savings>0?'<div class="pcard-price-savings">Jusqu\'à −'+savings.toLocaleString('fr-FR')+' €</div>':'')+
+        '<button class="pcard-btn-primary" onclick="event.stopPropagation();openDetail(\''+safeId+'\')">'+ctaLabel+'</button>'+
+      '</div>'+
     '</div>'
   );
 }
