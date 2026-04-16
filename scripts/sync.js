@@ -5,6 +5,9 @@ const EFFINITY_FEEDS_JSON = process.env.EFFINITY_FEEDS;
 const AFFILAE_BASE        = 'https://rest.affilae.com';
 
 import pkg from 'pg';
+import zlib from 'zlib';
+import { promisify } from 'util';
+const gunzip = promisify(zlib.gunzip);
 const { Client } = pkg;
 
 let _neonClient = null;
@@ -776,72 +779,54 @@ async function syncAwin() {
   console.log('🎉 Awin done');
 }
 
-// ══ AWIN MERCHANTS — auto-découverte par merchant ID ══
-const AWIN_API_KEY      = process.env.AWIN_API_KEY;
+// ══ AWIN MERCHANTS — flux directs avec tracking affilié ══
 const AWIN_PUBLISHER_ID = '2855063';
 
+// Pour ajouter un marchand : fid = Feed ID trouvé dans AWIN > Toolbox > Product Feeds > My Feeds
+// URL de téléchargement fournie directement par l'interface AWIN
 const AWIN_MERCHANTS = [
-  { id: '105475', name: 'Perfumeria Comas', cat: 'beaute-bienetre', trackMid: '105475' },
-  { id: '12592',  name: 'Acer France',      cat: 'high-tech',       trackMid: '12592'  },
-  { id: '7928',   name: 'Pneus FR',         cat: 'auto-moto',       trackMid: '7928'   },
-  { id: '122426', name: 'IMOU FR',          cat: 'high-tech',       trackMid: '122426' },
-  { id: '123918', name: 'Planetfoot',       cat: 'sport-outdoor',   trackMid: '123918' },
-  { id: '114822', name: 'Atmosfera Sport',  cat: 'sport-outdoor',   trackMid: '114822' },
+  {
+    id: '105475', name: 'Perfumeria Comas', cat: 'beaute-bienetre',
+    feedUrl: 'https://productdata.awin.com/datafeed/download/apikey/9286caa1eff7176a0a48abae76b26893/language/fr/fid/97867/rid/0/hasEnhancedFeeds/0/columns/aw_deep_link,product_name,aw_product_id,merchant_product_id,merchant_image_url,description,merchant_category,search_price,merchant_name,merchant_id,category_name,aw_image_url,currency,store_price,delivery_cost,merchant_deep_link,language,last_updated,display_price,data_feed_id/format/csv/delimiter/%2C/compression/gzip/adultcontent/1/',
+  },
+  { id: '12592',  name: 'Acer France',     cat: 'high-tech',       feedUrl: null },
+  { id: '7928',   name: 'Pneus FR',        cat: 'auto-moto',       feedUrl: null },
+  { id: '122426', name: 'IMOU FR',         cat: 'high-tech',       feedUrl: null },
+  { id: '123918', name: 'Planetfoot',      cat: 'sport-outdoor',   feedUrl: null },
+  { id: '114822', name: 'Atmosfera Sport', cat: 'sport-outdoor',   feedUrl: null },
 ];
 
 function awinTrackUrl(awinmid, productUrl) {
   return `https://www.awin1.com/cread.php?awinmid=${awinmid}&awinaffid=${AWIN_PUBLISHER_ID}&ued=${encodeURIComponent(productUrl)}`;
 }
 
+async function downloadFeed(url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 90000);
+  const res = await fetch(url, { signal: controller.signal });
+  clearTimeout(timeout);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const buffer = Buffer.from(await res.arrayBuffer());
+  // Gzip detection: magic bytes 1f 8b
+  if (buffer[0] === 0x1f && buffer[1] === 0x8b) {
+    const decompressed = await gunzip(buffer);
+    return decompressed.toString('utf-8');
+  }
+  try { return new TextDecoder('utf-8', { fatal: true }).decode(buffer); }
+  catch(e) { return new TextDecoder('iso-8859-1').decode(buffer); }
+}
+
 async function syncAwinMerchants() {
   console.log('🔄 AWIN Merchants sync...');
-  if (!AWIN_API_KEY) { console.log('⚠️ AWIN_API_KEY manquant — skipped'); return; }
 
-  // 1. Récupère la liste des flux disponibles pour ce publisher
-  let feedList;
-  try {
-    const listRes = await fetch(
-      `https://productdata.awin.com/datafeed/list/apikey/${AWIN_API_KEY}/format/json/`
-    );
-    if (!listRes.ok) {
-      console.log('❌ AWIN feed list HTTP', listRes.status, await listRes.text());
-      return;
-    }
-    feedList = await listRes.json();
-    console.log(`  📋 ${feedList.length} flux disponibles au total`);
-  } catch(e) {
-    console.log('❌ AWIN feed list erreur:', e.message);
-    return;
-  }
-
-  // 2. Pour chaque marchand cible, trouve et télécharge son flux
   for (const merchant of AWIN_MERCHANTS) {
+    if (!merchant.feedUrl) {
+      console.log(`  ⏭️ ${merchant.name}: pas encore de flux configuré`);
+      continue;
+    }
     try {
-      // Cherche le flux correspondant au merchantId
-      const feed = feedList.find(f =>
-        String(f.merchantId) === merchant.id || String(f.advertiserCountryCode) === merchant.id
-      );
-
-      if (!feed) {
-        console.log(`  ⚠️ Aucun flux pour ${merchant.name} (id=${merchant.id}) — non approuvé ?`);
-        continue;
-      }
-
-      const feedId  = feed.feedId || feed.id;
-      const dlUrl   = `https://productdata.awin.com/datafeed/download/apikey/${AWIN_API_KEY}/language/fr/fid/${feedId}/format/csv/delimiter/%7C/`;
-      console.log(`  → ${merchant.name} (feedId=${feedId})`);
-
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 60000);
-      const res = await fetch(dlUrl, { signal: controller.signal });
-      clearTimeout(timeout);
-      if (!res.ok) { console.log(`  ❌ ${merchant.name} HTTP ${res.status}`); continue; }
-
-      const buffer = await res.arrayBuffer();
-      let text;
-      try { text = new TextDecoder('utf-8', { fatal: true }).decode(buffer); }
-      catch(e) { text = new TextDecoder('iso-8859-1').decode(buffer); }
-
+      console.log(`  → ${merchant.name}`);
+      const text = await downloadFeed(merchant.feedUrl);
       const lines = text.split('\n').filter(l => l.trim());
       if (lines.length < 2) { console.log(`  ⚠️ ${merchant.name}: flux vide`); continue; }
 
@@ -872,8 +857,7 @@ async function syncAwinMerchants() {
         if (seen.has(key)) continue;
         seen.add(key);
 
-        // Construit l'URL de tracking AWIN pour ce produit
-        const trackUrl = awinTrackUrl(merchant.trackMid, productUrl);
+        const trackUrl = awinTrackUrl(merchant.id, productUrl);
 
         products.push({ title, url: trackUrl, price, image_url, brand, ean, product_id: prodId, feed_cat: feedCat });
         if (products.length >= LIMIT) break;
