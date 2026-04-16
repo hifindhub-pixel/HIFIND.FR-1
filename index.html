@@ -1014,7 +1014,7 @@ async function fetchAffilaeProducts(query) {
   var raw;
   // 1. Cherche par titre dans Supabase
   if (key) {
-    raw = await affilaeCall('search', key, 50);
+    raw = await affilaeCall('search', key, 500);
   }
 
   // 2. Si résultats → filtre côté client pour plus de précision
@@ -1032,7 +1032,7 @@ async function fetchAffilaeProducts(query) {
   }
 
   // 3. Fallback : charge plus de produits et filtre strictement
-  var allRaw = await affilaeCall('list', '', 100);
+  var allRaw = await affilaeCall('list', '', 500);
   if (!allRaw || !allRaw.data) return null;
 
   var allFiltered = allRaw.data.filter(function(p) {
@@ -1240,8 +1240,8 @@ async function loadCategory(cat) {
 
   try {
     var apiUrl = cat 
-      ? '/api/products?action=category&cat='+encodeURIComponent(cat)+'&limit=60'
-      : '/api/products?action=list&limit=60';
+      ? '/api/products?action=category&cat='+encodeURIComponent(cat)+'&limit=500'
+      : '/api/products?action=list&limit=500';
     var res = await fetch(apiUrl);
     var data = await res.json();
     var items = data.data || [];

@@ -63,7 +63,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const { action='list', q='', limit='30', page='1', id='', cat='', ean='' } = req.query;
-  const limitN = Math.min(parseInt(limit)||30, 100);
+  const limitN = Math.min(parseInt(limit)||30, 500);
   const offset = (parseInt(page)-1) * limitN;
 
   const client = await getNeonClient();
@@ -79,7 +79,7 @@ export default async function handler(req, res) {
         WHERE p.status = 'enabled'
           AND (p.title ILIKE $1 OR p.description ILIKE $1)
           ${EXCL_SQL}
-        ORDER BY p.updated_at DESC LIMIT 200
+        ORDER BY p.updated_at DESC LIMIT 500
       `, [term]);
       rows = groupByEAN(r.rows.map(formatRow)).slice(0, limitN);
 
@@ -112,7 +112,7 @@ export default async function handler(req, res) {
         LEFT JOIN programs pr ON p.program_id = pr.id
         WHERE p.status = 'enabled' AND p.category = $1
           ${EXCL_SQL}
-        ORDER BY p.updated_at DESC LIMIT 200
+        ORDER BY p.updated_at DESC LIMIT 500
       `, [cat]);
       rows = groupByEAN(r.rows.map(formatRow)).slice(0, limitN);
 
@@ -126,7 +126,7 @@ export default async function handler(req, res) {
         LEFT JOIN programs pr ON p.program_id = pr.id
         WHERE p.status = 'enabled'
           ${EXCL_SQL}
-        ORDER BY p.updated_at DESC LIMIT 200 OFFSET $1
+        ORDER BY p.updated_at DESC LIMIT 500 OFFSET $1
       `, [offset]);
       rows = groupByEAN(r.rows.map(formatRow)).slice(0, limitN);
     }
