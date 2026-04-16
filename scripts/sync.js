@@ -19,27 +19,180 @@ async function getNeon() {
 const PAGE_SIZE           = 20;
 
 const CATEGORY_RULES = [
-  { cat: 'beaute-bienetre', keywords: ['beauté','soin','crème','sérum','shampoing','cosmétique','parfum','visage','corps','cheveux','peau','maquillage','hydrat','collagène','démêlant','nettoyant','pieds','pied'] },
-  { cat: 'sante-nutrition', keywords: ['santé','complément','vitamine','minéral','probiotique','magnésium','protéine','immunit','énergie','fatigue','sommeil','stress','minceur','détox','nutrition','aromathérapie','huile essentielle','gélule','capsule','spray','roll-on'] },
-  { cat: 'mode-vetements',  keywords: ['mode','vêtement','robe','pantalon','jean','chemise','veste','manteau','pull','t-shirt','chaussure','basket','sneaker','sac','bijou','montre','lingerie','fashion'] },
-  { cat: 'maison-jardin',   keywords: ['maison','jardin','déco','meuble','cuisine','ménager','aspirateur','plante','graine','potager','terrasse','outil','jardinage','arrosage','fleur'] },
-  { cat: 'alimentation-bio',keywords: ['alimentation','bio','nourriture','snack','boisson','thé','café','superaliment','céréale','vegan','sans gluten','organic','épicerie','miel'] },
-  { cat: 'cbd-chanvre',     keywords: ['cbd','chanvre','cannabis','hemp','cannabidiol','fleur cbd','huile cbd'] },
-  { cat: 'enfants-bebes',   keywords: ['enfant','bébé','baby','jouet','jeu','puériculture','poussette','couche','biberon','apprentissage','éveil'] },
-  { cat: 'sport-outdoor',   keywords: ['sport','fitness','musculation','yoga','running','vélo','natation','randonnée','camping','outdoor','gym','trail','ski','tennis','football'] },
-  { cat: 'high-tech',       keywords: ['tech','électronique','smartphone','téléphone','ordinateur','laptop','tablette','casque','écouteur','drone','smart','bluetooth','gaming','console'] },
-  { cat: 'animaux',         keywords: ['animal','animaux','chien','chat','oiseau','poisson','lapin','croquette','litière','collier','aquarium'] },
-  { cat: 'auto-moto',       keywords: ['auto','moto','voiture','véhicule','scooter','pièce auto','pneu','huile moteur','gps','tuning'] },
+  { cat: 'beaute-bienetre', keywords: [
+    'beauté','soin','crème','sérum','shampoing','cosmétique','parfum','eau de toilette','cologne',
+    'visage','corps','cheveux','peau','maquillage','hydrat','collagène','démêlant','nettoyant',
+    'pieds','pied','masque visage','fond de teint','rouge à lèvres','mascara','eyeliner','blush',
+    'anticernes','lotion','baume','huile corps','lisseur','sèche-cheveux','brosse chauffante',
+    'dissolvant','ongles','exfoliant','gommage','contour yeux','beurre de karité','tonique',
+    'micellar','bb cream','cc cream','make up','aftershave','rasage','épilation','manucure',
+    'auto-bronzant','solaire','spf','coiffure','couleur cheveux','coloration'
+  ]},
+  { cat: 'sante-nutrition', keywords: [
+    'santé','complément','vitamine','minéral','probiotique','magnésium','protéine','immunit',
+    'énergie','fatigue','sommeil','stress','minceur','détox','nutrition','aromathérapie',
+    'huile essentielle','gélule','capsule','spray','mélatonine','collagène marin',
+    'omega','zinc','fer','calcium','vitamine c','vitamine d','cure','ampoule','phytothérapie',
+    'homéopathie','antioxydant','curcuma','spiruline','chlorella','maca','ashwagandha',
+    'ginseng','chardon','boswellia','glucosamine','chondroïtine','coenzyme q10',
+    'parapharmacie','médecine douce','naturopathie','plantes médicinales','infusion santé'
+  ]},
+  { cat: 'mode-vetements', keywords: [
+    'mode','vêtement','robe','pantalon','jean','chemise','veste','manteau','pull','t-shirt',
+    'chaussure','basket','sneaker','sac','bijou','montre','lingerie','fashion','bague',
+    'collier','bracelet','boucle','bottine','sandale','escarpins','robe longue','combinaison',
+    'salopette','short','bermuda','jupe','legging','débardeur','body','ceinture','écharpe',
+    'bonnet','gants','chapeau','casquette','bob','sac à main','porte-monnaie','maroquinerie',
+    'valise','bagage','lunettes de soleil','vêtements homme','vêtements femme','prêt-à-porter',
+    'taille 38','taille 40','slim fit','col rond'
+  ]},
+  { cat: 'maison-jardin', keywords: [
+    'maison','jardin','déco','décoration','meuble','cuisine','ménager','aspirateur','plante','graine',
+    'potager','terrasse','outil','jardinage','arrosage','fleur','tapis','coussin','rideau','lampe',
+    'éclairage','canapé','table','chaise','armoire','buffet','étagère','bibliothèque','cadre photo',
+    'bougie','diffuseur','vase','balai','robot nettoyeur','robot tondeuse','sécateur','taille-haie',
+    'tondeuse','débroussailleuse','perceuse','visseuse','marteau','peinture mur','store','serrure',
+    'literie','matelas','oreiller','couette','drap','housse de couette','parure de lit',
+    'cafetière','grille-pain','four','micro-ondes','hotte','réfrigérateur','lave-vaisselle'
+  ]},
+  { cat: 'alimentation-bio', keywords: [
+    'alimentation','bio','nourriture','snack','boisson','thé','café','superaliment','céréale',
+    'vegan','sans gluten','organic','épicerie','miel','huile olive','vinaigre','sauce','pâtes',
+    'riz','lentille','pois chiche','quinoa','chocolat','biscuit','confiture','sirop','kombucha',
+    'kéfir','lait végétal','protéine végétale','tofu','granola','levure alimentaire','sucre de coco',
+    'sirop agave','clean eating','whole food','raw food','açaï','matcha','baies de goji'
+  ]},
+  { cat: 'cbd-chanvre', keywords: [
+    'cbd','chanvre','cannabis','hemp','cannabidiol','fleur cbd','huile cbd','résine cbd',
+    'wax cbd','cristaux cbd','vape cbd','e-liquide cbd','terpènes cbd','cannabinoïde'
+  ]},
+  { cat: 'enfants-bebes', keywords: [
+    'enfant','bébé','baby','jouet','jeu','puériculture','poussette','couche','biberon',
+    'apprentissage','éveil','peluche','jeux de société','puzzle','lego','playmobil',
+    'construction','circuit voiture jouet','poupée','marionnette','tricycle','draisienne',
+    'trottinette enfant','siège auto bébé','lit parapluie','baignoire bébé','chauffe-biberon',
+    'stérilisateur','moniteur bébé','baby phone','portique','tapis d\'éveil','hochet',
+    'tablette enfant','vêtement enfant','pyjama bébé','body bébé','gigoteuse'
+  ]},
+  { cat: 'sport-outdoor', keywords: [
+    'sport','fitness','musculation','yoga','running','vélo','natation','randonnée','camping',
+    'outdoor','gym','trail','ski','tennis','football','badminton','golf','surf','escalade',
+    'barre de traction','haltère','kettlebell','résistance','élastique','tapis roulant',
+    'vélo elliptique','vélo appartement','rameur','palmes','corde à sauter','sac de sport',
+    'gourde sport','thermos sport','chaussures de trail','chaussures running','legging sport',
+    'brassière de sport','veste softshell','tente camping','sac de couchage','sac à dos rando',
+    'matelas de sol','lampe frontale','snowboard','planche surf','raquette'
+  ]},
+  { cat: 'high-tech', keywords: [
+    'tech','électronique','smartphone','téléphone mobile','ordinateur','laptop','tablette','casque',
+    'écouteur','drone','bluetooth','gaming','console','câble usb','chargeur','batterie externe',
+    'hub usb','souris','clavier','webcam','microphone','enceinte bluetooth','écran pc','moniteur',
+    'projecteur','imprimante','scanner','disque dur','ssd','clé usb','routeur wifi','ampoule led',
+    'prise connectée','thermostat connecté','robot aspirateur','trottinette électrique',
+    'vélo électrique','montre connectée','bracelet connecté','appareil photo','réflex','objectif',
+    'jeux vidéo','xbox','playstation','ps5','nintendo switch','steam deck','vr','manette jeu'
+  ]},
+  { cat: 'animaux', keywords: [
+    'animal','animaux','chien','chat','oiseau','poisson','lapin','croquette','litière','collier',
+    'aquarium','terrarium','niche','cage','griffoir','arbre à chat','distributeur croquettes',
+    'fontaine chat','jouet chien','jouet chat','laisse','harnais','vêtement chien','antiparasitaire',
+    'puce animaux','vermifuge','shampoing chien','shampoing chat','nourriture chien','nourriture chat',
+    'nourriture lapin','granulés animaux','animalerie','reptile','furet','rongeur','cochon d\'inde'
+  ]},
+  { cat: 'auto-moto', keywords: [
+    'auto','moto','voiture','véhicule','scooter','pièce auto','pneu','huile moteur','gps auto',
+    'tuning','autoradio','dash cam','câble obd','alarme voiture','housse siège auto',
+    'tapis de sol voiture','nettoyant auto','polish','cire carrosserie','batterie voiture',
+    'chargeur batterie auto','gonfleur pneu','kit réparation crevaison','antivol moto','casque moto',
+    'blouson moto','gants moto','pompe à vélo','pédales vtt','dérailleur vélo','chaîne vélo',
+    'porte vélo','attelage','remorque'
+  ]},
 ];
 
+// Brand shortcuts — very high confidence
+const BRAND_CAT = {
+  'nike': 'sport-outdoor', 'adidas': 'sport-outdoor', 'under armour': 'sport-outdoor',
+  'reebok': 'sport-outdoor', 'puma': 'sport-outdoor', 'columbia': 'sport-outdoor',
+  'the north face': 'sport-outdoor', 'salomon': 'sport-outdoor', 'asics': 'sport-outdoor',
+  'apple': 'high-tech', 'samsung': 'high-tech', 'sony': 'high-tech', 'lg electronics': 'high-tech',
+  'bose': 'high-tech', 'jbl': 'high-tech', 'anker': 'high-tech', 'xiaomi': 'high-tech',
+  'huawei': 'high-tech', 'philips': 'high-tech', 'logitech': 'high-tech', 'razer': 'high-tech',
+  'corsair': 'high-tech', 'asus': 'high-tech', 'lenovo': 'high-tech', 'dell': 'high-tech',
+  'microsoft': 'high-tech', 'nintendo': 'high-tech', 'playstation': 'high-tech',
+  'loreal': 'beaute-bienetre', 'l\'oréal': 'beaute-bienetre', 'garnier': 'beaute-bienetre',
+  'vichy': 'beaute-bienetre', 'la roche-posay': 'beaute-bienetre', 'nivea': 'beaute-bienetre',
+  'neutrogena': 'beaute-bienetre', 'clarins': 'beaute-bienetre', 'yves rocher': 'beaute-bienetre',
+  'nars': 'beaute-bienetre', 'maybelline': 'beaute-bienetre', 'rimmel': 'beaute-bienetre',
+  'purina': 'animaux', 'royal canin': 'animaux', 'pedigree': 'animaux', 'whiskas': 'animaux',
+  'hill\'s': 'animaux', 'eukanuba': 'animaux', 'felix': 'animaux',
+  'lego': 'enfants-bebes', 'playmobil': 'enfants-bebes', 'hasbro': 'enfants-bebes',
+  'mattel': 'enfants-bebes', 'fisher-price': 'enfants-bebes', 'chicco': 'enfants-bebes',
+  'vertbaudet': 'enfants-bebes', 'oxybul': 'enfants-bebes',
+};
+
+// Program title shortcuts (Affilae/Effinity partner names)
+const PROGRAM_CAT = {
+  'vertbaudet':   'enfants-bebes',
+  'blancheporte': 'mode-vetements',
+  'norauto':      'auto-moto',
+  'lunii':        'enfants-bebes',
+  'valebio':      'sante-nutrition',
+  'naturalia':    'alimentation-bio',
+  'greenweez':    'alimentation-bio',
+  'zooplus':      'animaux',
+  'animalis':     'animaux',
+  'veepee':       'mode-vetements',
+  'showroomprivé':'mode-vetements',
+};
+
+// Feed category string → our category (used for Effinity/AWIN feed_cat field)
+function mapFeedCategory(feedCat) {
+  if (!feedCat) return null;
+  const fc = feedCat.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // strip accents
+  if (fc.match(/\bmode\b|vetement|chaussure|fashion|lingerie|sac a main|maroquinerie|pret.a.porter/)) return 'mode-vetements';
+  if (fc.match(/\bbeaute\b|cosmetique|maquillage|soin visage|soin corps|parfum|capillaire|coiffure/)) return 'beaute-bienetre';
+  if (fc.match(/\bsante\b|nutrition|complement|vitamine|pharmacie|parapharmacie/)) return 'sante-nutrition';
+  if (fc.match(/\bmaison\b|jardin|deco|meubles|electromenager|eclairage|bricolage|literie|cuisine equipee/)) return 'maison-jardin';
+  if (fc.match(/\benfant\b|bebe|jouet|jeux de societe|puericulture|creche/)) return 'enfants-bebes';
+  if (fc.match(/\bsport\b|fitness|outdoor|randonnee|camping|musculation|velo sport|loisir sportif/)) return 'sport-outdoor';
+  if (fc.match(/high.?tech|informatique|telephone|smartphone|\baudio\b|hifi|gaming|electronique|materiel informatique/)) return 'high-tech';
+  if (fc.match(/\banimal\b|animalerie|\bchien\b|\bchat\b|rongeur/)) return 'animaux';
+  if (fc.match(/\bauto\b|\bmoto\b|voiture|vehicule|pieces auto|accessoires auto/)) return 'auto-moto';
+  if (fc.match(/alimentation|epicerie|boisson|\bthe\b|\bcafe\b|\bbio\b|produit bio/)) return 'alimentation-bio';
+  if (fc.match(/cbd|chanvre|cannabis|hemp/)) return 'cbd-chanvre';
+  return null;
+}
+
 function detectCategory(product) {
-  const text = [product.title||'', product.description||'', (product.program&&product.program.title)||''].join(' ').toLowerCase();
+  const title = (product.title || '').toLowerCase();
+  const desc  = (product.description || '').toLowerCase();
+  const prog  = ((product.program && product.program.title) || '').toLowerCase();
+  const brand = (product.brand || '').toLowerCase();
+
+  // 1. Brand shortcut (very high confidence)
+  for (const [b, cat] of Object.entries(BRAND_CAT)) {
+    if (brand === b || brand.startsWith(b) || title.startsWith(b + ' ') || title.includes(' ' + b + ' ')) return cat;
+  }
+
+  // 2. Program name shortcut
+  for (const [p, cat] of Object.entries(PROGRAM_CAT)) {
+    if (prog.includes(p)) return cat;
+  }
+
+  // 3. Weighted keyword scoring: title 3×, program title 2×, description 1×
   let bestCat = null, bestScore = 0;
   for (const rule of CATEGORY_RULES) {
-    const score = rule.keywords.filter(kw => text.includes(kw)).length;
+    let score = 0;
+    for (const kw of rule.keywords) {
+      if (title.includes(kw))  score += 3;
+      else if (prog.includes(kw)) score += 2;
+      else if (desc.includes(kw)) score += 1;
+    }
     if (score > bestScore) { bestScore = score; bestCat = rule.cat; }
   }
-  return bestCat || 'autres';
+  // Require score ≥ 3 (at least one title match OR multiple weaker signals)
+  return (bestScore >= 3 && bestCat) ? bestCat : 'autres';
 }
 
 function fixEncoding(str) {
@@ -149,15 +302,23 @@ async function syncAffilae() {
   });
   await supabaseUpsert('programs', Object.values(programsMap));
 
-  const mapped = all.map(p => ({
-    id: p.id, affilae_id: p.id, program_id: p.program ? p.program.id : null,
-    title: p.title||'', description: p.description||null,
-    price: p.price ? p.price/100 : null, currency: 'EUR',
-    url: p.url||null, tracking_id: p.trackingId||null,
-    image_url: p.images&&p.images[0] ? p.images[0].url : null,
-    category: detectCategory(p), lang: p.lang||'fr',
-    status: 'enabled', updated_at: new Date().toISOString()
-  }));
+  const mapped = all.map(p => {
+    // Use program categories from Affilae API if available
+    const progCats = (p.program && p.program.categories) || [];
+    const feedCatStr = progCats.join(' ');
+    const category = mapFeedCategory(feedCatStr)
+      || detectCategory({ title: p.title||'', description: p.description||'', program: p.program, brand: p.brand||'' });
+    return {
+      id: p.id, affilae_id: p.id, program_id: p.program ? p.program.id : null,
+      title: p.title||'', description: p.description||null,
+      price: p.price ? p.price/100 : null, currency: 'EUR',
+      url: p.url||null, tracking_id: p.trackingId||null,
+      image_url: p.images&&p.images[0] ? p.images[0].url : null,
+      brand: p.brand||null, ean: null,
+      category, lang: p.lang||'fr',
+      status: 'enabled', updated_at: new Date().toISOString()
+    };
+  });
 
   const cats = {};
   mapped.forEach(p => { cats[p.category] = (cats[p.category]||0)+1; });
@@ -286,7 +447,7 @@ async function syncEffinity() {
         image_url: p.image_url||null,
         brand: p.brand||null,
         ean: p.ean || null,
-        category: feed.category || detectCategory({ title:p.title, description:p.description||'', program:{title:feed.name} }),
+        category: feed.category || mapFeedCategory(p.feed_cat) || detectCategory({ title:p.title, description:p.description||'', program:{title:feed.name}, brand:p.brand||'' }),
         lang: 'fr', status: 'enabled', updated_at: new Date().toISOString()
       }));
 
@@ -381,17 +542,41 @@ const RAKUTEN_COUNTER = '23254453';
 const RAKUTEN_BASE    = 'https://priceminister.effiliation.com/pm/api.html';
 
 const RAKUTEN_SEARCHES = [
-  { kw: 'robe',          cat: 'mode-vetements',   nav: 'Mode'        },
-  { kw: 'chaussures',    cat: 'mode-vetements',   nav: 'Mode'        },
-  { kw: 'vélo',          cat: 'sport-outdoor',    nav: 'Loisirs'     },
-  { kw: 'crème visage',  cat: 'beaute-bienetre',  nav: 'Soins-Beaute'},
-  { kw: 'aspirateur',    cat: 'maison-jardin',    nav: 'Maison'      },
-  { kw: 'smartphone',    cat: 'high-tech',        nav: 'Informatique'},
-  { kw: 'casque audio',  cat: 'high-tech',        nav: 'Hifi'        },
-  { kw: 'jouet enfant',  cat: 'enfants-bebes',    nav: 'Enfant'      },
-  { kw: 'cafetière',     cat: 'maison-jardin',    nav: 'Electromenager'},
-  { kw: 'pneu voiture',  cat: 'auto-moto',        nav: 'auto-moto'   },
-  { kw: 'croquettes',    cat: 'animaux',          nav: 'Animalerie'  },
+  // Mode
+  { kw: 'robe',              cat: 'mode-vetements',    nav: 'Mode'           },
+  { kw: 'chaussures femme',  cat: 'mode-vetements',    nav: 'Mode'           },
+  { kw: 'sac à main',        cat: 'mode-vetements',    nav: 'Mode'           },
+  { kw: 'manteau',           cat: 'mode-vetements',    nav: 'Mode'           },
+  // Beauté
+  { kw: 'crème visage',      cat: 'beaute-bienetre',   nav: 'Soins-Beaute'  },
+  { kw: 'parfum femme',      cat: 'beaute-bienetre',   nav: 'Soins-Beaute'  },
+  { kw: 'sérum visage',      cat: 'beaute-bienetre',   nav: 'Soins-Beaute'  },
+  // Santé
+  { kw: 'complément alimentaire', cat: 'sante-nutrition', nav: 'Sante'      },
+  { kw: 'vitamine',          cat: 'sante-nutrition',   nav: 'Sante'          },
+  // Maison
+  { kw: 'aspirateur',        cat: 'maison-jardin',     nav: 'Maison'         },
+  { kw: 'cafetière',         cat: 'maison-jardin',     nav: 'Electromenager' },
+  { kw: 'luminaire',         cat: 'maison-jardin',     nav: 'Maison'         },
+  // High-tech
+  { kw: 'smartphone',        cat: 'high-tech',         nav: 'Informatique'   },
+  { kw: 'casque audio',      cat: 'high-tech',         nav: 'Hifi'           },
+  { kw: 'ordinateur portable',cat: 'high-tech',        nav: 'Informatique'   },
+  { kw: 'tablette',          cat: 'high-tech',         nav: 'Informatique'   },
+  { kw: 'jeux vidéo',        cat: 'high-tech',         nav: 'Jeux-video'     },
+  // Sport
+  { kw: 'vélo',              cat: 'sport-outdoor',     nav: 'Loisirs'        },
+  { kw: 'tapis de course',   cat: 'sport-outdoor',     nav: 'Loisirs'        },
+  { kw: 'chaussures running', cat: 'sport-outdoor',    nav: 'Mode'           },
+  // Enfants
+  { kw: 'jouet enfant',      cat: 'enfants-bebes',     nav: 'Enfant'         },
+  { kw: 'lego',              cat: 'enfants-bebes',     nav: 'Enfant'         },
+  // Auto
+  { kw: 'pneu voiture',      cat: 'auto-moto',         nav: 'auto-moto'      },
+  { kw: 'autoradio',         cat: 'auto-moto',         nav: 'auto-moto'      },
+  // Animaux
+  { kw: 'croquettes chien',  cat: 'animaux',           nav: 'Animalerie'     },
+  { kw: 'litière chat',      cat: 'animaux',           nav: 'Animalerie'     },
 ];
 
 function parseRakutenXML(xml) {
@@ -575,7 +760,7 @@ async function syncAwin() {
         image_url:   p.image_url || null,
         brand:       p.brand || null,
         ean:         p.ean || null,
-        category:    feed.category || detectCategory({ title: p.title, description: '', program: { title: feed.name } }),
+        category:    feed.category || mapFeedCategory(p.feed_cat) || detectCategory({ title: p.title, description: '', program: { title: feed.name }, brand: p.brand || '' }),
         lang:        'fr',
         status:      'enabled',
         updated_at:  new Date().toISOString()
