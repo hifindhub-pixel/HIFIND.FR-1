@@ -10,43 +10,7 @@
 <meta property="og:image" content="https://hifind.fr/favicon.png">
 <meta property="og:title" content="HiFind — Comparateur de Prix">
 <meta property="og:description" content="Comparez les prix de milliers de produits sur tous les grands marchands français.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://hifind.fr/">
-<meta property="og:site_name" content="HiFind">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="HiFind — Comparateur de Prix">
-<meta name="twitter:description" content="Comparez les prix de milliers de produits sur tous les grands marchands français.">
 <meta name="description" content="HiFind.fr est un comparateur de prix en ligne. Comparez les offres de marchands partenaires pour trouver le meilleur prix.">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://hifind.fr/">
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "HiFind",
-  "url": "https://hifind.fr",
-  "description": "Comparateur de prix en ligne — Trouvez les meilleures offres parmi des milliers de marchands français.",
-  "inLanguage": "fr-FR",
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": {
-      "@type": "EntryPoint",
-      "urlTemplate": "https://hifind.fr/?q={search_term_string}"
-    },
-    "query-input": "required name=search_term_string"
-  }
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "HiFind",
-  "url": "https://hifind.fr",
-  "logo": "https://hifind.fr/favicon.png",
-  "sameAs": []
-}
-</script>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
@@ -165,7 +129,7 @@ nav{background:var(--nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid 
 .mode-tab.active,.mode-tab:hover{background:rgba(255,255,255,.25);color:#fff;border-color:rgba(255,255,255,.5);}
 [data-theme="light"] .mode-tab.active{background:rgba(168,85,247,.2);border-color:#a855f7;}
 .mode-grid{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;}
-.mode-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .2s;display:block;}
+.mode-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .2s;}
 [data-theme="light"] .mode-card{background:#fff;border-color:rgba(168,85,247,.15);}
 .mode-card:hover{transform:translateY(-3px);background:rgba(255,255,255,.12);box-shadow:0 8px 32px rgba(0,0,0,.3);}
 .mode-card-img{aspect-ratio:1;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;overflow:hidden;}
@@ -181,7 +145,7 @@ nav{background:var(--nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid 
 
 /* MINI PRODUCTS */
 .prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:1rem;}
-.prod-mini{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all .2s;cursor:pointer;display:block;}
+.prod-mini{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all .2s;cursor:pointer;}
 .prod-mini:hover{border-color:rgba(255,107,107,.35);transform:translateY(-2px);box-shadow:var(--card-shadow);}
 .prod-mini-img{aspect-ratio:1;background:#fff;display:flex;align-items:center;justify-content:center;font-size:3.5rem;position:relative;overflow:hidden;}
 .prod-mini-img img{width:100%;height:100%;object-fit:contain;padding:.75rem;}
@@ -273,60 +237,41 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
 .fpartner{display:flex;align-items:center;gap:.4rem;padding:.28rem 0;font-size:.78rem;cursor:pointer;}
 .fpartner input{accent-color:var(--coral);}
 .results-col{flex:1;min-width:0;}
-/* Dual range price slider */
-.dual-range{position:relative;height:36px;margin:.4rem 0;}
-.dual-range-track{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:4px;background:var(--bg3);border-radius:2px;}
-.dual-range-fill{position:absolute;top:50%;transform:translateY(-50%);height:4px;background:var(--coral);border-radius:2px;}
-.dual-range input[type=range]{position:absolute;width:100%;top:50%;transform:translateY(-50%);margin:0;padding:0;height:4px;background:transparent;outline:none;-webkit-appearance:none;appearance:none;pointer-events:none;}
-.dual-range input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--coral);border:2px solid var(--bg2);box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer;pointer-events:auto;}
-.dual-range input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--coral);border:2px solid var(--bg2);cursor:pointer;pointer-events:auto;border:none;}
-.price-minmax{display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem;}
-.price-minmax-badge{font-size:.76rem;font-weight:700;color:var(--text);background:var(--bg3);border:1px solid var(--border);padding:.2rem .55rem;border-radius:6px;min-width:52px;text-align:center;}
 
 /* RESULTS */
-.results-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;padding:.65rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:12px;}
+.results-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;}
 .results-count{font-size:.85rem;color:var(--sub);}
 .results-count strong{color:var(--text);}
-.sort-select{padding:.4rem .7rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.78rem;outline:none;}
-.sort-select:focus{border-color:var(--coral);}
-/* Active category banner */
-.active-cat-bar{display:flex;align-items:center;gap:.55rem;margin-bottom:.75rem;flex-wrap:wrap;}
-.active-cat-pill{display:inline-flex;align-items:center;gap:.35rem;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.3);color:var(--coral);font-size:.78rem;font-weight:600;padding:.28rem .75rem;border-radius:100px;}
-.active-cat-pill button{background:none;border:none;color:var(--coral);font-size:.85rem;cursor:pointer;line-height:1;padding:0 0 0 .2rem;opacity:.7;}
-.active-cat-pill button:hover{opacity:1;}
+.sort-select{padding:.4rem .7rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.78rem;outline:none;}
 
 /* ══ PRODUCT CARD — IDEALO STYLE ══ */
-.pcard{background:var(--bg2);border:1px solid var(--border);border-radius:16px;margin-bottom:.75rem;overflow:hidden;display:flex;flex-direction:row;min-height:168px;transition:border-color .2s,box-shadow .2s,transform .2s;cursor:pointer;position:relative;}
-.pcard:hover{border-color:rgba(255,107,107,.4);box-shadow:0 6px 28px rgba(0,0,0,.32);transform:translateY(-1px);}
-.pcard-overlay{position:absolute;inset:0;z-index:1;display:block;}
-.pcard-img-col{width:185px;flex-shrink:0;background:#fff;display:flex;align-items:center;justify-content:center;padding:.85rem;position:relative;border-right:1px solid var(--border);z-index:2;}
-.pcard-img-col img{width:145px;height:145px;object-fit:contain;}
-.pcard-fav{position:absolute;top:.5rem;right:.5rem;width:28px;height:28px;border-radius:50%;border:none;background:rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:.75rem;transition:all .2s;}
+.pcard{background:var(--bg2);border:1px solid var(--border);border-radius:16px;margin-bottom:1rem;overflow:hidden;display:flex;flex-direction:row;min-height:180px;transition:border-color .2s,box-shadow .2s,transform .2s;}
+.pcard:hover{border-color:rgba(255,107,107,.35);box-shadow:var(--card-shadow);transform:translateY(-1px);}
+.pcard-img-col{width:200px;flex-shrink:0;background:#fff;display:flex;align-items:center;justify-content:center;padding:1rem;position:relative;border-right:1px solid var(--border);}
+.pcard-img-col img{width:165px;height:165px;object-fit:contain;}
+.pcard-fav{position:absolute;top:.5rem;right:.5rem;width:30px;height:30px;border-radius:50%;border:none;background:rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:.8rem;transition:all .2s;}
 .pcard-fav:hover{background:rgba(255,107,107,.2);}
-.pcard-fav.on{background:var(--coral);color:#fff;}
-.pcard-body{flex:1;padding:1rem 1.2rem;display:flex;flex-direction:column;gap:.35rem;min-width:0;position:relative;z-index:2;}
-.pcard-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);}
-.pcard-name{font-family:'Outfit',sans-serif;font-size:.98rem;font-weight:700;line-height:1.35;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.pcard-desc{font-size:.75rem;color:var(--sub);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.pcard-ean{font-size:.64rem;color:var(--dim);margin-top:auto;padding-top:.4rem;}
-/* Right price column */
-.pcard-price-col{width:205px;flex-shrink:0;display:flex;flex-direction:column;align-items:stretch;padding:.95rem 1.1rem;border-left:1px solid var(--border);background:rgba(255,255,255,.018);gap:.35rem;position:relative;z-index:2;}
-[data-theme="light"] .pcard-price-col{background:rgba(0,0,0,.018);}
-.pcard-offers-chip{display:inline-flex;align-items:center;justify-content:center;background:rgba(34,197,94,.13);border:1px solid rgba(34,197,94,.3);color:#16a34a;font-size:.7rem;font-weight:700;padding:.22rem .65rem;border-radius:100px;align-self:flex-start;white-space:nowrap;}
-.pcard-offers-chip.one{background:var(--bg3);border-color:var(--border);color:var(--dim);}
-.pcard-price-from{font-size:.63rem;color:var(--dim);margin-top:.3rem;}
-.pcard-price{font-family:'Outfit',sans-serif;font-size:1.65rem;font-weight:900;color:var(--coral);line-height:1;}
-.pcard-price-savings{font-size:.65rem;color:#16a34a;font-weight:600;}
-.pcard-btn-primary{margin-top:auto;padding:.58rem 0;background:var(--coral);color:#fff;border:none;border-radius:10px;font-size:.81rem;font-weight:700;transition:background .2s;text-align:center;cursor:pointer;white-space:nowrap;width:100%;}
+.pcard-fav.on{background:var(--coral);}
+.pcard-body{flex:1;padding:1.2rem 1.5rem;display:flex;flex-direction:column;gap:.55rem;min-width:0;}
+.pcard-merchant{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--coral);}
+.pcard-name{font-family:'Outfit',sans-serif;font-size:1.05rem;font-weight:700;line-height:1.35;color:var(--text);}
+.pcard-desc{font-size:.78rem;color:var(--sub);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.pcard-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:.7rem;border-top:1px solid var(--border);flex-wrap:wrap;gap:.5rem;}
+.pcard-price-block{}
+.pcard-price-from{font-size:.65rem;color:var(--dim);display:block;margin-bottom:.1rem;}
+.pcard-price{font-family:'Outfit',sans-serif;font-size:1.7rem;font-weight:900;color:var(--coral);line-height:1;}
+.pcard-delivery{font-size:.7rem;color:var(--green);margin-top:.2rem;}
+.pcard-actions{display:flex;gap:.5rem;align-items:center;}
+.pcard-btn-primary{padding:.6rem 1.5rem;background:var(--coral);color:#fff;border:none;border-radius:100px;font-size:.84rem;font-weight:700;transition:background .2s;white-space:nowrap;}
 .pcard-btn-primary:hover{background:var(--coral-h);}
-@media(max-width:768px){
+.pcard-btn-amazon{padding:.6rem .8rem;background:#FF9900;color:#fff;border:none;border-radius:100px;font-size:.84rem;font-weight:700;transition:background .2s;}
+.pcard-btn-amazon:hover{background:#e68a00;}
+.pcard-btn-fav{padding:.6rem .9rem;background:transparent;border:1.5px solid var(--border2);border-radius:100px;font-size:.84rem;color:var(--sub);transition:all .2s;white-space:nowrap;}
+.pcard-btn-fav:hover{border-color:var(--coral);color:var(--coral);}
+@media(max-width:640px){
   .pcard{flex-direction:column;}
-  .pcard-img-col{width:100%;height:160px;border-right:none;border-bottom:1px solid var(--border);}
-  .pcard-img-col img{width:130px;height:130px;}
-  .pcard-price-col{width:100%;border-left:none;border-top:1px solid var(--border);flex-direction:row;flex-wrap:wrap;gap:.5rem;align-items:center;padding:.75rem 1rem;}
-  .pcard-price-col .pcard-offers-chip{order:-1;}
-  .pcard-price{font-size:1.35rem;}
-  .pcard-btn-primary{width:auto;margin-top:0;padding:.5rem 1.2rem;}
+  .pcard-img-col{width:100%;height:180px;border-right:none;border-bottom:1px solid var(--border);}
+  .pcard-img-col img{width:140px;height:140px;}
 }
 
 /* ══ PRODUCT DETAIL PAGE ══ */
@@ -373,76 +318,9 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
 .chart-stat-val.high{color:var(--coral);}
 .chart-stat-lbl{font-size:.68rem;color:var(--sub);margin-top:.1rem;}
 
-/* ══ IDEALO-STYLE DETAIL PAGE ══ */
-.idealo-detail{max-width:1180px;margin:0 auto;}
-.idealo-top{display:grid;grid-template-columns:220px 1fr 310px;gap:2rem;align-items:start;margin-bottom:2rem;}
-.idealo-img-box{position:relative;background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:1.5rem;display:flex;align-items:center;justify-content:center;min-height:200px;}
-.idealo-img-box img{max-width:100%;max-height:180px;object-fit:contain;}
-.idealo-discount-badge{position:absolute;top:10px;left:10px;background:#e53e3e;color:#fff;font-size:.75rem;font-weight:800;padding:.22rem .55rem;border-radius:6px;z-index:1;}
-.idealo-info{}
-.idealo-brand{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:.3rem;}
-.idealo-title{font-family:'Outfit',sans-serif;font-size:1.45rem;font-weight:800;line-height:1.3;margin-bottom:.65rem;color:var(--text);}
-.idealo-desc{font-size:.82rem;color:var(--sub);line-height:1.6;margin-bottom:.8rem;max-width:500px;}
-.idealo-stars{color:#f59e0b;font-size:1rem;margin-bottom:.8rem;letter-spacing:.05em;}
-.idealo-price-block{margin-bottom:.8rem;}
-.idealo-from-lbl{font-size:.78rem;color:var(--sub);margin-bottom:.1rem;}
-.idealo-big-price{font-family:'Outfit',sans-serif;font-size:2.2rem;font-weight:900;color:var(--coral);line-height:1;}
-.idealo-price-at{font-size:.8rem;color:var(--sub);margin-top:.2rem;}
-.idealo-savings-pill{display:inline-flex;align-items:center;gap:.4rem;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#16a34a;font-size:.82rem;padding:.35rem .8rem;border-radius:100px;margin-top:.5rem;}
-.idealo-fav-btn{margin-top:.8rem;padding:.45rem 1.1rem;background:var(--bg2);border:1.5px solid var(--border2);border-radius:8px;font-size:.82rem;font-weight:600;color:var(--sub);cursor:pointer;transition:all .2s;}
-.idealo-fav-btn:hover{border-color:var(--coral);color:var(--coral);}
-.idealo-chart-col{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:1.2rem;}
-.idealo-chart-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;gap:.5rem;flex-wrap:wrap;}
-.idealo-chart-head span{font-size:.82rem;font-weight:700;color:var(--text);}
-.idealo-chart-body{position:relative;height:130px;}
-
-/* Compare table */
-.compare-section{background:var(--bg2);border:1px solid var(--border);border-radius:18px;overflow:hidden;}
-.compare-section-head{display:flex;align-items:center;gap:.8rem;padding:1.1rem 1.4rem;border-bottom:1px solid var(--border);}
-.compare-section-title{font-family:'Outfit',sans-serif;font-size:1.05rem;font-weight:800;}
-.compare-count-badge{background:var(--bg3);border:1px solid var(--border);color:var(--sub);font-size:.72rem;font-weight:600;padding:.15rem .55rem;border-radius:100px;}
-.compare-col-heads{display:flex;align-items:center;gap:1rem;padding:.6rem 1.4rem;background:var(--bg3);border-bottom:1px solid var(--border);font-size:.72rem;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;}
-.offer-row{display:flex;align-items:center;gap:1rem;padding:1rem 1.4rem;border-bottom:1px solid var(--border);transition:background .15s;}
-.offer-row:last-child{border-bottom:none;}
-.offer-row:hover{background:var(--bg3);}
-.offer-row-best{background:rgba(255,107,107,.04);border-left:3px solid var(--coral);}
-.offer-row-best:hover{background:rgba(255,107,107,.08);}
-.offer-name-col{flex:2.2;min-width:0;}
-.offer-merchant-badge{display:inline-block;font-size:.68rem;font-weight:700;background:var(--bg3);border:1px solid var(--border);color:var(--sub);padding:.12rem .5rem;border-radius:6px;margin-bottom:.25rem;}
-.offer-title-text{font-size:.83rem;font-weight:600;color:var(--text);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px;}
-.best-price-badge{display:inline-block;margin-top:.2rem;font-size:.65rem;font-weight:700;background:rgba(255,107,107,.12);color:var(--coral);border:1px solid rgba(255,107,107,.25);padding:.12rem .45rem;border-radius:4px;}
-.savings-row-badge{display:inline-block;margin-top:.2rem;font-size:.65rem;font-weight:600;background:rgba(34,197,94,.1);color:#16a34a;padding:.1rem .4rem;border-radius:4px;}
-.offer-price-col{flex:1.1;text-align:right;flex-shrink:0;}
-.offer-price-val{font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:900;color:var(--text);line-height:1;}
-.offer-price-val.best{color:var(--coral);}
-.offer-shipping-lbl{font-size:.68rem;color:var(--sub);margin-top:.15rem;}
-.offer-price-unknown{font-size:.8rem;color:var(--sub);}
-.offer-pay-col{flex:.9;text-align:center;flex-shrink:0;}
-.pay-pill{display:inline-block;font-size:.58rem;font-weight:800;letter-spacing:.03em;padding:.15rem .38rem;border-radius:4px;margin:.1rem .05rem;}
-.pay-visa{background:#1a1f71;color:#fff;}
-.pay-mc{background:#eb001b;color:#fff;}
-.pay-pp{background:#003087;color:#fff;}
-.offer-delivery-col{flex:1;flex-shrink:0;}
-.delivery-dot{color:#22c55e;font-size:.6rem;margin-right:.3rem;}
-.delivery-lbl{font-size:.77rem;color:var(--text);font-weight:500;}
-.offer-merchant-col{flex:1.4;flex-shrink:0;}
-.merchant-display-name{font-size:.82rem;font-weight:700;color:var(--text);}
-.merchant-stars-row{font-size:.7rem;color:#f59e0b;margin-top:.15rem;}
-.offer-cta-col{flex-shrink:0;}
-.see-offer-btn{padding:.5rem 1.1rem;background:#16a34a;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:.8rem;cursor:pointer;white-space:nowrap;transition:opacity .2s;}
-.see-offer-btn:hover{opacity:.85;}
-.offer-amazon-row{background:rgba(255,153,0,.04);}
-.offer-amazon-row .offer-price-val{color:#cc6600;}
-
-/* Responsive detail */
-@media(max-width:900px){
-  .idealo-top{grid-template-columns:1fr 1fr;}.idealo-chart-col{grid-column:1/-1;}
-}
-@media(max-width:600px){
-  .idealo-top{grid-template-columns:1fr;}.compare-col-heads{display:none;}
-  .offer-row{flex-wrap:wrap;}.offer-pay-col,.offer-delivery-col{display:none;}
-  .offer-name-col{flex:1 1 100%;}.offer-merchant-col{flex:1;}
-}
+/* ALL OFFERS TABLE */
+.all-offers-section{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:1.5rem;}
+.all-offers-head{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:1rem;}
 
 /* ABOUT PAGE */
 .about-hero{background:var(--hero-bg);padding:5rem 1.5rem;text-align:center;position:relative;overflow:hidden;}
@@ -757,24 +635,18 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
 
       <!-- PRIX -->
       <div class="filter-section">
-        <div class="filter-label">Fourchette de prix</div>
-        <div class="price-minmax">
-          <span class="price-minmax-badge" id="priceMinLabel">0 €</span>
-          <span style="font-size:.65rem;color:var(--dim)">—</span>
-          <span class="price-minmax-badge" id="priceMaxLabel">1 000 €</span>
-        </div>
-        <div class="dual-range" id="dualRange">
-          <div class="dual-range-track"></div>
-          <div class="dual-range-fill" id="dualRangeFill"></div>
-          <input type="range" id="priceSliderMin" min="0" max="1000" value="0" oninput="updateDualRange()">
-          <input type="range" id="priceSliderMax" min="0" max="1000" value="1000" oninput="updateDualRange()">
+        <div class="filter-label">Prix maximum</div>
+        <input type="range" class="price-slider" id="priceSliderMax" min="0" max="1000" value="1000" oninput="updatePriceSlider()">
+        <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--dim);margin-bottom:.5rem">
+          <span>0 €</span><span id="priceSliderVal">1000 €</span>
         </div>
         <div class="price-ranges" id="priceRanges">
-          <button class="price-range-btn" onclick="setPriceRange(0,20)">– de 20 €</button>
-          <button class="price-range-btn" onclick="setPriceRange(20,50)">20 – 50 €</button>
-          <button class="price-range-btn" onclick="setPriceRange(50,100)">50 – 100 €</button>
-          <button class="price-range-btn" onclick="setPriceRange(100,99999)">+ de 100 €</button>
+          <button class="price-range-btn" onclick="setPriceRange(0,20)">Moins de 20 €</button>
+          <button class="price-range-btn" onclick="setPriceRange(20,50)">20 € – 50 €</button>
+          <button class="price-range-btn" onclick="setPriceRange(50,100)">50 € – 100 €</button>
+          <button class="price-range-btn" onclick="setPriceRange(100,99999)">Plus de 100 €</button>
         </div>
+        <button class="filter-apply" onclick="applyFilters()">Appliquer</button>
       </div>
 
       <!-- LIVRAISON -->
@@ -786,16 +658,14 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
     </aside>
 
     <div class="results-col">
-      <div class="active-cat-bar" id="activeCatBar" style="display:none"></div>
       <div class="results-top">
         <div class="results-count" id="resultsCount"><strong>0</strong> produits trouvés</div>
         <div style="display:flex;align-items:center;gap:.5rem;">
-          <span style="font-size:.78rem;color:var(--sub);">Trier par :</span>
+          <span style="font-size:.78rem;color:var(--sub);">Trier :</span>
           <select class="sort-select" id="sortSelect" onchange="sortResults()">
             <option value="relevance">Pertinence</option>
-            <option value="price_asc">Prix croissant ↑</option>
-            <option value="price_desc">Prix décroissant ↓</option>
-            <option value="offers">Nombre d'offres</option>
+            <option value="price_asc">Prix croissant</option>
+            <option value="price_desc">Prix décroissant</option>
           </select>
         </div>
       </div>
@@ -1030,7 +900,7 @@ async function fetchAffilaeProducts(query) {
   var raw;
   // 1. Cherche par titre dans Supabase
   if (key) {
-    raw = await affilaeCall('search', key, 500);
+    raw = await affilaeCall('search', key, 50);
   }
 
   // 2. Si résultats → filtre côté client pour plus de précision
@@ -1048,7 +918,7 @@ async function fetchAffilaeProducts(query) {
   }
 
   // 3. Fallback : charge plus de produits et filtre strictement
-  var allRaw = await affilaeCall('list', '', 500);
+  var allRaw = await affilaeCall('list', '', 100);
   if (!allRaw || !allRaw.data) return null;
 
   var allFiltered = allRaw.data.filter(function(p) {
@@ -1138,41 +1008,27 @@ function mapAffilaeProduct(item) {
   var trackId    = item.tracking_id || item.trackingId || '';
   var progId     = item.program_id || (item.program && item.program.id) || '';
   var trackingUrl = buildAffilaeLink({ program_id: progId, tracking_id: trackId, url: item.url });
-
-  // ══ EAN multi-offres : groupByEAN depuis l'API renvoie item.offers=[...] ══
-  var mappedOffers;
-  if (item.offers && item.offers.length > 0) {
-    mappedOffers = item.offers.map(function(o) {
-      var oTitle = (o.programs && o.programs.title) || o.program_title || 'Partenaire';
-      var oPrice = parseFloat(o.price) || 0;
-      var oUrl   = o.tracking_url || buildAffilaeLink({ program_id: o.program_id, url: o.url });
-      return { merchant: oTitle, emoji: '🏷️', isAmazon: false,
-               price: oPrice, shipping: 0, total: oPrice, stock: 'En stock', url: oUrl };
-    }).sort(function(a, b) { return a.price - b.price; });
-  } else {
-    mappedOffers = [{ merchant: programTitle, emoji: '🏷️', isAmazon: false,
-                      price: price, shipping: 0, total: price, stock: 'En stock', url: trackingUrl }];
-  }
-
-  var bestP = mappedOffers[0] ? mappedOffers[0].price : price;
+  console.log('mapAffilaeProduct:', item.title, '| progId:', progId, '| trackId:', trackId, '| url:', trackingUrl);
 
   return {
-    id:           item.id || ('af_' + Math.random().toString(36).slice(2)),
-    name:         name,
-    brand:        item.brand || null,        // Vraie marque produit (Nike, Apple…) — null si inconnue
-    merchantName: programTitle,              // Nom programme affilié — affiché UNIQUEMENT dans la fiche
-    cat:          item.category || 'autres',
-    img:          img,
-    desc:         shortDesc,
-    basePrice:    bestP,
-    ean:          item.ean || null,
-    rating:       4.5, reviews: 0,
-    offers:       mappedOffers,
-    get bestPrice()    { return this.offers[0] ? this.offers[0].price : 0; },
-    get bestMerchant() { return this.offers[0] ? this.offers[0].merchant : ''; },
+    id:        item.id || ('af_' + Math.random().toString(36).slice(2)),
+    name:      name,
+    brand:     programTitle,
+    cat:       item.category || 'Général',
+    img:       img,
+    desc:      shortDesc,
+    basePrice: price,
+    rating:    4.5, reviews: 0,
+    offers: [{
+      merchant: programTitle, emoji: '🏷️', isAmazon: false,
+      price: price, shipping: 0, total: price, stock: 'En stock',
+      url: trackingUrl
+    }],
+    get bestPrice()    { return this.offers[0].price; },
+    get bestMerchant() { return this.offers[0].merchant; },
     get numOffers()    { return this.offers.length; },
-    get minPrice()     { return this.offers[0] ? this.offers[0].price : 0; },
-    get maxPrice()     { return this.offers[this.offers.length - 1] ? this.offers[this.offers.length - 1].price : 0; }
+    get minPrice()     { return this.offers[0].price; },
+    get maxPrice()     { return this.offers[0].price; }
   };
 }
 
@@ -1256,8 +1112,8 @@ async function loadCategory(cat) {
 
   try {
     var apiUrl = cat 
-      ? '/api/products?action=category&cat='+encodeURIComponent(cat)+'&limit=500'
-      : '/api/products?action=list&limit=500';
+      ? '/api/products?action=category&cat='+encodeURIComponent(cat)+'&limit=60'
+      : '/api/products?action=list&limit=60';
     var res = await fetch(apiUrl);
     var data = await res.json();
     var items = data.data || [];
@@ -1303,19 +1159,6 @@ function sortResults(){
   const el=document.getElementById('resultsCount');
   var label = lastQuery && lastQuery !== activeCategory ? ' pour "<strong>'+lastQuery+'</strong>"' : '';
   if(el)el.innerHTML='<strong>'+currentResults.length+'</strong> produit'+(currentResults.length>1?'s':'')+' trouvé'+(currentResults.length>1?'s':'')+label;
-  // Active category pill
-  var bar=document.getElementById('activeCatBar');
-  if(bar){
-    if(activeCategory && _CAT_LABELS[activeCategory]){
-      bar.innerHTML='<div class="active-cat-pill">'+_CAT_LABELS[activeCategory]+' <button onclick="filterByCategory(\'\',null);document.getElementById(\'spInput\').value=\'\';document.querySelectorAll(\'.fcat\').forEach(function(b,i){b.classList.toggle(\'active\',i===0)});loadCategory(\'\')">✕</button></div>';
-      bar.style.display='flex';
-    } else if(lastQuery){
-      bar.innerHTML='<div class="active-cat-pill">🔍 "'+lastQuery+'" <button onclick="clearFilters();document.getElementById(\'spInput\').value=\'\';document.getElementById(\'spClear\').style.display=\'none\';">✕</button></div>';
-      bar.style.display='flex';
-    } else {
-      bar.innerHTML='';bar.style.display='none';
-    }
-  }
 }
 
 // ══ FILTRES ══
@@ -1336,46 +1179,29 @@ function filterByCategory(cat, btn) {
 }
 
 function setPriceRange(min, max) {
-  var slMin = document.getElementById('priceSliderMin');
   var slMax = document.getElementById('priceSliderMax');
-  if (slMin) slMin.value = min;
-  if (slMax) slMax.value = max >= 99999 ? slMax.max : max;
+  if (slMax) { slMax.max = slMax.max; slMax.value = max >= 99999 ? slMax.max : max; }
+  var valEl = document.getElementById('priceSliderVal');
+  if (valEl) valEl.textContent = (max >= 99999 ? slMax.max : max) + ' €';
   document.querySelectorAll('.price-range-btn').forEach(b => b.classList.remove('active'));
   event.target.classList.add('active');
-  updateDualRange();
+  applyFilters();
 }
 
-function updateDualRange() {
-  var slMin = document.getElementById('priceSliderMin');
+function updatePriceSlider() {
   var slMax = document.getElementById('priceSliderMax');
-  if (!slMin || !slMax) return;
-  var minVal = parseFloat(slMin.value);
-  var maxVal = parseFloat(slMax.value);
-  // Prevent crossing
-  if (minVal > maxVal) {
-    slMin.value = maxVal;
-    minVal = maxVal;
-  }
-  var total = parseFloat(slMax.max) || 1;
-  var leftPct  = (minVal / total) * 100;
-  var rightPct = (maxVal / total) * 100;
-  var fill = document.getElementById('dualRangeFill');
-  if (fill) { fill.style.left = leftPct + '%'; fill.style.width = (rightPct - leftPct) + '%'; }
-  var minLbl = document.getElementById('priceMinLabel');
-  var maxLbl = document.getElementById('priceMaxLabel');
-  if (minLbl) minLbl.textContent = Math.round(minVal).toLocaleString('fr-FR') + ' €';
-  if (maxLbl) maxLbl.textContent = Math.round(maxVal).toLocaleString('fr-FR') + ' €';
+  var valEl = document.getElementById('priceSliderVal');
+  if (slMax && valEl) valEl.textContent = slMax.value + ' €';
   applyFilters();
 }
 
 function updateSliderMax(results) {
   if (!results || results.length === 0) return;
   var maxPrice = Math.ceil(Math.max(...results.map(p => p.bestPrice || 0)));
-  var slMin = document.getElementById('priceSliderMin');
   var slMax = document.getElementById('priceSliderMax');
-  if (slMin) { slMin.min = 0; slMin.max = maxPrice; slMin.value = 0; }
-  if (slMax) { slMax.min = 0; slMax.max = maxPrice; slMax.value = maxPrice; }
-  updateDualRange();
+  if (slMax) { slMax.max = maxPrice; slMax.value = maxPrice; }
+  var valEl = document.getElementById('priceSliderVal');
+  if (valEl) valEl.textContent = maxPrice + ' €';
 }
 
 function loadPartnerFilters(results) {
@@ -1383,13 +1209,10 @@ function loadPartnerFilters(results) {
 }
 
 function applyFilters() {
-  var slMin = document.getElementById('priceSliderMin');
   var slMax = document.getElementById('priceSliderMax');
-  var min = slMin ? parseFloat(slMin.value) : 0;
   var max = slMax ? parseFloat(slMax.value) : Infinity;
 
   var filtered = currentResults.filter(function(p) {
-    if (p.bestPrice < min) return false;
     if (p.bestPrice > max) return false;
     if (activeCategory && p.cat !== activeCategory) return false;
     return true;
@@ -1403,104 +1226,51 @@ function clearFilters() {
   activeCategory = '';
   document.querySelectorAll('.fcat').forEach(function(b,i){b.classList.toggle('active',i===0);});
   document.querySelectorAll('.price-range-btn').forEach(function(b){b.classList.remove('active');});
-  var slMin = document.getElementById('priceSliderMin');
-  if (slMin) slMin.value = 0;
   updateSliderMax(currentResults);
   renderResults(currentResults);
 }
-var _displayedCount = 20;
-
-function renderResults(list) {
-  _displayedCount = 20;
-  var container = document.getElementById('resultsContainer');
-  var existing  = document.getElementById('loadMoreBtn');
-  if (existing) existing.remove();
-
-  if (!list.length) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun produit trouvé</div><div class="empty-sub">Essayez avec d\'autres termes de recherche.</div></div>';
-    return;
-  }
-  container.innerHTML = list.slice(0, _displayedCount).map(p => pcardHTML(p)).join('');
-  _renderLoadMore(list);
-}
-
-function _renderLoadMore(list) {
-  var existing = document.getElementById('loadMoreBtn');
-  if (existing) existing.remove();
-  if (_displayedCount >= list.length) return;
-  var remaining = list.length - _displayedCount;
-  var wrap = document.createElement('div');
-  wrap.id = 'loadMoreBtn';
-  wrap.style.cssText = 'text-align:center;padding:1.5rem 0 .5rem;';
-  wrap.innerHTML = '<button onclick="_loadMore()" style="padding:.65rem 2.2rem;background:var(--bg2);border:1.5px solid var(--border2);border-radius:100px;color:var(--text);font-weight:600;font-size:.88rem;cursor:pointer;transition:border-color .2s,color .2s" onmouseover="this.style.borderColor=\'var(--coral)\';this.style.color=\'var(--coral)\'" onmouseout="this.style.borderColor=\'var(--border2)\';this.style.color=\'var(--text)\'">Charger '+Math.min(20,remaining)+' produits de plus <span style="color:var(--dim);font-weight:400;">('+remaining+' restants)</span></button>';
-  document.querySelector('.results-col').appendChild(wrap);
-}
-
-function _loadMore() {
-  _displayedCount += 20;
-  var list = currentResults;
-  var container = document.getElementById('resultsContainer');
-  // Ajoute les nouvelles cartes sans tout re-render
-  var frag = list.slice(_displayedCount - 20, _displayedCount).map(p => pcardHTML(p)).join('');
-  container.insertAdjacentHTML('beforeend', frag);
-  _renderLoadMore(list);
+function renderResults(list){
+  document.getElementById('resultsContainer').innerHTML=list.length
+    ?list.map(p=>pcardHTML(p)).join('')
+    :'<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun produit trouvé</div><div class="empty-sub">Essayez avec d\'autres termes de recherche.</div></div>';
 }
 
 // ══ PRODUCT CARD — IDEALO STYLE ══
-// Règle clé : jamais le nom d'un seul marchand affiché — on est un comparateur.
-const _CAT_LABELS = {
-  'beaute-bienetre':'💄 Beauté & Bien-être','sante-nutrition':'💊 Santé & Nutrition',
-  'mode-vetements':'👗 Mode & Vêtements','maison-jardin':'🏠 Maison & Jardin',
-  'alimentation-bio':'🌿 Alimentation Bio','cbd-chanvre':'🌱 CBD','enfants-bebes':'👶 Enfants & Bébés',
-  'sport-outdoor':'⚽ Sport & Outdoor','high-tech':'📱 High-Tech','animaux':'🐾 Animaux',
-  'auto-moto':'🚗 Auto & Moto'
-};
-
 function pcardHTML(p) {
-  var isFav   = favorites.some(function(f){ return f.id===p.id; });
-  var safeId  = p.id.replace(/'/g,"\\'");
-  var nOffers = p.numOffers;
-  var savings = nOffers > 1 && p.maxPrice > p.bestPrice
-                  ? Math.round((p.maxPrice - p.bestPrice) * 100) / 100 : 0;
-
-  // Image
+  var isFav = favorites.some(function(f){ return f.id===p.id; });
+  var offer  = p.offers[0];
   var imgHtml = p.img
-    ? '<img src="'+p.img+'" alt="'+p.name.replace(/"/g,'&quot;')+'" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' +
-      '<div style="display:none;align-items:center;justify-content:center;width:100%;height:100%;font-size:2.5rem;color:var(--dim)">🏷️</div>'
-    : '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:2.5rem;color:var(--dim)">🏷️</div>';
+    ? '<img src="'+p.img+'" alt="'+p.name.replace(/"/g,'&quot;')+'" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' +
+      '<div style="display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;font-size:2rem;color:var(--dim)">🏷️<span style="font-size:.65rem;margin-top:.3rem;color:var(--dim)">'+p.brand+'</span></div>'
+    : '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;font-size:2rem;color:var(--dim)">🏷️<span style="font-size:.65rem;margin-top:.3rem;color:var(--dim)">'+p.brand+'</span></div>';
+  var amazonUrl = 'https://www.amazon.fr/s?k='+encodeURIComponent(p.name)+'&tag=hifind05-21';
+  var safeId = p.id.replace(/'/g,"\\'");
+  var safeName = p.name.replace(/'/g,"&#39;").replace(/"/g,'&quot;');
 
-  // Label : vraie marque sinon catégorie — jamais nom de programme affilié
-  var topLabel = p.brand ? p.brand : (_CAT_LABELS[p.cat] || '');
-
-  // Chip offers
-  var chipClass = nOffers > 1 ? 'pcard-offers-chip' : 'pcard-offers-chip one';
-  var chipText  = nOffers > 1 ? '✓ ' + nOffers + ' offres' : '1 offre';
-  var ctaLabel  = nOffers > 1 ? 'Voir les ' + nOffers + ' offres ↗' : 'Voir l\'offre ↗';
-
-  var href = '?p=' + encodeURIComponent(p.id);
   return (
-    '<div class="pcard fade-up" id="pc-'+p.id+'">'+
-      // Overlay link — covers entire card, enables right-click "open in new tab"
-      '<a class="pcard-overlay" href="'+href+'" onclick="event.preventDefault();openDetail(\''+safeId+'\');history.pushState(null,\'\',\''+href+'\');" aria-label="'+p.name.replace(/"/g,'&quot;')+'"></a>'+
-      // Col 1 — Image
-      '<div class="pcard-img-col">'+
-        imgHtml+
-        '<button class="pcard-fav'+(isFav?' on':'')+'" onclick="event.preventDefault();event.stopPropagation();toggleFav(\''+safeId+'\')" title="Sauvegarder">'+(isFav?'❤️':'🤍')+'</button>'+
-      '</div>'+
-      // Col 2 — Product info
-      '<div class="pcard-body">'+
-        (topLabel?'<div class="pcard-label">'+topLabel+'</div>':'')+
-        '<div class="pcard-name">'+p.name+'</div>'+
-        (p.desc?'<div class="pcard-desc">'+p.desc+'</div>':'')+
-      '</div>'+
-      // Col 3 — Price panel (Idealo-style right column)
-      '<div class="pcard-price-col">'+
-        '<span class="'+chipClass+'">'+chipText+'</span>'+
-        '<div class="pcard-price-from">à partir de</div>'+
-        '<div class="pcard-price">'+p.bestPrice.toLocaleString('fr-FR')+' €</div>'+
-        (savings>0?'<div class="pcard-price-savings">Jusqu\'à −'+savings.toLocaleString('fr-FR')+' €</div>':'')+
-        '<a class="pcard-btn-primary" href="'+href+'" onclick="event.stopPropagation();event.preventDefault();openDetail(\''+safeId+'\');history.pushState(null,\'\',\''+href+'\');">'+ctaLabel+'</a>'+
-      '</div>'+
+    '<div class="pcard fade-up" id="pc-'+p.id+'" style="cursor:pointer" onclick="openDetail(\''+safeId+'\')">' +
+      '<div class="pcard-img-col">' +
+        imgHtml +
+        '<button class="pcard-fav'+(isFav?' on':'')+'" onclick="event.stopPropagation();toggleFav(\''+safeId+'\')" title="Sauvegarder">'+(isFav?'❤️':'🤍')+'</button>' +
+      '</div>' +
+      '<div class="pcard-body">' +
+        '<div class="pcard-merchant">'+p.brand+'</div>' +
+        '<div class="pcard-name">'+p.name+'</div>' +
+        (p.desc ? '<div class="pcard-desc">'+p.desc+'</div>' : '') +
+        '<div class="pcard-bottom">' +
+          '<div class="pcard-price-block">' +
+            '<span class="pcard-price-from">à partir de</span>' +
+            '<div class="pcard-price">'+p.bestPrice.toLocaleString('fr-FR')+' €</div>' +
+          '</div>' +
+          '<div class="pcard-actions">' +
+            '<button class="pcard-btn-primary" onclick="event.stopPropagation();openDetail(\''+safeId+'\')">Comparer ↗</button>' +
+            '<a href="'+amazonUrl+'" target="_blank" rel="noopener sponsored" title="Chercher sur Amazon" onclick="event.stopPropagation()">' +
+              '<button class="pcard-btn-amazon" title="Amazon">🛒</button>' +
+            '</a>' +
+            '<button class="pcard-btn-fav" onclick="event.stopPropagation();openDetail(\''+safeId+'\')" title="Historique prix">📊</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
     '</div>'
   );
 }
@@ -1544,208 +1314,111 @@ async function openDetail(id){
   }
 }
 
-function getMerchantEmoji(name) {
-  if (!name) return '🏪';
-  const b = name.toLowerCase();
-  if (b.includes('rakuten'))                                 return '🛍️';
-  if (b.includes('fnac'))                                    return '🎵';
-  if (b.includes('darty'))                                   return '📺';
-  if (b.includes('cdiscount'))                               return '🛒';
-  if (b.includes('amazon'))                                  return '📦';
-  if (b.includes('decathlon') || b.includes('sport'))        return '⚽';
-  if (b.includes('leclerc'))                                 return '🏬';
-  if (b.includes('norauto'))                                 return '🔧';
-  if (b.includes('vertbaudet'))                              return '👶';
-  if (b.includes('blanche'))                                 return '👗';
-  if (b.includes('lunii'))                                   return '🎧';
-  if (b.includes('bio') || b.includes('valebio'))            return '🌿';
-  if (b.includes('pharma') || b.includes('sant'))            return '💊';
-  if (b.includes('jeux') || b.includes('jouet'))             return '🧸';
-  if (b.includes('maison') || b.includes('jardin'))          return '🏠';
-  if (b.includes('auto') || b.includes('moto'))              return '🚗';
-  if (b.includes('beauty') || b.includes('sephora'))         return '💄';
-  if (b.includes('perfumeria') || b.includes('comas'))       return '🌸';
-  if (b.includes('acer'))                                    return '💻';
-  if (b.includes('pneus') || b.includes('pneu'))             return '🔧';
-  if (b.includes('imou'))                                    return '📷';
-  if (b.includes('planetfoot'))                              return '⚽';
-  if (b.includes('atmosfera'))                               return '🏃';
-  if (b.includes('navimow') || b.includes('husqvarna'))      return '🌿';
-  return '🏪';
-}
-
-function renderDetail(p) {
+function renderDetail(p){
   var footer = document.getElementById('global-footer');
   if (footer) footer.style.display = 'none';
 
-  // ── Build offers list ──────────────────────────────
-  const offers = [];
+  // ── Construit les offres ──
+  var offers = [];
   if (p.ean_offers && p.ean_offers.length > 0) {
     p.ean_offers.forEach(function(o) {
-      var price = parseFloat(o.price) || 0;
-      offers.push({
-        merchant: (o.programs && o.programs.title) || 'Partenaire',
-        title:    decodeHtml(o.title || p.name),
-        price:    price,
-        url:      o.tracking_url || o.url,
-        shipping: 0,
-      });
+      var m = (o.programs && o.programs.title) || o.program_title || 'Partenaire';
+      offers.push({ merchant:m, price:parseFloat(o.price)||0, url:o.tracking_url||o.url, condition:'Neuf' });
     });
-  } else if (p.offers && p.offers.length > 0) {
-    p.offers.forEach(function(o) {
-      offers.push({
-        merchant: o.merchant || p.merchantName || 'Partenaire',
-        title:    p.name,
-        price:    parseFloat(o.price) || p.bestPrice,
-        url:      o.url,
-        shipping: o.shipping || 0,
-      });
-    });
+  } else if (p.offers && p.offers[0]) {
+    offers.push({ merchant:p.brand||'Partenaire', price:parseFloat(p.bestPrice)||0, url:p.offers[0].url, condition:'Neuf' });
   }
-  offers.push({
-    merchant: 'Amazon.fr',
-    title:    p.name,
-    price:    null,
-    url:      'https://www.amazon.fr/s?k=' + encodeURIComponent(p.name) + '&tag=hifind05-21',
-    shipping: 0,
-    isPriceUnknown: true,
-  });
-  offers.sort(function(a, b) {
-    if (a.isPriceUnknown) return 1;
-    if (b.isPriceUnknown) return -1;
-    return (a.price || 999999) - (b.price || 999999);
-  });
+  offers.sort(function(a,b){ return a.price - b.price; });
 
-  // ── Savings ────────────────────────────────────────
-  const known     = offers.filter(function(o){ return !o.isPriceUnknown && o.price > 0; });
-  const bestPrice = known.length > 0 ? known[0].price : p.bestPrice;
-  const worstPrice= known.length > 1 ? known[known.length-1].price : 0;
-  const savings   = worstPrice > bestPrice ? Math.round((worstPrice - bestPrice)*100)/100 : 0;
-  const savingsPct= worstPrice > 0 && savings > 0 ? Math.round((savings/worstPrice)*100) : 0;
-  const isFav     = favorites.some(function(f){ return f.id === p.id; });
+  function getFavicon(name) {
+    if (!name) return '';
+    var n = name.toLowerCase();
+    var map = {'norauto':'norauto.fr','beauty success':'beautysuccess.fr','vertbaudet':'vertbaudet.fr',
+      'rakuten':'rakuten.com','news parfums':'news-parfums.com','electro dépôt':'electrodepot.fr',
+      'electro depot':'electrodepot.fr','made in sport':'madeinsport.com','pc portable':'pc-portable.net',
+      'pièces et pneus':'piecesetpneus.com','pieces et pneus':'piecesetpneus.com','cabesto':'cabesto.com',
+      'dim':'dim.fr','daxon':'daxon.fr','my beauty factory':'mybeautyfactory.fr','darty':'darty.com',
+      'mon pied':'monpiedceheros.fr','pied':'monpiedceheros.fr','amazon':'amazon.fr'};
+    for (var k in map) { if (n.includes(k)) return 'https://www.google.com/s2/favicons?sz=32&domain='+map[k]; }
+    return '';
+  }
 
-  // ── Offer rows HTML ────────────────────────────────
-  const rowsHTML = offers.map(function(o, i) {
-    const isBest  = i === 0 && !o.isPriceUnknown;
-    const isAZ    = o.merchant === 'Amazon.fr';
-    const rowSav  = (!o.isPriceUnknown && worstPrice > o.price && !isBest)
-                    ? Math.round((worstPrice - o.price)*100)/100 : 0;
-    const emoji   = getMerchantEmoji(o.merchant);
-    const titleShort = (o.title||o.merchant).length > 60
-                       ? (o.title||o.merchant).slice(0,60)+'…' : (o.title||o.merchant);
-    return '<div class="offer-row' + (isBest?' offer-row-best':'') + (isAZ?' offer-amazon-row':'') + '">' +
-      // Col 1 — offer name
-      '<div class="offer-name-col">' +
-        '<div class="offer-merchant-badge">' + emoji + ' ' + o.merchant + '</div>' +
-        '<div class="offer-title-text">' + titleShort + '</div>' +
-        (isBest ? '<div class="best-price-badge">✓ Meilleur prix total</div>' : '') +
-        (rowSav > 0 ? '<div class="savings-row-badge">−' + rowSav.toLocaleString('fr-FR') + ' €</div>' : '') +
-      '</div>' +
-      // Col 2 — price
-      '<div class="offer-price-col">' +
-        (o.isPriceUnknown
-          ? '<div class="offer-price-unknown">Prix variable</div>'
-          : '<div class="offer-price-val' + (isBest?' best':'') + '">' + parseFloat(o.price).toLocaleString('fr-FR') + ' €</div>' +
-            '<div class="offer-shipping-lbl">' + (o.shipping===0?'livraison incluse':o.shipping.toLocaleString('fr-FR')+' € livraison') + '</div>'
-        ) +
-      '</div>' +
-      // Col 3 — payment
-      '<div class="offer-pay-col">' +
-        '<span class="pay-pill pay-visa">VISA</span>' +
-        '<span class="pay-pill pay-mc">MC</span>' +
-        (isAZ ? '<span class="pay-pill pay-pp">Pay</span>' : '') +
-      '</div>' +
-      // Col 4 — delivery
-      '<div class="offer-delivery-col">' +
-        '<span class="delivery-dot">●</span>' +
-        '<span class="delivery-lbl">' + (o.shipping===0?'Livraison gratuite':'Livraison '+parseFloat(o.shipping).toLocaleString('fr-FR')+' €') + '</span>' +
-      '</div>' +
-      // Col 5 — merchant
-      '<div class="offer-merchant-col">' +
-        '<div class="merchant-display-name">' + o.merchant + '</div>' +
-        '<div class="merchant-stars-row">★★★★☆</div>' +
-      '</div>' +
-      // Col 6 — CTA
-      '<div class="offer-cta-col">' +
-        '<a href="' + o.url + '" target="_blank" rel="noopener sponsored" style="text-decoration:none">' +
-          '<button class="see-offer-btn">Voir l\'offre ↗</button>' +
-        '</a>' +
-      '</div>' +
-    '</div>';
+  var offersRows = offers.map(function(o,i) {
+    var fav = getFavicon(o.merchant);
+    var bg = i===0 ? 'rgba(34,197,94,.04)' : 'var(--bg2)';
+    var priceColor = i===0 ? '#22c55e' : 'var(--text)';
+    var btnBg = i===0 ? '#22c55e' : 'var(--bg3)';
+    var btnColor = i===0 ? '#fff' : 'var(--text)';
+    var btnBorder = i===0 ? '#22c55e' : 'var(--border)';
+    var bestBadge = i===0 ? '<span style="background:#22c55e;color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .38rem;border-radius:3px;margin-right:.3rem">Meilleur prix</span>' : '';
+    var logoEl = fav ? '<img src="'+fav+'" width="20" height="20" style="border-radius:3px;margin-right:.5rem;vertical-align:middle">' : '<span style="display:inline-block;width:20px;height:20px;background:var(--coral);border-radius:3px;color:#fff;font-size:.55rem;font-weight:700;text-align:center;line-height:20px;margin-right:.5rem">'+o.merchant.slice(0,2).toUpperCase()+'</span>';
+    var row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto;gap:1rem;align-items:center;padding:.85rem 1.1rem;background:'+bg+';border-bottom:1px solid var(--border);transition:background .15s;cursor:default';
+    row.onmouseover = function(){ this.style.background='var(--bg3)'; };
+    row.onmouseout  = function(){ this.style.background=bg; };
+    row.innerHTML =
+      '<div style="display:flex;align-items:center;min-width:0">'+logoEl+'<div><div style="font-weight:700;font-size:.88rem">'+o.merchant+'</div><div style="margin-top:.1rem">'+bestBadge+'<span style="font-size:.72rem;color:#22c55e">● En stock</span><span style="font-size:.72rem;color:var(--dim)"> · Gratuit</span></div></div></div>'
+      +'<div style="text-align:right;min-width:85px"><div style="font-family:Outfit,sans-serif;font-size:1.15rem;font-weight:900;color:'+priceColor+'">'+o.price.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €</div><div style="font-size:.62rem;color:var(--dim)">livraison incluse</div></div>'
+      +'<div><a href="'+o.url+'" target="_blank" rel="noopener sponsored" style="text-decoration:none"><button style="padding:.45rem .85rem;background:'+btnBg+';color:'+btnColor+';border:1px solid '+btnBorder+';border-radius:7px;font-weight:700;font-size:.77rem;cursor:pointer;white-space:nowrap">Voir l&#39;offre →</button></a></div>';
+    return row.outerHTML;
   }).join('');
 
-  // ── Build & inject HTML ────────────────────────────
+  var bestPrice = offers.length > 0 ? offers[0].price.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €' : '—';
+
   document.getElementById('detailContent').innerHTML =
-    '<div class="idealo-detail">' +
+    '<div style="font-size:.73rem;color:var(--dim);margin-bottom:1rem">'
+      +'<span style="cursor:pointer" onclick="showPage('home')">Accueil</span>'
+      +' › <span style="cursor:pointer" onclick="loadCategory(''+p.cat+'')">'+p.cat+'</span>'
+      +' › <span style="color:var(--text)">'+p.name.slice(0,50)+(p.name.length>50?'...':'')+'</span>'
+    +'</div>'
 
-      // ── Top 3-col grid ──
-      '<div class="idealo-top">' +
+    +'<div style="display:grid;grid-template-columns:260px 1fr;gap:2rem;align-items:start">'
 
-        // Image
-        '<div class="idealo-img-box">' +
-          (savingsPct > 0 ? '<div class="idealo-discount-badge">−' + savingsPct + '%</div>' : '') +
-          (p.img
-            ? '<img src="' + p.img + '" alt="' + p.name.replace(/"/g,'&quot;') + '" style="max-width:100%;max-height:180px;object-fit:contain" onerror="this.style.display=\'none\'">'
-            : '<div style="font-size:4rem">📦</div>'
-          ) +
-        '</div>' +
+      // Image col
+      +'<div>'
+        +'<div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:1.5rem;height:250px;display:flex;align-items:center;justify-content:center;margin-bottom:1rem">'
+          +(p.img
+            ? '<img src="'+p.img+'" alt="'+p.name+'" style="max-width:210px;max-height:210px;object-fit:contain" onerror="this.style.display='none'">'
+            : '<div style="font-size:4rem;color:#94a3b8">📦</div>')
+        +'</div>'
+        +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">'
+          +'<div style="padding:.6rem 1rem;background:var(--bg3);font-size:.72rem;font-weight:700;color:var(--dim);text-transform:uppercase">Résumé</div>'
+          +'<div style="padding:.5rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;font-size:.82rem"><span style="color:var(--sub)">Marchand</span><span style="font-weight:600">'+p.brand+'</span></div>'
+          +'<div style="padding:.5rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;font-size:.82rem"><span style="color:var(--sub)">État</span><span style="font-weight:600">Neuf</span></div>'
+          +'<div style="padding:.5rem 1rem;display:flex;justify-content:space-between;font-size:.82rem"><span style="color:var(--sub)">Livraison</span><span style="font-weight:600;color:#22c55e">Gratuite</span></div>'
+        +'</div>'
+      +'</div>'
 
-        // Product info
-        '<div class="idealo-info">' +
-          (p.brand ? '<div class="idealo-brand">' + p.brand + '</div>' : '') +
-          '<h1 class="idealo-title">' + p.name + '</h1>' +
-          (p.desc ? '<p class="idealo-desc">' + p.desc + '</p>' : '') +
-          '<div class="idealo-price-block">' +
-            '<div class="idealo-from-lbl">à partir de</div>' +
-            '<div class="idealo-big-price">' + bestPrice.toLocaleString('fr-FR') + ' €</div>' +
-            '<div class="idealo-price-at">chez <strong>' + (known[0] ? known[0].merchant : 'nos partenaires') + '</strong> · Livraison gratuite</div>' +
-          '</div>' +
-          (savings > 0 ? '<div class="idealo-savings-pill">💰 Vous économisez <strong>' + savings.toLocaleString('fr-FR') + ' € (−' + savingsPct + '%)</strong></div>' : '') +
-          '<button class="idealo-fav-btn" onclick="toggleFav(\'' + p.id.replace(/'/g,"\\'") + '\');this.innerHTML=favorites.some(function(f){return f.id===\'' + p.id.replace(/'/g,"\\'") + '\';})?\'❤️ Sauvegardé\':\'🤍 Sauvegarder\'">' +
-            (isFav ? '❤️ Sauvegardé' : '🤍 Sauvegarder') +
-          '</button>' +
-        '</div>' +
+      // Right col
+      +'<div>'
+        +'<div style="font-size:.73rem;color:var(--coral);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem">'+p.brand+'</div>'
+        +'<h1 style="font-family:Outfit,sans-serif;font-size:1.45rem;font-weight:800;line-height:1.25;margin-bottom:1rem;color:var(--text)">'+p.name+'</h1>'
 
-        // Chart
-        '<div class="idealo-chart-col">' +
-          '<div class="idealo-chart-head">' +
-            '<span>Évolution du prix</span>' +
-            '<div class="chart-tabs">' +
-              '<button class="chart-tab active" onclick="switchChart(this,30,\'' + p.id + '\')">1m.</button>' +
-              '<button class="chart-tab" onclick="switchChart(this,90,\'' + p.id + '\')">3m.</button>' +
-              '<button class="chart-tab" onclick="switchChart(this,365,\'' + p.id + '\')">1a.</button>' +
-            '</div>' +
-          '</div>' +
-          '<div class="idealo-chart-body"><canvas id="priceChart"></canvas></div>' +
-        '</div>' +
+        // Prix box
+        +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem">'
+          +'<div>'
+            +'<div style="font-size:.72rem;color:var(--sub);margin-bottom:.2rem">Meilleur prix</div>'
+            +'<div style="font-family:Outfit,sans-serif;font-size:2rem;font-weight:900;color:var(--coral);line-height:1">'+bestPrice+'</div>'
+            +'<div style="font-size:.72rem;color:#22c55e;margin-top:.2rem">✓ Livraison gratuite incluse</div>'
+          +'</div>'
+          +'<button onclick="toggleFav(''+p.id+'');this.innerHTML=favorites.some(f=>f.id===''+p.id+'')?'❤️ Sauvegardé':'🤍 Sauvegarder'" style="padding:.5rem 1rem;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-weight:600;font-size:.8rem;color:var(--text);cursor:pointer">'
+            +(favorites.some(function(f){return f.id===p.id;})?'❤️ Sauvegardé':'🤍 Sauvegarder')
+          +'</button>'
+        +'</div>'
 
-      '</div>' + // end idealo-top
-
-      // ── Comparison table ──
-      '<div class="compare-section">' +
-        '<div class="compare-section-head">' +
-          '<span class="compare-section-title">🏪 Comparer les prix</span>' +
-          '<span class="compare-count-badge">' + known.length + ' offre' + (known.length > 1 ? 's' : '') + '</span>' +
-          (savings > 0 ? '<span style="margin-left:auto;font-size:.75rem;font-weight:600;color:#16a34a">Jusqu\'à −' + savings.toLocaleString('fr-FR') + ' € d\'économie</span>' : '') +
-        '</div>' +
-        '<div class="compare-col-heads">' +
-          '<div style="flex:2.2">Offre</div>' +
-          '<div style="flex:1.1;text-align:right">Prix &amp; frais</div>' +
-          '<div style="flex:.9;text-align:center">Paiement</div>' +
-          '<div style="flex:1">Livraison</div>' +
-          '<div style="flex:1.4">Marchand</div>' +
-          '<div style="flex:.8"></div>' +
-        '</div>' +
-        rowsHTML +
-      '</div>' + // end compare-section
-
-    '</div>'; // end idealo-detail
-
-  // Render chart after DOM is updated
-  setTimeout(function() {
-    const hist = buildPriceHistory(p.basePrice, 30);
-    renderChart(hist);
-  }, 50);
+        // Offers table
+        +'<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden">'
+          +'<div style="display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.1rem;background:var(--bg3);border-bottom:1px solid var(--border)">'
+            +'<span style="font-weight:700;font-size:.88rem">Comparer les offres</span>'
+            +'<span style="font-size:.75rem;color:var(--sub)">'+offers.length+' vendeur'+(offers.length>1?'s':'')+'</span>'
+          +'</div>'
+          +'<div style="display:grid;grid-template-columns:1fr auto auto;gap:1rem;padding:.5rem 1.1rem;background:var(--bg3);border-bottom:1px solid var(--border);font-size:.68rem;font-weight:700;color:var(--dim);text-transform:uppercase">'
+            +'<span>Marchand & livraison</span><span style="text-align:right">Prix</span><span></span>'
+          +'</div>'
+          +offersRows
+        +'</div>'
+      +'</div>'
+    +'</div>';
 }
 
 function renderChart(hist){
@@ -1836,14 +1509,14 @@ function miniCard(p, rank, deal) {
   var im = p.img ? '<img src="'+p.img+'" alt="'+p.name.replace(/"/g,'&quot;')+'" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem">🏷️</div>';
   var badge = rank ? '<span class="prod-mini-rank">N°'+rank+'</span>' : (deal ? '<span class="prod-mini-deal">Bon plan</span>' : '');
   var safeId = p.id.replace(/'/g, "\\'");
-  return '<a class="prod-mini" href="?p='+encodeURIComponent(p.id)+'" onclick="event.preventDefault();openDetail(\''+safeId+'\');history.pushState(null,\'\',\'?p='+encodeURIComponent(p.id)+'\');">'+
+  return '<div class="prod-mini" onclick="openDetail(\''+safeId+'\')">'+
     '<div class="prod-mini-img">'+im+badge+'</div>'+
     '<div class="prod-mini-body">'+
       '<div class="prod-mini-name">'+p.name+'</div>'+
       '<div class="prod-mini-from">à partir de</div>'+
       '<div class="prod-mini-price">'+p.bestPrice.toLocaleString('fr-FR')+' €</div>'+
     '</div>'+
-  '</a>';
+  '</div>';
 }
 
 async function loadModeTab(cat, btn) {
@@ -1855,6 +1528,8 @@ async function loadModeTab(cat, btn) {
   if (!grid) return;
   grid.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.85rem;padding:1rem">Chargement...</div>';
 
+  var raw = await affilaeCall('category', '', 12);
+  // Si pas de catégorie spécifique, charge depuis Supabase par catégorie
   var url = '/api/products?action=category&cat='+encodeURIComponent(cat)+'&limit=12';
   try {
     var res = await fetch(url);
@@ -1873,13 +1548,13 @@ async function loadModeTab(cat, btn) {
       var safeId = p.id.replace(/'/g,"\\'");
       // Cache pour openDetail
       if (!homeProductsCache[p.id]) homeProductsCache[p.id] = mapAffilaeProduct(p);
-      return '<a class="mode-card" href="?p='+encodeURIComponent(p.id)+'" onclick="event.preventDefault();openDetail(\''+safeId+'\');history.pushState(null,\'\',\'?p='+encodeURIComponent(p.id)+'\');">' +
+      return '<div class="mode-card" onclick="openDetail(\''+safeId+'\')">' +
         '<div class="mode-card-img">'+(img?'<img src="'+img+'" alt="'+p.title+'">':'<div style="font-size:3rem">🏷️</div>')+'</div>' +
         '<div class="mode-card-body">' +
           '<div class="mode-card-name">'+p.title+'</div>' +
           '<div class="mode-card-price">'+price.toLocaleString('fr-FR')+' €</div>' +
         '</div>' +
-      '</a>';
+      '</div>';
     }).join('') || '<div style="color:rgba(255,255,255,.5);padding:1rem">Aucun produit dans cette catégorie</div>';
   } catch(e) {
     grid.innerHTML = '<div style="color:rgba(255,255,255,.5);padding:1rem">Chargement impossible</div>';
@@ -1887,7 +1562,7 @@ async function loadModeTab(cat, btn) {
 }
 
 async function initHome() {
-  loadModeTab('mode-vetements', document.querySelector('.mode-tab'));
+  loadModeTab('beaute-bienetre', document.querySelector('.mode-tab'));
 
   var categories = ['beaute-bienetre', 'sante-nutrition', 'mode-vetements', 'enfants-bebes', 'auto-moto'];
   var allProducts = [];
@@ -1941,28 +1616,10 @@ async function initHome() {
     '<p style="color:var(--sub);font-size:.85rem;padding:.5rem">Chargement des produits...</p>';
 }
 initHome();
-
-// ══ URL ROUTER — navigation SPA via ?p=ID ══
-(function() {
-  var params = new URLSearchParams(window.location.search);
-  var pid = params.get('p');
-  if (pid) openDetail(decodeURIComponent(pid));
-})();
-
-window.addEventListener('popstate', function() {
-  var params = new URLSearchParams(window.location.search);
-  var pid = params.get('p');
-  if (pid) {
-    openDetail(decodeURIComponent(pid));
-  } else {
-    showPage(currentResults.length > 0 ? 'search' : 'home');
-  }
-});
 </script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  updateDualRange();
   var depart = new Date();
   depart.setDate(depart.getDate() + 42);
   var retour = new Date(depart);
