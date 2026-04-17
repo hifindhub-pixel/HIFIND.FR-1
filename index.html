@@ -1451,7 +1451,6 @@ function pcardHTML(p) {
         (topLabel?'<div class="pcard-label">'+topLabel+'</div>':'')+
         '<div class="pcard-name">'+p.name+'</div>'+
         (p.desc?'<div class="pcard-desc">'+p.desc+'</div>':'')+
-        (p.ean?'<div class="pcard-ean">EAN : '+p.ean+'</div>':'')+
       '</div>'+
       // Col 3 — Price panel (Idealo-style right column)
       '<div class="pcard-price-col">'+
@@ -1655,7 +1654,6 @@ function renderDetail(p) {
           (p.brand ? '<div class="idealo-brand">' + p.brand + '</div>' : '') +
           '<h1 class="idealo-title">' + p.name + '</h1>' +
           (p.desc ? '<p class="idealo-desc">' + p.desc + '</p>' : '') +
-          (p.ean ? '<div style="font-size:.7rem;color:var(--dim);margin-bottom:.6rem">EAN <code style="background:var(--bg3);padding:.1rem .35rem;border-radius:4px;font-family:monospace">' + p.ean + '</code></div>' : '') +
           '<div class="idealo-price-block">' +
             '<div class="idealo-from-lbl">à partir de</div>' +
             '<div class="idealo-big-price">' + bestPrice.toLocaleString('fr-FR') + ' €</div>' +
