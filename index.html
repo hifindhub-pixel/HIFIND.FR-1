@@ -273,6 +273,15 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
 .fpartner{display:flex;align-items:center;gap:.4rem;padding:.28rem 0;font-size:.78rem;cursor:pointer;}
 .fpartner input{accent-color:var(--coral);}
 .results-col{flex:1;min-width:0;}
+/* Dual range price slider */
+.dual-range{position:relative;height:36px;margin:.4rem 0;}
+.dual-range-track{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:4px;background:var(--bg3);border-radius:2px;}
+.dual-range-fill{position:absolute;top:50%;transform:translateY(-50%);height:4px;background:var(--coral);border-radius:2px;}
+.dual-range input[type=range]{position:absolute;width:100%;top:50%;transform:translateY(-50%);margin:0;padding:0;height:4px;background:transparent;outline:none;-webkit-appearance:none;appearance:none;pointer-events:none;}
+.dual-range input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--coral);border:2px solid var(--bg2);box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer;pointer-events:auto;}
+.dual-range input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--coral);border:2px solid var(--bg2);cursor:pointer;pointer-events:auto;border:none;}
+.price-minmax{display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem;}
+.price-minmax-badge{font-size:.76rem;font-weight:700;color:var(--text);background:var(--bg3);border:1px solid var(--border);padding:.2rem .55rem;border-radius:6px;min-width:52px;text-align:center;}
 
 /* RESULTS */
 .results-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;padding:.65rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:12px;}
@@ -747,18 +756,24 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
 
       <!-- PRIX -->
       <div class="filter-section">
-        <div class="filter-label">Prix maximum</div>
-        <input type="range" class="price-slider" id="priceSliderMax" min="0" max="1000" value="1000" oninput="updatePriceSlider()">
-        <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--dim);margin-bottom:.5rem">
-          <span>0 €</span><span id="priceSliderVal">1000 €</span>
+        <div class="filter-label">Fourchette de prix</div>
+        <div class="price-minmax">
+          <span class="price-minmax-badge" id="priceMinLabel">0 €</span>
+          <span style="font-size:.65rem;color:var(--dim)">—</span>
+          <span class="price-minmax-badge" id="priceMaxLabel">1 000 €</span>
+        </div>
+        <div class="dual-range" id="dualRange">
+          <div class="dual-range-track"></div>
+          <div class="dual-range-fill" id="dualRangeFill"></div>
+          <input type="range" id="priceSliderMin" min="0" max="1000" value="0" oninput="updateDualRange()">
+          <input type="range" id="priceSliderMax" min="0" max="1000" value="1000" oninput="updateDualRange()">
         </div>
         <div class="price-ranges" id="priceRanges">
-          <button class="price-range-btn" onclick="setPriceRange(0,20)">Moins de 20 €</button>
-          <button class="price-range-btn" onclick="setPriceRange(20,50)">20 € – 50 €</button>
-          <button class="price-range-btn" onclick="setPriceRange(50,100)">50 € – 100 €</button>
-          <button class="price-range-btn" onclick="setPriceRange(100,99999)">Plus de 100 €</button>
+          <button class="price-range-btn" onclick="setPriceRange(0,20)">– de 20 €</button>
+          <button class="price-range-btn" onclick="setPriceRange(20,50)">20 – 50 €</button>
+          <button class="price-range-btn" onclick="setPriceRange(50,100)">50 – 100 €</button>
+          <button class="price-range-btn" onclick="setPriceRange(100,99999)">+ de 100 €</button>
         </div>
-        <button class="filter-apply" onclick="applyFilters()">Appliquer</button>
       </div>
 
       <!-- LIVRAISON -->
@@ -1320,29 +1335,46 @@ function filterByCategory(cat, btn) {
 }
 
 function setPriceRange(min, max) {
+  var slMin = document.getElementById('priceSliderMin');
   var slMax = document.getElementById('priceSliderMax');
-  if (slMax) { slMax.max = slMax.max; slMax.value = max >= 99999 ? slMax.max : max; }
-  var valEl = document.getElementById('priceSliderVal');
-  if (valEl) valEl.textContent = (max >= 99999 ? slMax.max : max) + ' €';
+  if (slMin) slMin.value = min;
+  if (slMax) slMax.value = max >= 99999 ? slMax.max : max;
   document.querySelectorAll('.price-range-btn').forEach(b => b.classList.remove('active'));
   event.target.classList.add('active');
-  applyFilters();
+  updateDualRange();
 }
 
-function updatePriceSlider() {
+function updateDualRange() {
+  var slMin = document.getElementById('priceSliderMin');
   var slMax = document.getElementById('priceSliderMax');
-  var valEl = document.getElementById('priceSliderVal');
-  if (slMax && valEl) valEl.textContent = slMax.value + ' €';
+  if (!slMin || !slMax) return;
+  var minVal = parseFloat(slMin.value);
+  var maxVal = parseFloat(slMax.value);
+  // Prevent crossing
+  if (minVal > maxVal) {
+    slMin.value = maxVal;
+    minVal = maxVal;
+  }
+  var total = parseFloat(slMax.max) || 1;
+  var leftPct  = (minVal / total) * 100;
+  var rightPct = (maxVal / total) * 100;
+  var fill = document.getElementById('dualRangeFill');
+  if (fill) { fill.style.left = leftPct + '%'; fill.style.width = (rightPct - leftPct) + '%'; }
+  var minLbl = document.getElementById('priceMinLabel');
+  var maxLbl = document.getElementById('priceMaxLabel');
+  if (minLbl) minLbl.textContent = Math.round(minVal).toLocaleString('fr-FR') + ' €';
+  if (maxLbl) maxLbl.textContent = Math.round(maxVal).toLocaleString('fr-FR') + ' €';
   applyFilters();
 }
 
 function updateSliderMax(results) {
   if (!results || results.length === 0) return;
   var maxPrice = Math.ceil(Math.max(...results.map(p => p.bestPrice || 0)));
+  var slMin = document.getElementById('priceSliderMin');
   var slMax = document.getElementById('priceSliderMax');
-  if (slMax) { slMax.max = maxPrice; slMax.value = maxPrice; }
-  var valEl = document.getElementById('priceSliderVal');
-  if (valEl) valEl.textContent = maxPrice + ' €';
+  if (slMin) { slMin.min = 0; slMin.max = maxPrice; slMin.value = 0; }
+  if (slMax) { slMax.min = 0; slMax.max = maxPrice; slMax.value = maxPrice; }
+  updateDualRange();
 }
 
 function loadPartnerFilters(results) {
@@ -1350,10 +1382,13 @@ function loadPartnerFilters(results) {
 }
 
 function applyFilters() {
+  var slMin = document.getElementById('priceSliderMin');
   var slMax = document.getElementById('priceSliderMax');
+  var min = slMin ? parseFloat(slMin.value) : 0;
   var max = slMax ? parseFloat(slMax.value) : Infinity;
 
   var filtered = currentResults.filter(function(p) {
+    if (p.bestPrice < min) return false;
     if (p.bestPrice > max) return false;
     if (activeCategory && p.cat !== activeCategory) return false;
     return true;
@@ -1367,6 +1402,8 @@ function clearFilters() {
   activeCategory = '';
   document.querySelectorAll('.fcat').forEach(function(b,i){b.classList.toggle('active',i===0);});
   document.querySelectorAll('.price-range-btn').forEach(function(b){b.classList.remove('active');});
+  var slMin = document.getElementById('priceSliderMin');
+  if (slMin) slMin.value = 0;
   updateSliderMax(currentResults);
   renderResults(currentResults);
 }
@@ -1904,6 +1941,7 @@ initHome();
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  updateDualRange();
   var depart = new Date();
   depart.setDate(depart.getDate() + 42);
   var retour = new Date(depart);
