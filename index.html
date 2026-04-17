@@ -1481,7 +1481,7 @@ function pcardHTML(p) {
   return (
     '<div class="pcard fade-up" id="pc-'+p.id+'">'+
       // Overlay link — covers entire card, enables right-click "open in new tab"
-      '<a class="pcard-overlay" href="'+href+'" target="_blank" aria-label="'+p.name.replace(/"/g,'&quot;')+'"></a>'+
+      '<a class="pcard-overlay" href="'+href+'" onclick="event.preventDefault();openDetail(\''+safeId+'\');history.pushState(null,\'\',\''+href+'\');" aria-label="'+p.name.replace(/"/g,'&quot;')+'"></a>'+
       // Col 1 — Image
       '<div class="pcard-img-col">'+
         imgHtml+
@@ -1499,7 +1499,7 @@ function pcardHTML(p) {
         '<div class="pcard-price-from">à partir de</div>'+
         '<div class="pcard-price">'+p.bestPrice.toLocaleString('fr-FR')+' €</div>'+
         (savings>0?'<div class="pcard-price-savings">Jusqu\'à −'+savings.toLocaleString('fr-FR')+' €</div>':'')+
-        '<a class="pcard-btn-primary" href="'+href+'" target="_blank" onclick="event.stopPropagation()">'+ctaLabel+'</a>'+
+        '<a class="pcard-btn-primary" href="'+href+'" onclick="event.stopPropagation();event.preventDefault();openDetail(\''+safeId+'\');history.pushState(null,\'\',\''+href+'\');">'+ctaLabel+'</a>'+
       '</div>'+
     '</div>'
   );
@@ -1836,7 +1836,7 @@ function miniCard(p, rank, deal) {
   var im = p.img ? '<img src="'+p.img+'" alt="'+p.name.replace(/"/g,'&quot;')+'" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem">🏷️</div>';
   var badge = rank ? '<span class="prod-mini-rank">N°'+rank+'</span>' : (deal ? '<span class="prod-mini-deal">Bon plan</span>' : '');
   var safeId = p.id.replace(/'/g, "\\'");
-  return '<a class="prod-mini" href="?p='+encodeURIComponent(p.id)+'" target="_blank">'+
+  return '<a class="prod-mini" href="?p='+encodeURIComponent(p.id)+'" onclick="event.preventDefault();openDetail(\''+safeId+'\');history.pushState(null,\'\',\'?p='+encodeURIComponent(p.id)+'\');">'+
     '<div class="prod-mini-img">'+im+badge+'</div>'+
     '<div class="prod-mini-body">'+
       '<div class="prod-mini-name">'+p.name+'</div>'+
@@ -1873,7 +1873,7 @@ async function loadModeTab(cat, btn) {
       var safeId = p.id.replace(/'/g,"\\'");
       // Cache pour openDetail
       if (!homeProductsCache[p.id]) homeProductsCache[p.id] = mapAffilaeProduct(p);
-      return '<a class="mode-card" href="?p='+encodeURIComponent(p.id)+'" target="_blank">' +
+      return '<a class="mode-card" href="?p='+encodeURIComponent(p.id)+'" onclick="event.preventDefault();openDetail(\''+safeId+'\');history.pushState(null,\'\',\'?p='+encodeURIComponent(p.id)+'\');">' +
         '<div class="mode-card-img">'+(img?'<img src="'+img+'" alt="'+p.title+'">':'<div style="font-size:3rem">🏷️</div>')+'</div>' +
         '<div class="mode-card-body">' +
           '<div class="mode-card-name">'+p.title+'</div>' +
@@ -1942,12 +1942,22 @@ async function initHome() {
 }
 initHome();
 
-// ══ URL ROUTER — ouvre directement un produit via ?p=ID ══
+// ══ URL ROUTER — navigation SPA via ?p=ID ══
 (function() {
   var params = new URLSearchParams(window.location.search);
   var pid = params.get('p');
   if (pid) openDetail(decodeURIComponent(pid));
 })();
+
+window.addEventListener('popstate', function() {
+  var params = new URLSearchParams(window.location.search);
+  var pid = params.get('p');
+  if (pid) {
+    openDetail(decodeURIComponent(pid));
+  } else {
+    showPage(currentResults.length > 0 ? 'search' : 'home');
+  }
+});
 </script>
 
 <script>
