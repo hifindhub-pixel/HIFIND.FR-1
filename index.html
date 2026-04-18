@@ -727,7 +727,10 @@ nav {
       <li class="nav-cat" onclick="goCategory('auto-moto',this)">Auto & Moto</li>
     </ul>
     <div class="nav-actions">
-      <button onclick="toggleTheme()" id="themeBtn" title="Thème" style="width:34px;height:34px;border-radius:6px;background:transparent;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:.9rem;cursor:pointer;color:var(--sub);transition:all .2s">🌙</button>
+      <button onclick="toggleTheme()" id="themeBtn" title="Thème" style="width:34px;height:34px;border-radius:4px;background:transparent;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--sub);transition:all .2s;padding:0">
+        <svg id="iconMoon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg id="iconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
     </div>
   </div>
 </nav>
@@ -1043,7 +1046,12 @@ applyTheme(theme);
 function applyTheme(t) {
   theme = t;
   document.documentElement.setAttribute('data-theme', t);
-  document.getElementById('themeBtn').textContent = t === 'dark' ? '🌙' : '☀️';
+  var moon = document.getElementById('iconMoon');
+  var sun = document.getElementById('iconSun');
+  if (moon && sun) {
+    moon.style.display = t === 'dark' ? 'block' : 'none';
+    sun.style.display = t === 'dark' ? 'none' : 'block';
+  }
   localStorage.setItem('hf_theme', t);
 }
 function toggleTheme() { applyTheme(theme === 'dark' ? 'light' : 'dark'); }
@@ -1254,7 +1262,7 @@ function sortResults() {
 // ══ RENDER RESULTS ══
 function renderResults(list) {
   // Filtre Darty Pro (prix HT non pertinents)
-  list = list.filter(function(p){ return !(p.program_id||'').includes('darty'); });
+  list = list.filter(function(p){ var pid = (p.program_id||'').toLowerCase(); return !pid.includes('darty'); });
   if (!list || !list.length) {
     document.getElementById('resultsContainer').innerHTML =
       '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun résultat</div></div>';
