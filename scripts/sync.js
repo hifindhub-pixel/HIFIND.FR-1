@@ -5,9 +5,6 @@ const EFFINITY_FEEDS_JSON = process.env.EFFINITY_FEEDS;
 const AFFILAE_BASE        = 'https://rest.affilae.com';
 
 import pkg from 'pg';
-import zlib from 'zlib';
-import { promisify } from 'util';
-const gunzip = promisify(zlib.gunzip);
 const { Client } = pkg;
 
 let _neonClient = null;
@@ -22,180 +19,27 @@ async function getNeon() {
 const PAGE_SIZE           = 20;
 
 const CATEGORY_RULES = [
-  { cat: 'beaute-bienetre', keywords: [
-    'beauté','soin','crème','sérum','shampoing','cosmétique','parfum','eau de toilette','cologne',
-    'visage','corps','cheveux','peau','maquillage','hydrat','collagène','démêlant','nettoyant',
-    'pieds','pied','masque visage','fond de teint','rouge à lèvres','mascara','eyeliner','blush',
-    'anticernes','lotion','baume','huile corps','lisseur','sèche-cheveux','brosse chauffante',
-    'dissolvant','ongles','exfoliant','gommage','contour yeux','beurre de karité','tonique',
-    'micellar','bb cream','cc cream','make up','aftershave','rasage','épilation','manucure',
-    'auto-bronzant','solaire','spf','coiffure','couleur cheveux','coloration'
-  ]},
-  { cat: 'sante-nutrition', keywords: [
-    'santé','complément','vitamine','minéral','probiotique','magnésium','protéine','immunit',
-    'énergie','fatigue','sommeil','stress','minceur','détox','nutrition','aromathérapie',
-    'huile essentielle','gélule','capsule','spray','mélatonine','collagène marin',
-    'omega','zinc','fer','calcium','vitamine c','vitamine d','cure','ampoule','phytothérapie',
-    'homéopathie','antioxydant','curcuma','spiruline','chlorella','maca','ashwagandha',
-    'ginseng','chardon','boswellia','glucosamine','chondroïtine','coenzyme q10',
-    'parapharmacie','médecine douce','naturopathie','plantes médicinales','infusion santé'
-  ]},
-  { cat: 'mode-vetements', keywords: [
-    'mode','vêtement','robe','pantalon','jean','chemise','veste','manteau','pull','t-shirt',
-    'chaussure','basket','sneaker','sac','bijou','montre','lingerie','fashion','bague',
-    'collier','bracelet','boucle','bottine','sandale','escarpins','robe longue','combinaison',
-    'salopette','short','bermuda','jupe','legging','débardeur','body','ceinture','écharpe',
-    'bonnet','gants','chapeau','casquette','bob','sac à main','porte-monnaie','maroquinerie',
-    'valise','bagage','lunettes de soleil','vêtements homme','vêtements femme','prêt-à-porter',
-    'taille 38','taille 40','slim fit','col rond'
-  ]},
-  { cat: 'maison-jardin', keywords: [
-    'maison','jardin','déco','décoration','meuble','cuisine','ménager','aspirateur','plante','graine',
-    'potager','terrasse','outil','jardinage','arrosage','fleur','tapis','coussin','rideau','lampe',
-    'éclairage','canapé','table','chaise','armoire','buffet','étagère','bibliothèque','cadre photo',
-    'bougie','diffuseur','vase','balai','robot nettoyeur','robot tondeuse','sécateur','taille-haie',
-    'tondeuse','débroussailleuse','perceuse','visseuse','marteau','peinture mur','store','serrure',
-    'literie','matelas','oreiller','couette','drap','housse de couette','parure de lit',
-    'cafetière','grille-pain','four','micro-ondes','hotte','réfrigérateur','lave-vaisselle'
-  ]},
-  { cat: 'alimentation-bio', keywords: [
-    'alimentation','bio','nourriture','snack','boisson','thé','café','superaliment','céréale',
-    'vegan','sans gluten','organic','épicerie','miel','huile olive','vinaigre','sauce','pâtes',
-    'riz','lentille','pois chiche','quinoa','chocolat','biscuit','confiture','sirop','kombucha',
-    'kéfir','lait végétal','protéine végétale','tofu','granola','levure alimentaire','sucre de coco',
-    'sirop agave','clean eating','whole food','raw food','açaï','matcha','baies de goji'
-  ]},
-  { cat: 'cbd-chanvre', keywords: [
-    'cbd','chanvre','cannabis','hemp','cannabidiol','fleur cbd','huile cbd','résine cbd',
-    'wax cbd','cristaux cbd','vape cbd','e-liquide cbd','terpènes cbd','cannabinoïde'
-  ]},
-  { cat: 'enfants-bebes', keywords: [
-    'enfant','bébé','baby','jouet','jeu','puériculture','poussette','couche','biberon',
-    'apprentissage','éveil','peluche','jeux de société','puzzle','lego','playmobil',
-    'construction','circuit voiture jouet','poupée','marionnette','tricycle','draisienne',
-    'trottinette enfant','siège auto bébé','lit parapluie','baignoire bébé','chauffe-biberon',
-    'stérilisateur','moniteur bébé','baby phone','portique','tapis d\'éveil','hochet',
-    'tablette enfant','vêtement enfant','pyjama bébé','body bébé','gigoteuse'
-  ]},
-  { cat: 'sport-outdoor', keywords: [
-    'sport','fitness','musculation','yoga','running','vélo','natation','randonnée','camping',
-    'outdoor','gym','trail','ski','tennis','football','badminton','golf','surf','escalade',
-    'barre de traction','haltère','kettlebell','résistance','élastique','tapis roulant',
-    'vélo elliptique','vélo appartement','rameur','palmes','corde à sauter','sac de sport',
-    'gourde sport','thermos sport','chaussures de trail','chaussures running','legging sport',
-    'brassière de sport','veste softshell','tente camping','sac de couchage','sac à dos rando',
-    'matelas de sol','lampe frontale','snowboard','planche surf','raquette'
-  ]},
-  { cat: 'high-tech', keywords: [
-    'tech','électronique','smartphone','téléphone mobile','ordinateur','laptop','tablette','casque',
-    'écouteur','drone','bluetooth','gaming','console','câble usb','chargeur','batterie externe',
-    'hub usb','souris','clavier','webcam','microphone','enceinte bluetooth','écran pc','moniteur',
-    'projecteur','imprimante','scanner','disque dur','ssd','clé usb','routeur wifi','ampoule led',
-    'prise connectée','thermostat connecté','robot aspirateur','trottinette électrique',
-    'vélo électrique','montre connectée','bracelet connecté','appareil photo','réflex','objectif',
-    'jeux vidéo','xbox','playstation','ps5','nintendo switch','steam deck','vr','manette jeu'
-  ]},
-  { cat: 'animaux', keywords: [
-    'animal','animaux','chien','chat','oiseau','poisson','lapin','croquette','litière','collier',
-    'aquarium','terrarium','niche','cage','griffoir','arbre à chat','distributeur croquettes',
-    'fontaine chat','jouet chien','jouet chat','laisse','harnais','vêtement chien','antiparasitaire',
-    'puce animaux','vermifuge','shampoing chien','shampoing chat','nourriture chien','nourriture chat',
-    'nourriture lapin','granulés animaux','animalerie','reptile','furet','rongeur','cochon d\'inde'
-  ]},
-  { cat: 'auto-moto', keywords: [
-    'auto','moto','voiture','véhicule','scooter','pièce auto','pneu','huile moteur','gps auto',
-    'tuning','autoradio','dash cam','câble obd','alarme voiture','housse siège auto',
-    'tapis de sol voiture','nettoyant auto','polish','cire carrosserie','batterie voiture',
-    'chargeur batterie auto','gonfleur pneu','kit réparation crevaison','antivol moto','casque moto',
-    'blouson moto','gants moto','pompe à vélo','pédales vtt','dérailleur vélo','chaîne vélo',
-    'porte vélo','attelage','remorque'
-  ]},
+  { cat: 'beaute-bienetre', keywords: ['beauté','soin','crème','sérum','shampoing','cosmétique','parfum','visage','corps','cheveux','peau','maquillage','hydrat','collagène','démêlant','nettoyant','pieds','pied'] },
+  { cat: 'sante-nutrition', keywords: ['santé','complément','vitamine','minéral','probiotique','magnésium','protéine','immunit','énergie','fatigue','sommeil','stress','minceur','détox','nutrition','aromathérapie','huile essentielle','gélule','capsule','spray','roll-on'] },
+  { cat: 'mode-vetements',  keywords: ['mode','vêtement','robe','pantalon','jean','chemise','veste','manteau','pull','t-shirt','chaussure','basket','sneaker','sac','bijou','montre','lingerie','fashion'] },
+  { cat: 'maison-jardin',   keywords: ['maison','jardin','déco','meuble','cuisine','ménager','aspirateur','plante','graine','potager','terrasse','outil','jardinage','arrosage','fleur'] },
+  { cat: 'alimentation-bio',keywords: ['alimentation','bio','nourriture','snack','boisson','thé','café','superaliment','céréale','vegan','sans gluten','organic','épicerie','miel'] },
+  { cat: 'cbd-chanvre',     keywords: ['cbd','chanvre','cannabis','hemp','cannabidiol','fleur cbd','huile cbd'] },
+  { cat: 'enfants-bebes',   keywords: ['enfant','bébé','baby','jouet','jeu','puériculture','poussette','couche','biberon','apprentissage','éveil'] },
+  { cat: 'sport-outdoor',   keywords: ['sport','fitness','musculation','yoga','running','vélo','natation','randonnée','camping','outdoor','gym','trail','ski','tennis','football'] },
+  { cat: 'high-tech',       keywords: ['tech','électronique','smartphone','téléphone','ordinateur','laptop','tablette','casque','écouteur','drone','smart','bluetooth','gaming','console'] },
+  { cat: 'animaux',         keywords: ['animal','animaux','chien','chat','oiseau','poisson','lapin','croquette','litière','collier','aquarium'] },
+  { cat: 'auto-moto',       keywords: ['auto','moto','voiture','véhicule','scooter','pièce auto','pneu','huile moteur','gps','tuning'] },
 ];
 
-// Brand shortcuts — very high confidence
-const BRAND_CAT = {
-  'nike': 'sport-outdoor', 'adidas': 'sport-outdoor', 'under armour': 'sport-outdoor',
-  'reebok': 'sport-outdoor', 'puma': 'sport-outdoor', 'columbia': 'sport-outdoor',
-  'the north face': 'sport-outdoor', 'salomon': 'sport-outdoor', 'asics': 'sport-outdoor',
-  'apple': 'high-tech', 'samsung': 'high-tech', 'sony': 'high-tech', 'lg electronics': 'high-tech',
-  'bose': 'high-tech', 'jbl': 'high-tech', 'anker': 'high-tech', 'xiaomi': 'high-tech',
-  'huawei': 'high-tech', 'philips': 'high-tech', 'logitech': 'high-tech', 'razer': 'high-tech',
-  'corsair': 'high-tech', 'asus': 'high-tech', 'lenovo': 'high-tech', 'dell': 'high-tech',
-  'microsoft': 'high-tech', 'nintendo': 'high-tech', 'playstation': 'high-tech',
-  'loreal': 'beaute-bienetre', 'l\'oréal': 'beaute-bienetre', 'garnier': 'beaute-bienetre',
-  'vichy': 'beaute-bienetre', 'la roche-posay': 'beaute-bienetre', 'nivea': 'beaute-bienetre',
-  'neutrogena': 'beaute-bienetre', 'clarins': 'beaute-bienetre', 'yves rocher': 'beaute-bienetre',
-  'nars': 'beaute-bienetre', 'maybelline': 'beaute-bienetre', 'rimmel': 'beaute-bienetre',
-  'purina': 'animaux', 'royal canin': 'animaux', 'pedigree': 'animaux', 'whiskas': 'animaux',
-  'hill\'s': 'animaux', 'eukanuba': 'animaux', 'felix': 'animaux',
-  'lego': 'enfants-bebes', 'playmobil': 'enfants-bebes', 'hasbro': 'enfants-bebes',
-  'mattel': 'enfants-bebes', 'fisher-price': 'enfants-bebes', 'chicco': 'enfants-bebes',
-  'vertbaudet': 'enfants-bebes', 'oxybul': 'enfants-bebes',
-};
-
-// Program title shortcuts (Affilae/Effinity partner names)
-const PROGRAM_CAT = {
-  'vertbaudet':   'enfants-bebes',
-  'blancheporte': 'mode-vetements',
-  'norauto':      'auto-moto',
-  'lunii':        'enfants-bebes',
-  'valebio':      'sante-nutrition',
-  'naturalia':    'alimentation-bio',
-  'greenweez':    'alimentation-bio',
-  'zooplus':      'animaux',
-  'animalis':     'animaux',
-  'veepee':       'mode-vetements',
-  'showroomprivé':'mode-vetements',
-};
-
-// Feed category string → our category (used for Effinity/AWIN feed_cat field)
-function mapFeedCategory(feedCat) {
-  if (!feedCat) return null;
-  const fc = feedCat.toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // strip accents
-  if (fc.match(/\bmode\b|vetement|chaussure|fashion|lingerie|sac a main|maroquinerie|pret.a.porter/)) return 'mode-vetements';
-  if (fc.match(/\bbeaute\b|cosmetique|maquillage|soin visage|soin corps|parfum|capillaire|coiffure/)) return 'beaute-bienetre';
-  if (fc.match(/\bsante\b|nutrition|complement|vitamine|pharmacie|parapharmacie/)) return 'sante-nutrition';
-  if (fc.match(/\bmaison\b|jardin|deco|meubles|electromenager|eclairage|bricolage|literie|cuisine equipee/)) return 'maison-jardin';
-  if (fc.match(/\benfant\b|bebe|jouet|jeux de societe|puericulture|creche/)) return 'enfants-bebes';
-  if (fc.match(/\bsport\b|fitness|outdoor|randonnee|camping|musculation|velo sport|loisir sportif/)) return 'sport-outdoor';
-  if (fc.match(/high.?tech|informatique|telephone|smartphone|\baudio\b|hifi|gaming|electronique|materiel informatique/)) return 'high-tech';
-  if (fc.match(/\banimal\b|animalerie|\bchien\b|\bchat\b|rongeur/)) return 'animaux';
-  if (fc.match(/\bauto\b|\bmoto\b|voiture|vehicule|pieces auto|accessoires auto/)) return 'auto-moto';
-  if (fc.match(/alimentation|epicerie|boisson|\bthe\b|\bcafe\b|\bbio\b|produit bio/)) return 'alimentation-bio';
-  if (fc.match(/cbd|chanvre|cannabis|hemp/)) return 'cbd-chanvre';
-  return null;
-}
-
 function detectCategory(product) {
-  const title = (product.title || '').toLowerCase();
-  const desc  = (product.description || '').toLowerCase();
-  const prog  = ((product.program && product.program.title) || '').toLowerCase();
-  const brand = (product.brand || '').toLowerCase();
-
-  // 1. Brand shortcut (very high confidence)
-  for (const [b, cat] of Object.entries(BRAND_CAT)) {
-    if (brand === b || brand.startsWith(b) || title.startsWith(b + ' ') || title.includes(' ' + b + ' ')) return cat;
-  }
-
-  // 2. Program name shortcut
-  for (const [p, cat] of Object.entries(PROGRAM_CAT)) {
-    if (prog.includes(p)) return cat;
-  }
-
-  // 3. Weighted keyword scoring: title 3×, program title 2×, description 1×
+  const text = [product.title||'', product.description||'', (product.program&&product.program.title)||''].join(' ').toLowerCase();
   let bestCat = null, bestScore = 0;
   for (const rule of CATEGORY_RULES) {
-    let score = 0;
-    for (const kw of rule.keywords) {
-      if (title.includes(kw))  score += 3;
-      else if (prog.includes(kw)) score += 2;
-      else if (desc.includes(kw)) score += 1;
-    }
+    const score = rule.keywords.filter(kw => text.includes(kw)).length;
     if (score > bestScore) { bestScore = score; bestCat = rule.cat; }
   }
-  // Require score ≥ 3 (at least one title match OR multiple weaker signals)
-  return (bestScore >= 3 && bestCat) ? bestCat : 'autres';
+  return bestCat || 'autres';
 }
 
 function fixEncoding(str) {
@@ -305,23 +149,15 @@ async function syncAffilae() {
   });
   await supabaseUpsert('programs', Object.values(programsMap));
 
-  const mapped = all.map(p => {
-    // Use program categories from Affilae API if available
-    const progCats = (p.program && p.program.categories) || [];
-    const feedCatStr = progCats.join(' ');
-    const category = mapFeedCategory(feedCatStr)
-      || detectCategory({ title: p.title||'', description: p.description||'', program: p.program, brand: p.brand||'' });
-    return {
-      id: p.id, affilae_id: p.id, program_id: p.program ? p.program.id : null,
-      title: p.title||'', description: p.description||null,
-      price: p.price ? p.price/100 : null, currency: 'EUR',
-      url: p.url||null, tracking_id: p.trackingId||null,
-      image_url: p.images&&p.images[0] ? p.images[0].url : null,
-      brand: p.brand||null, ean: extractEAN(p.gtin || p.ean || p.barcode || null),
-      category, lang: p.lang||'fr',
-      status: 'enabled', updated_at: new Date().toISOString()
-    };
-  });
+  const mapped = all.map(p => ({
+    id: p.id, affilae_id: p.id, program_id: p.program ? p.program.id : null,
+    title: p.title||'', description: p.description||null,
+    price: p.price ? p.price/100 : null, currency: 'EUR',
+    url: p.url||null, tracking_id: p.trackingId||null,
+    image_url: p.images&&p.images[0] ? p.images[0].url : null,
+    category: detectCategory(p), lang: p.lang||'fr',
+    status: 'enabled', updated_at: new Date().toISOString()
+  }));
 
   const cats = {};
   mapped.forEach(p => { cats[p.category] = (cats[p.category]||0)+1; });
@@ -443,17 +279,36 @@ async function syncEffinity() {
       const programId = 'effinity_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
       await supabaseUpsert('programs', [{ id:programId, title:feed.name, categories:[], countries:['FR'], updated_at:new Date().toISOString() }]);
 
-      const mapped = products.filter(p=>p.title&&p.url).map((p,i) => ({
-        id: programId+'_'+i, affilae_id: programId+'_'+i, program_id: programId,
-        title: p.title, description: p.description||null, price: p.price||null,
-        currency: 'EUR', url: p.url, tracking_id: null,
-        image_url: p.image_url||null,
-        brand: p.brand||null,
-        ean: p.ean || null,
-        category: feed.category || mapFeedCategory(p.feed_cat) || detectCategory({ title:p.title, description:p.description||'', program:{title:feed.name}, brand:p.brand||'' }),
-        lang: 'fr', status: 'enabled', updated_at: new Date().toISOString()
-      }));
+      // Déduplique par EAN par vendeur — garde le moins cher
+      const eanSeen = new Map();
+      const deduped = [];
+      for (const p of products.filter(p=>p.title&&p.url)) {
+        if (p.ean) {
+          if (!eanSeen.has(p.ean) || p.price < eanSeen.get(p.ean).price) {
+            eanSeen.set(p.ean, p);
+          }
+        } else {
+          deduped.push(p);
+        }
+      }
+      deduped.push(...eanSeen.values());
 
+      const mapped = deduped.map((p,i) => {
+        const rawId = p.product_id ? programId+'_'+p.product_id : programId+'_'+i;
+        const safeId = rawId.replace(/[^a-z0-9_\-]/gi,'_').slice(0,100);
+        return {
+          id: safeId, affilae_id: safeId, program_id: programId,
+          title: p.title, description: p.description||null, price: p.price||null,
+          currency: 'EUR', url: p.url, tracking_id: null,
+          image_url: p.image_url||null,
+          brand: p.brand||null,
+          ean: p.ean || null,
+          category: feed.category || detectCategory({ title:p.title, description:p.description||'', program:{title:feed.name} }),
+          lang: 'fr', status: 'enabled', updated_at: new Date().toISOString()
+        };
+      });
+
+      console.log('  📦 après dédup:', mapped.length, 'produits ('+deduped.length+' uniques)');
       for (let i = 0; i < mapped.length; i += 50) await supabaseUpsert('products', mapped.slice(i,i+50));
       console.log('  ✅', feed.name, ':', mapped.length, 'insérés');
 
@@ -545,41 +400,17 @@ const RAKUTEN_COUNTER = '23254453';
 const RAKUTEN_BASE    = 'https://priceminister.effiliation.com/pm/api.html';
 
 const RAKUTEN_SEARCHES = [
-  // Mode
-  { kw: 'robe',              cat: 'mode-vetements',    nav: 'Mode'           },
-  { kw: 'chaussures femme',  cat: 'mode-vetements',    nav: 'Mode'           },
-  { kw: 'sac à main',        cat: 'mode-vetements',    nav: 'Mode'           },
-  { kw: 'manteau',           cat: 'mode-vetements',    nav: 'Mode'           },
-  // Beauté
-  { kw: 'crème visage',      cat: 'beaute-bienetre',   nav: 'Soins-Beaute'  },
-  { kw: 'parfum femme',      cat: 'beaute-bienetre',   nav: 'Soins-Beaute'  },
-  { kw: 'sérum visage',      cat: 'beaute-bienetre',   nav: 'Soins-Beaute'  },
-  // Santé
-  { kw: 'complément alimentaire', cat: 'sante-nutrition', nav: 'Sante'      },
-  { kw: 'vitamine',          cat: 'sante-nutrition',   nav: 'Sante'          },
-  // Maison
-  { kw: 'aspirateur',        cat: 'maison-jardin',     nav: 'Maison'         },
-  { kw: 'cafetière',         cat: 'maison-jardin',     nav: 'Electromenager' },
-  { kw: 'luminaire',         cat: 'maison-jardin',     nav: 'Maison'         },
-  // High-tech
-  { kw: 'smartphone',        cat: 'high-tech',         nav: 'Informatique'   },
-  { kw: 'casque audio',      cat: 'high-tech',         nav: 'Hifi'           },
-  { kw: 'ordinateur portable',cat: 'high-tech',        nav: 'Informatique'   },
-  { kw: 'tablette',          cat: 'high-tech',         nav: 'Informatique'   },
-  { kw: 'jeux vidéo',        cat: 'high-tech',         nav: 'Jeux-video'     },
-  // Sport
-  { kw: 'vélo',              cat: 'sport-outdoor',     nav: 'Loisirs'        },
-  { kw: 'tapis de course',   cat: 'sport-outdoor',     nav: 'Loisirs'        },
-  { kw: 'chaussures running', cat: 'sport-outdoor',    nav: 'Mode'           },
-  // Enfants
-  { kw: 'jouet enfant',      cat: 'enfants-bebes',     nav: 'Enfant'         },
-  { kw: 'lego',              cat: 'enfants-bebes',     nav: 'Enfant'         },
-  // Auto
-  { kw: 'pneu voiture',      cat: 'auto-moto',         nav: 'auto-moto'      },
-  { kw: 'autoradio',         cat: 'auto-moto',         nav: 'auto-moto'      },
-  // Animaux
-  { kw: 'croquettes chien',  cat: 'animaux',           nav: 'Animalerie'     },
-  { kw: 'litière chat',      cat: 'animaux',           nav: 'Animalerie'     },
+  { kw: 'robe',          cat: 'mode-vetements',   nav: 'Mode'        },
+  { kw: 'chaussures',    cat: 'mode-vetements',   nav: 'Mode'        },
+  { kw: 'vélo',          cat: 'sport-outdoor',    nav: 'Loisirs'     },
+  { kw: 'crème visage',  cat: 'beaute-bienetre',  nav: 'Soins-Beaute'},
+  { kw: 'aspirateur',    cat: 'maison-jardin',    nav: 'Maison'      },
+  { kw: 'smartphone',    cat: 'high-tech',        nav: 'Informatique'},
+  { kw: 'casque audio',  cat: 'high-tech',        nav: 'Hifi'        },
+  { kw: 'jouet enfant',  cat: 'enfants-bebes',    nav: 'Enfant'      },
+  { kw: 'cafetière',     cat: 'maison-jardin',    nav: 'Electromenager'},
+  { kw: 'pneu voiture',  cat: 'auto-moto',        nav: 'auto-moto'   },
+  { kw: 'croquettes',    cat: 'animaux',          nav: 'Animalerie'  },
 ];
 
 function parseRakutenXML(xml) {
@@ -594,10 +425,10 @@ function parseRakutenXML(xml) {
     const title = cleanTitle(get('headline'));
     const url   = get('url');
     const price = parseFloat(getDeep('advertprice','amount')||'0');
+    // Image : extrait l'URL réelle depuis le redirect Effinity
     const imgRedirect = getDeep('image','url');
     const imgMatch = imgRedirect.match(/url=([^&]+)/);
     const image_url = imgMatch ? decodeURIComponent(imgMatch[1]) : '';
-    const ean = extractEAN(get('gtin') || get('ean') || get('isbn') || get('barcode') || '');
 
     if (!title || !url) continue;
     products.push({
@@ -606,7 +437,6 @@ function parseRakutenXML(xml) {
       price,
       url,
       image_url,
-      ean,
       category:    get('category'),
       brand:       get('caption'),
       product_id:  get('productid'),
@@ -637,7 +467,7 @@ async function syncRakuten() {
       const timeout = setTimeout(() => controller.abort(), 15000);
       const res = await fetch(url, { signal: controller.signal });
       clearTimeout(timeout);
-      if (!res.ok) { console.log('  ❌ Rakuten', search.nav, res.status); continue; }
+      if (!res.ok) { console.log('  ❌ Rakuten', catConfig.nav, res.status); continue; }
       const text = await res.text();
       const products = parseRakutenXML(text);
 
@@ -652,8 +482,6 @@ async function syncRakuten() {
         url:         p.url,
         tracking_id: null,
         image_url:   p.image_url || null,
-        brand:       p.brand || null,
-        ean:         p.ean || null,
         category:    search.cat,
         lang:        'fr',
         status:      'enabled',
@@ -672,255 +500,125 @@ async function syncRakuten() {
   console.log('🎉 Rakuten done:', totalInserted, 'produits');
 }
 
-// ══ AWIN (Affiliate Window) ══
-// Supports les flux CSV produits AWIN (datafeeds)
-// Config via env AWIN_FEEDS = JSON array de { name, url, category, limit }
 async function syncAwin() {
   console.log('🔄 Awin sync...');
   const AWIN_FEEDS_JSON = process.env.AWIN_FEEDS;
-  if (!AWIN_FEEDS_JSON) { console.log('⚠️ AWIN_FEEDS manquant — skipped'); return; }
+  if (!AWIN_FEEDS_JSON) { console.log('⚠️ AWIN_FEEDS missing'); return; }
 
   let feeds;
   try { feeds = JSON.parse(AWIN_FEEDS_JSON); } catch(e) { console.log('❌ AWIN_FEEDS JSON invalide'); return; }
 
   for (const feed of feeds) {
     try {
-      const feedLimit = feed.limit || 300;
+      const feedLimit = feed.limit || 2000;
       console.log('  →', feed.name, '(limit:', feedLimit, ')');
 
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30000);
-      const res = await fetch(feed.url, { signal: controller.signal });
-      clearTimeout(timeout);
-      if (!res.ok) { console.log('  ❌ AWIN', feed.name, res.status); continue; }
+      const res = await fetch(feed.url, { headers: { 'Accept-Encoding': 'gzip' } });
+      console.log('  HTTP status:', res.status, 'for', feed.name);
+      if (!res.ok) { console.log('  ❌', feed.name, res.status); continue; }
 
+      // Décompresse gzip si nécessaire
       const buffer = await res.arrayBuffer();
       let text;
-      try { text = new TextDecoder('utf-8', { fatal: true }).decode(buffer); }
-      catch(e) { text = new TextDecoder('iso-8859-1').decode(buffer); }
+      const bytes = new Uint8Array(buffer);
+      // Détecte gzip magic bytes (1f 8b)
+      if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
+        const { createGunzip } = await import('zlib');
+        const { promisify } = await import('util');
+        const gunzip = promisify(createGunzip());
+        // Use Node.js zlib
+        const zlib = await import('zlib');
+        const decompressed = await new Promise((resolve, reject) => {
+          zlib.gunzip(Buffer.from(buffer), (err, result) => {
+            if (err) reject(err); else resolve(result);
+          });
+        });
+        text = decompressed.toString('utf-8');
+      } else {
+        text = new TextDecoder('utf-8').decode(buffer);
+      }
+
+      console.log('  Feed size:', text.length, 'chars');
+
+      // Parse CSV Awin (séparateur virgule par défaut)
+      function parseCSVLine(line, sep) {
+        const result = []; let field = ''; let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const c = line[i];
+          if (c === '"') { if (inQuotes && line[i+1] === '"') { field += '"'; i++; } else inQuotes = !inQuotes; }
+          else if (c === sep && !inQuotes) { result.push(field); field = ''; }
+          else field += c;
+        }
+        result.push(field);
+        return result;
+      }
 
       const lines = text.split('\n').filter(l => l.trim());
-      if (lines.length < 2) { console.log('  ⚠️ AWIN', feed.name, ': flux vide'); continue; }
-
-      // Détecte le séparateur (TSV ou CSV)
-      const sep = lines[0].includes('\t') ? '\t' : (lines[0].includes(';') ? ';' : ',');
-      const headers = lines[0].split(sep).map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
+      const sep = lines[0].includes('\t') ? '\t' : (lines[0].split(';').length > lines[0].split(',').length ? ';' : ',');
+      const headers = parseCSVLine(lines[0], sep).map(h => h.trim().toLowerCase().replace(/\s+/g,'_'));
 
       const products = [];
       const seen = new Set();
 
       for (const line of lines.slice(1)) {
         if (!line.trim()) continue;
-        // Parser CSV simple (guillemets)
-        const vals = [];
-        let field = '', inQ = false;
-        for (let i = 0; i < line.length; i++) {
-          const c = line[i];
-          if (c === '"') { if (inQ && line[i+1] === '"') { field += '"'; i++; } else inQ = !inQ; }
-          else if (c === sep && !inQ) { vals.push(field); field = ''; }
-          else field += c;
-        }
-        vals.push(field);
-        const obj = {};
-        headers.forEach((h, i) => obj[h] = (vals[i] || '').trim());
+        const vals = parseCSVLine(line, sep);
+        const obj = {}; headers.forEach((h, i) => obj[h] = (vals[i]||'').trim());
 
-        // Champs AWIN standard (nom de colonnes AWIN datafeed)
-        const title = cleanTitle(
-          obj['product_name'] || obj['product name'] || obj['name'] || obj['title'] || ''
-        );
-        const url = obj['aw_deep_link'] || obj['deep_link'] || obj['product_url'] || obj['url'] || '';
-        const price = parseFloat(
-          (obj['search_price'] || obj['price'] || obj['rrp_price'] || '0').replace(',', '.')
-        ) || 0;
-        const image_url = obj['aw_image_url'] || obj['merchant_image_url'] || obj['image_url'] || '';
-        const brand  = obj['brand_name'] || obj['brand'] || obj['manufacturer'] || '';
-        const ean    = extractEAN(obj['ean'] || obj['gtin'] || obj['barcode'] || '');
-        const prodId = obj['aw_product_id'] || obj['merchant_product_id'] || obj['product_id'] || obj['id'] || '';
+        const title = cleanTitle(obj.product_name || obj.name || obj.title || '');
+        const url = obj.aw_deep_link || obj.merchant_deep_link || obj.url || '';
+        const price = parseFloat(obj.search_price || obj.store_price || obj.price || '0');
+        const image = obj.aw_image_url || obj.merchant_image_url || obj.large_image || '';
+        const ean = extractEAN(obj.ean || obj.product_gtin || obj.upc || obj.isbn || '');
+        const brand = obj.brand_name || obj.brand || '';
+        const productId = obj.aw_product_id || obj.merchant_product_id || '';
 
-        if (!title || !url) continue;
-        const key = ean || prodId || (title.toLowerCase().trim() + '_' + price);
+        if (!title || !url || price <= 0) continue;
+        const key = productId || (title.toLowerCase() + '_' + price);
         if (seen.has(key)) continue;
         seen.add(key);
-        products.push({ title, url, price, image_url, brand, ean, product_id: prodId });
+        products.push({ title, url, price, image_url:image, ean, brand, product_id:productId });
         if (products.length >= feedLimit) break;
       }
 
-      console.log('  📦 AWIN', feed.name, ':', products.length, 'produits');
+      console.log('  Sample URL:', products[0]?.url);
+      console.log('  📦', feed.name, ':', products.length, 'produits');
 
       const programId = 'awin_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-      await supabaseUpsert('programs', [{
-        id: programId, title: feed.name, categories: [], countries: ['FR'],
-        updated_at: new Date().toISOString()
-      }]);
+      await supabaseUpsert('programs', [{ id:programId, title:feed.name, categories:[], countries:['FR'], updated_at:new Date().toISOString() }]);
 
-      const mapped = products.map((p, i) => ({
-        id:          p.product_id ? programId + '_' + p.product_id : programId + '_' + i,
-        affilae_id:  p.product_id ? programId + '_' + p.product_id : programId + '_' + i,
-        program_id:  programId,
-        title:       p.title,
-        description: null,
-        price:       p.price || null,
-        currency:    'EUR',
-        url:         p.url,
-        tracking_id: null,
-        image_url:   p.image_url || null,
-        brand:       p.brand || null,
-        ean:         p.ean || null,
-        category:    feed.category || mapFeedCategory(p.feed_cat) || detectCategory({ title: p.title, description: '', program: { title: feed.name }, brand: p.brand || '' }),
-        lang:        'fr',
-        status:      'enabled',
-        updated_at:  new Date().toISOString()
-      }));
+      // Dédup par EAN
+      const eanSeen = new Map();
+      const deduped = [];
+      for (const p of products) {
+        if (p.ean) {
+          if (!eanSeen.has(p.ean) || p.price < eanSeen.get(p.ean).price) eanSeen.set(p.ean, p);
+        } else deduped.push(p);
+      }
+      deduped.push(...eanSeen.values());
 
-      for (let i = 0; i < mapped.length; i += 50) await supabaseUpsert('products', mapped.slice(i, i + 50));
-      console.log('  ✅ AWIN', feed.name, ':', mapped.length, 'insérés');
+      const mapped = deduped.map((p, i) => {
+        const rawId = p.product_id ? programId+'_'+p.product_id : programId+'_'+i;
+        return {
+          id: rawId.replace(/[^a-z0-9_\-]/gi,'_').slice(0,100),
+          affilae_id: rawId.slice(0,100),
+          program_id: programId,
+          title: p.title, description: null,
+          price: p.price, currency: feed.currency || 'EUR',
+          url: p.url, tracking_id: null,
+          image_url: p.image_url || null,
+          brand: p.brand || null, ean: p.ean || null,
+          category: feed.category || detectCategory({ title:p.title, description:'', program:{title:feed.name} }),
+          lang: 'fr', status: 'enabled', updated_at: new Date().toISOString()
+        };
+      });
 
-    } catch(e) {
-      console.log('  ⚠️ AWIN', feed.name, ':', e.message);
-    }
+      for (let i = 0; i < mapped.length; i += 50) await supabaseUpsert('products', mapped.slice(i, i+50));
+      console.log('  ✅', feed.name, ':', mapped.length, 'insérés');
+
+    } catch(e) { console.log('  ⚠️', feed.name, ':', e.message); }
   }
   console.log('🎉 Awin done');
-}
-
-// ══ AWIN MERCHANTS — flux directs avec tracking affilié ══
-const AWIN_PUBLISHER_ID = '2855063';
-
-const AWIN_MERCHANTS = [
-  {
-    id: '105475', name: 'Perfumeria Comas', cat: 'beaute-bienetre',
-    feedUrl: 'https://productdata.awin.com/datafeed/download/apikey/9286caa1eff7176a0a48abae76b26893/language/fr/fid/97867/rid/0/hasEnhancedFeeds/0/columns/aw_deep_link,product_name,aw_product_id,merchant_product_id,merchant_image_url,description,merchant_category,search_price,merchant_name,merchant_id,category_name,aw_image_url,currency,store_price,delivery_cost,merchant_deep_link,language,last_updated,display_price,data_feed_id/format/csv/delimiter/%2C/compression/gzip/adultcontent/1/',
-  },
-  {
-    id: '12592', name: 'Acer France', cat: 'high-tech',
-    feedUrl: 'https://productdata.awin.com/datafeed/download/apikey/9286caa1eff7176a0a48abae76b26893/language/fr/fid/33173,54275,65117,104197/rid/0/hasEnhancedFeeds/0/columns/aw_deep_link,product_name,aw_product_id,merchant_product_id,merchant_image_url,description,merchant_category,search_price,merchant_name,merchant_id,category_name,category_id,aw_image_url,currency,store_price,delivery_cost,merchant_deep_link,language,last_updated,display_price,data_feed_id/format/csv/delimiter/%2C/compression/gzip/adultcontent/1/',
-  },
-  {
-    id: '122426', name: 'IMOU FR', cat: 'high-tech',
-    feedUrl: 'https://ui.awin.com/productdata-darwin-download/publisher/2855063/9286caa1eff7176a0a48abae76b26893/1/feed/F2157.csv.gz',
-  },
-  {
-    id: '7928', name: 'Pneus FR', cat: 'auto-moto',
-    feedUrl: 'https://productdata.awin.com/datafeed/download/apikey/9286caa1eff7176a0a48abae76b26893/language/fr/fid/21301/rid/0/hasEnhancedFeeds/0/columns/aw_deep_link,product_name,aw_product_id,merchant_product_id,merchant_image_url,description,merchant_category,search_price,merchant_name,merchant_id,category_name,category_id,aw_image_url,currency,store_price,delivery_cost,merchant_deep_link,language,last_updated,display_price,data_feed_id/format/csv/delimiter/%2C/compression/gzip/adultcontent/1/',
-  },
-  {
-    id: '123918', name: 'Planetfoot', cat: 'sport-outdoor',
-    feedUrl: 'https://ui.awin.com/productdata-darwin-download/publisher/2855063/9286caa1eff7176a0a48abae76b26893/1/feed/F3201.csv.gz',
-  },
-  {
-    id: '114822', name: 'Atmosfera Sport', cat: 'sport-outdoor',
-    feedUrl: 'https://productdata.awin.com/datafeed/download/apikey/9286caa1eff7176a0a48abae76b26893/language/fr/fid/101797/rid/0/hasEnhancedFeeds/0/columns/aw_deep_link,product_name,aw_product_id,merchant_product_id,merchant_image_url,description,merchant_category,search_price,merchant_name,merchant_id,category_name,category_id,aw_image_url,currency,store_price,delivery_cost,merchant_deep_link,language,last_updated,display_price,data_feed_id/format/csv/delimiter/%2C/compression/gzip/adultcontent/1/',
-  },
-  {
-    id: null, name: 'Navimow', cat: 'maison-jardin',
-    feedUrl: 'https://productdata.awin.com/datafeed/download/apikey/9286caa1eff7176a0a48abae76b26893/language/fr/fid/111150/rid/0/hasEnhancedFeeds/0/columns/aw_deep_link,product_name,aw_product_id,merchant_product_id,merchant_image_url,description,merchant_category,search_price,merchant_name,merchant_id,category_name,category_id,aw_image_url,currency,store_price,delivery_cost,merchant_deep_link,language,last_updated,display_price,data_feed_id/format/csv/delimiter/%2C/compression/gzip/adultcontent/1/',
-  },
-];
-
-function awinTrackUrl(awinmid, productUrl) {
-  return `https://www.awin1.com/cread.php?awinmid=${awinmid}&awinaffid=${AWIN_PUBLISHER_ID}&ued=${encodeURIComponent(productUrl)}`;
-}
-
-async function downloadFeed(url) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 90000);
-  const res = await fetch(url, { signal: controller.signal });
-  clearTimeout(timeout);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const buffer = Buffer.from(await res.arrayBuffer());
-  // Gzip detection: magic bytes 1f 8b
-  if (buffer[0] === 0x1f && buffer[1] === 0x8b) {
-    const decompressed = await gunzip(buffer);
-    return decompressed.toString('utf-8');
-  }
-  try { return new TextDecoder('utf-8', { fatal: true }).decode(buffer); }
-  catch(e) { return new TextDecoder('iso-8859-1').decode(buffer); }
-}
-
-async function syncAwinMerchants() {
-  console.log('🔄 AWIN Merchants sync...');
-
-  for (const merchant of AWIN_MERCHANTS) {
-    if (!merchant.feedUrl) {
-      console.log(`  ⏭️ ${merchant.name}: pas encore de flux configuré`);
-      continue;
-    }
-    try {
-      console.log(`  → ${merchant.name}`);
-      const text = await downloadFeed(merchant.feedUrl);
-      const lines = text.split('\n').filter(l => l.trim());
-      if (lines.length < 2) { console.log(`  ⚠️ ${merchant.name}: flux vide`); continue; }
-
-      const sep = lines[0].includes('|') ? '|' : (lines[0].includes('\t') ? '\t' : ',');
-      const headers = lines[0].split(sep).map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
-
-      const products = [];
-      const seen = new Set();
-      const LIMIT = 500;
-
-      for (const line of lines.slice(1)) {
-        if (!line.trim()) continue;
-        const vals = line.split(sep);
-        const obj = {};
-        headers.forEach((h, i) => obj[h] = (vals[i] || '').trim().replace(/^"|"$/g, ''));
-
-        const title     = cleanTitle(obj['product_name'] || obj['product name'] || obj['name'] || obj['title'] || '');
-        // aw_deep_link already contains AWIN affiliate tracking — use it directly
-        const trackUrl  = obj['aw_deep_link'] || obj['deep_link'] || '';
-        const price     = parseFloat((obj['search_price'] || obj['price'] || obj['rrp_price'] || '0').replace(',', '.')) || 0;
-        const image_url = obj['aw_image_url'] || obj['merchant_image_url'] || obj['image_url'] || '';
-        const brand     = obj['brand_name'] || obj['brand'] || obj['manufacturer'] || '';
-        const ean       = extractEAN(obj['ean'] || obj['gtin'] || obj['barcode'] || '');
-        const prodId    = obj['aw_product_id'] || obj['merchant_product_id'] || obj['product_id'] || obj['id'] || '';
-        const feedCat   = obj['category_name'] || obj['merchant_category'] || obj['category'] || '';
-        // Read merchant_id from feed data (useful for merchants with id: null like Navimow)
-        const mid = merchant.id || obj['merchant_id'] || '';
-
-        if (!title || !trackUrl) continue;
-        const key = ean || prodId || (title.toLowerCase().trim() + '_' + price);
-        if (seen.has(key)) continue;
-        seen.add(key);
-
-        products.push({ title, url: trackUrl, price, image_url, brand, ean, product_id: prodId, feed_cat: feedCat, mid });
-        if (products.length >= LIMIT) break;
-      }
-
-      console.log(`  📦 ${merchant.name}: ${products.length} produits`);
-
-      // Use actual merchant_id from feed data if not known upfront (e.g. Navimow)
-      const resolvedMid = merchant.id || (products[0] && products[0].mid) || merchant.name.toLowerCase().replace(/\s+/g,'_');
-      const programId = 'awin_' + resolvedMid;
-      await supabaseUpsert('programs', [{
-        id: programId, title: merchant.name, categories: [], countries: ['FR'],
-        updated_at: new Date().toISOString()
-      }]);
-
-      const mapped = products.map((p, i) => ({
-        id:          p.product_id ? programId + '_' + p.product_id : programId + '_' + i,
-        affilae_id:  p.product_id ? programId + '_' + p.product_id : programId + '_' + i,
-        program_id:  programId,
-        title:       p.title,
-        description: null,
-        price:       p.price || null,
-        currency:    'EUR',
-        url:         p.url,
-        tracking_id: null,
-        image_url:   p.image_url || null,
-        brand:       p.brand || null,
-        ean:         p.ean || null,
-        category:    merchant.cat || mapFeedCategory(p.feed_cat) || detectCategory({ title: p.title, description: '', program: { title: merchant.name }, brand: p.brand || '' }),
-        lang:        'fr',
-        status:      'enabled',
-        updated_at:  new Date().toISOString()
-      }));
-
-      for (let i = 0; i < mapped.length; i += 50) await supabaseUpsert('products', mapped.slice(i, i + 50));
-      console.log(`  ✅ ${merchant.name}: ${mapped.length} insérés`);
-
-    } catch(e) {
-      console.log(`  ⚠️ ${merchant.name}:`, e.message);
-    }
-  }
-  console.log('🎉 AWIN Merchants done');
 }
 
 async function main() {
@@ -930,7 +628,6 @@ async function main() {
     await syncBCDJeux();
     await syncRakuten();
     await syncAwin();
-    await syncAwinMerchants();
     if (_neonClient) await _neonClient.end();
     console.log('🎉 All done!');
   } catch(e) {
@@ -941,5 +638,3 @@ async function main() {
 }
 
 main();
-
-// v5 - includes syncAwin (AWIN affiliate feeds)
