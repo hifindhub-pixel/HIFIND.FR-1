@@ -19,8 +19,8 @@
   --bg2: #111116;
   --bg3: #1a1a22;
   --bg4: #222230;
-  --red: #FF3B30;
-  --red-h: #E8352A;
+  --coral: #FF6B6B;
+  --coral-h: #FF5252;
   --green: #22c55e;
   --text: #ffffff;
   --sub: #9999aa;
@@ -92,7 +92,7 @@ nav {
   transition:border-color .2s, box-shadow .2s;
 }
 .nav-search:focus-within {
-  border-color:var(--red);
+  border-color:var(--coral);
   box-shadow:0 0 0 3px rgba(255,59,48,.15);
 }
 .nav-search input {
@@ -101,10 +101,10 @@ nav {
 }
 .nav-search input::placeholder { color:var(--dim); }
 .nav-search button {
-  padding:.65rem 1rem; background:var(--red); border:none;
+  padding:.65rem 1rem; background:var(--coral); border:none;
   color:#fff; font-size:.9rem; transition:background .2s;
 }
-.nav-search button:hover { background:var(--red-h); }
+.nav-search button:hover { background:var(--coral-h); }
 
 .nav-cats {
   display:flex; align-items:center; gap:.15rem;
@@ -118,7 +118,7 @@ nav {
   white-space:nowrap;
 }
 .nav-cat:hover { color:var(--text); background:var(--bg3); }
-.nav-cat.active { color:var(--red); }
+.nav-cat.active { color:var(--coral); }
 
 .nav-actions { display:flex; align-items:center; gap:.5rem; flex-shrink:0; }
 .nav-icon-btn {
@@ -152,7 +152,7 @@ nav {
 .hero-badge {
   display:inline-flex; align-items:center; gap:.4rem;
   background:rgba(255,59,48,.12); border:1px solid rgba(255,59,48,.3);
-  color:var(--red); font-size:.73rem; font-weight:700;
+  color:var(--coral); font-size:.73rem; font-weight:700;
   text-transform:uppercase; letter-spacing:.08em;
   padding:.3rem .8rem; border-radius:100px; margin-bottom:1.5rem;
 }
@@ -162,7 +162,7 @@ nav {
   font-weight:900; line-height:1.05;
   letter-spacing:-.02em; margin-bottom:1.2rem;
 }
-.hero h1 .accent { color:var(--red); }
+.hero h1 .accent { color:var(--coral); }
 .hero-sub {
   color:var(--sub); font-size:1rem; line-height:1.7;
   max-width:480px; margin-bottom:2rem;
@@ -176,14 +176,14 @@ nav {
   border-radius:8px; color:var(--text); font-size:.95rem;
   outline:none; transition:border-color .2s;
 }
-.hero-search input:focus { border-color:var(--red); }
+.hero-search input:focus { border-color:var(--coral); }
 .hero-search input::placeholder { color:var(--dim); }
 .hero-search button {
-  padding:.85rem 1.8rem; background:var(--red); border:none;
+  padding:.85rem 1.8rem; background:var(--coral); border:none;
   border-radius:8px; color:#fff; font-weight:700; font-size:.9rem;
   transition:background .2s; white-space:nowrap;
 }
-.hero-search button:hover { background:var(--red-h); }
+.hero-search button:hover { background:var(--coral-h); }
 .hero-popular {
   display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;
 }
@@ -193,7 +193,7 @@ nav {
   border-radius:6px; font-size:.78rem; color:var(--sub);
   transition:all .2s; cursor:pointer;
 }
-.hero-tag:hover { background:rgba(255,59,48,.1); border-color:rgba(255,59,48,.3); color:var(--red); }
+.hero-tag:hover { background:rgba(255,59,48,.1); border-color:rgba(255,59,48,.3); color:var(--coral); }
 
 .hero-visual {
   position:relative; display:flex; justify-content:center; align-items:center;
@@ -218,7 +218,7 @@ nav {
   padding:.7rem 1rem;
 }
 .hero-price-float .from { font-size:.65rem; color:var(--sub); }
-.hero-price-float .price { font-family:'Barlow Condensed',sans-serif; font-size:1.5rem; font-weight:900; color:var(--red); }
+.hero-price-float .price { font-family:'Barlow Condensed',sans-serif; font-size:1.5rem; font-weight:900; color:var(--coral); }
 .hero-price-float .offers { font-size:.65rem; color:var(--sub); margin-top:.1rem; }
 
 /* ═══════════════════════════════════════
@@ -251,7 +251,7 @@ nav {
 .section { max-width:1400px; margin:0 auto; padding:3rem 1.5rem; }
 .section-label {
   font-size:.7rem; font-weight:700; letter-spacing:.12em;
-  text-transform:uppercase; color:var(--red); margin-bottom:.4rem;
+  text-transform:uppercase; color:var(--coral); margin-bottom:.4rem;
   display:flex; align-items:center; gap:.4rem;
 }
 .section-title {
@@ -346,7 +346,7 @@ nav {
 .prod-card:hover .prod-card-img img { transform:scale(1.05); }
 .prod-card-badge {
   position:absolute; top:.6rem; left:.6rem;
-  background:var(--red); color:#fff;
+  background:var(--coral); color:#fff;
   font-family:'Barlow Condensed',sans-serif;
   font-size:.75rem; font-weight:900; letter-spacing:.04em;
   padding:.2rem .5rem; border-radius:5px;
@@ -405,14 +405,14 @@ nav {
   border-radius:8px; color:var(--text); font-size:.9rem; outline:none;
   transition:border-color .2s;
 }
-.sp-input:focus { border-color:var(--red); }
+.sp-input:focus { border-color:var(--coral); }
 .sp-input::placeholder { color:var(--dim); }
 .sp-btn {
-  padding:0 1.4rem; background:var(--red); border:none;
+  padding:0 1.4rem; background:var(--coral); border:none;
   color:#fff; font-weight:700; border-radius:8px; font-size:.85rem;
   transition:background .2s;
 }
-.sp-btn:hover { background:var(--red-h); }
+.sp-btn:hover { background:var(--coral-h); }
 
 .search-layout {
   max-width:1400px; margin:0 auto;
@@ -429,7 +429,7 @@ nav {
   display:flex; align-items:center; justify-content:space-between;
 }
 .filters-head-title { font-size:.8rem; font-weight:700; }
-.filters-reset { font-size:.72rem; color:var(--red); font-weight:600; cursor:pointer; }
+.filters-reset { font-size:.72rem; color:var(--coral); font-weight:600; cursor:pointer; }
 .filter-section { padding:.8rem 1rem; border-bottom:1px solid var(--border); }
 .filter-section:last-child { border-bottom:none; }
 .filter-label { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--dim); margin-bottom:.5rem; }
@@ -440,21 +440,21 @@ nav {
   transition:all .2s; cursor:pointer; margin-bottom:.2rem;
 }
 .fcat:hover { background:var(--bg3); color:var(--text); }
-.fcat.active { background:rgba(255,59,48,.1); border-color:rgba(255,59,48,.3); color:var(--red); font-weight:600; }
-.price-slider { width:100%; accent-color:var(--red); margin:.4rem 0; }
+.fcat.active { background:rgba(255,59,48,.1); border-color:rgba(255,59,48,.3); color:var(--coral); font-weight:600; }
+.price-slider { width:100%; accent-color:var(--coral); margin:.4rem 0; }
 .price-range-btn {
   display:block; width:100%; text-align:left; padding:.35rem .6rem;
   background:var(--bg3); border:1px solid var(--border);
   border-radius:7px; font-size:.75rem; color:var(--sub);
   cursor:pointer; margin-bottom:.2rem; transition:all .2s;
 }
-.price-range-btn:hover, .price-range-btn.active { border-color:var(--red); color:var(--red); }
+.price-range-btn:hover, .price-range-btn.active { border-color:var(--coral); color:var(--coral); }
 .filter-apply {
-  width:100%; padding:.5rem; background:var(--red); border:none;
+  width:100%; padding:.5rem; background:var(--coral); border:none;
   border-radius:7px; color:#fff; font-weight:700; font-size:.8rem;
   margin-top:.5rem; transition:background .2s;
 }
-.filter-apply:hover { background:var(--red-h); }
+.filter-apply:hover { background:var(--coral-h); }
 
 .results-top {
   display:flex; align-items:center; justify-content:space-between;
@@ -491,7 +491,7 @@ nav {
   flex:1; padding:1rem 1.2rem;
   display:flex; flex-direction:column; gap:.4rem; min-width:0;
 }
-.pcard-brand { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--red); }
+.pcard-brand { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--coral); }
 .pcard-name {
   font-size:.92rem; font-weight:700; line-height:1.35; color:var(--text);
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
@@ -515,18 +515,18 @@ nav {
 }
 .pcard-actions { display:flex; gap:.4rem; }
 .pcard-btn {
-  padding:.48rem 1.1rem; background:var(--red); border:none;
+  padding:.48rem 1.1rem; background:var(--coral); border:none;
   border-radius:7px; color:#fff; font-weight:700;
   font-size:.8rem; transition:background .2s;
 }
-.pcard-btn:hover { background:var(--red-h); }
+.pcard-btn:hover { background:var(--coral-h); }
 .pcard-btn-fav {
   width:34px; height:34px; border-radius:7px;
   background:var(--bg3); border:1px solid var(--border);
   display:flex; align-items:center; justify-content:center;
   font-size:.85rem; transition:all .2s;
 }
-.pcard-btn-fav:hover { border-color:var(--red); }
+.pcard-btn-fav:hover { border-color:var(--coral); }
 
 /* ═══════════════════════════════════════
    DETAIL PAGE
@@ -551,7 +551,7 @@ nav {
 .detail-info {}
 .detail-brand {
   font-size:.7rem; font-weight:700; text-transform:uppercase;
-  letter-spacing:.08em; color:var(--red); margin-bottom:.4rem;
+  letter-spacing:.08em; color:var(--coral); margin-bottom:.4rem;
 }
 .detail-name {
   font-family:'Barlow',sans-serif; font-size:1.6rem;
@@ -565,7 +565,7 @@ nav {
 .detail-price-label { font-size:.7rem; color:var(--sub); font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.2rem; }
 .detail-price-val {
   font-family:'Barlow Condensed',sans-serif;
-  font-size:2.2rem; font-weight:900; color:var(--red); line-height:1;
+  font-size:2.2rem; font-weight:900; color:var(--coral); line-height:1;
 }
 .detail-price-ship { font-size:.72rem; color:var(--green); margin-top:.2rem; }
 .detail-fav-btn {
@@ -574,7 +574,7 @@ nav {
   font-weight:600; font-size:.82rem; color:var(--text); cursor:pointer;
   transition:all .2s; white-space:nowrap;
 }
-.detail-fav-btn:hover { border-color:var(--red); color:var(--red); }
+.detail-fav-btn:hover { border-color:var(--coral); color:var(--coral); }
 
 .offers-table {
   border:1px solid var(--border); border-radius:12px; overflow:hidden;
@@ -603,7 +603,7 @@ nav {
 .offer-logo { width:22px; height:22px; border-radius:4px; object-fit:contain; }
 .offer-logo-placeholder {
   width:22px; height:22px; border-radius:4px;
-  background:var(--red); display:flex; align-items:center;
+  background:var(--coral); display:flex; align-items:center;
   justify-content:center; color:#fff; font-size:.55rem; font-weight:900;
 }
 .offer-name { font-weight:700; font-size:.85rem; }
@@ -657,9 +657,9 @@ nav {
 .empty-icon { font-size:3rem; margin-bottom:1rem; }
 .empty-title { font-family:'Barlow',sans-serif; font-size:1.2rem; font-weight:800; margin-bottom:.5rem; }
 .empty-sub { color:var(--sub); font-size:.85rem; max-width:300px; margin:0 auto 1.5rem; line-height:1.6; }
-.empty-btn { padding:.6rem 1.5rem; background:var(--red); border:none; border-radius:7px; color:#fff; font-weight:700; font-size:.85rem; cursor:pointer; }
+.empty-btn { padding:.6rem 1.5rem; background:var(--coral); border:none; border-radius:7px; color:#fff; font-weight:700; font-size:.85rem; cursor:pointer; }
 .spinner { display:flex; align-items:center; justify-content:center; padding:4rem; flex-direction:column; gap:1rem; }
-.spin { width:36px; height:36px; border-radius:50%; border:3px solid var(--border); border-top-color:var(--red); animation:spin .7s linear infinite; }
+.spin { width:36px; height:36px; border-radius:50%; border:3px solid var(--border); border-top-color:var(--coral); animation:spin .7s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
 .spin-lbl { color:var(--sub); font-size:.82rem; }
 
@@ -679,7 +679,7 @@ nav {
 .footer-col a { display:block; font-size:.8rem; color:var(--dim); margin-bottom:.4rem; cursor:pointer; transition:color .2s; }
 .footer-col a:hover { color:var(--text); }
 .footer-bottom { max-width:1400px; margin:2rem auto 0; border-top:1px solid var(--border); padding-top:1.2rem; text-align:center; font-size:.73rem; color:var(--dim); }
-.footer-bottom a { color:var(--red); cursor:pointer; }
+.footer-bottom a { color:var(--coral); cursor:pointer; }
 
 /* ═══════════════════════════════════════
    RESPONSIVE
@@ -863,13 +863,15 @@ nav {
           <div class="cat-link">Explorer →</div>
         </div>
       </div>
-      <div class="cat-card medium hiflight-card" onclick="window.open('https://hiflight.fr','_blank')">
-        <div class="cat-content" style="bottom:auto;top:0;padding:1.5rem">
-          <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.6);background:rgba(255,255,255,.15);padding:.2rem .5rem;border-radius:4px;display:inline-block;margin-bottom:.5rem">★ SITE PARTENAIRE</div>
-          <div style="font-size:2rem;margin-bottom:.3rem">✈️</div>
-          <div class="cat-tag">Comparez les vols</div>
-          <div class="cat-name">Vols</div>
-          <div class="cat-link" style="color:rgba(255,255,255,.8)">Direction hiflight.fr — notre comparateur dédié aux billets d'avion.</div>
+      <div class="cat-card medium" onclick="window.open('https://hiflight.fr','_blank')" style="background:#0f172a;border:1px solid rgba(99,179,237,.2);overflow:hidden;position:relative">
+        <img class="cat-img" src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&q=80" alt="Voyager" style="opacity:.5">
+        <div class="cat-overlay"></div>
+        <div class="cat-content">
+          <div style="font-family:'Outfit',sans-serif;font-weight:900;font-size:1.1rem;margin-bottom:.3rem">
+            <span style="color:#FF6B6B">Hi</span><span style="color:#63b3ed">Flight</span>
+          </div>
+          <div class="cat-name" style="font-size:1rem;color:#fff">Voyagez moins cher avec HiFlight</div>
+          <div class="cat-link" style="color:#63b3ed;margin-top:.3rem">Comparer les vols →</div>
         </div>
       </div>
     </div>
@@ -905,9 +907,11 @@ nav {
       <div class="sp-wrap">
         <span class="sp-icon">🔍</span>
         <input class="sp-input" type="text" id="spInput" placeholder="Rechercher un produit..."
-          onkeydown="if(event.key==='Enter') doSpSearch()"
-          oninput="document.getElementById('spClear').style.display=this.value?'block':'none'"
+          onkeydown="if(event.key==='Enter'){doSpSearch();hideSugg('spSugg')}"
+          oninput="showSuggestions('spSugg',this.value);document.getElementById('spClear').style.display=this.value?'block':'none'"
+          onblur="setTimeout(()=>hideSugg('spSugg'),200)"
           autocomplete="off">
+        <div id="spSugg" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:150;margin-top:4px"></div>
         <button id="spClear" style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--dim);font-size:1rem;cursor:pointer;display:none" onclick="clearSearch()">✕</button>
       </div>
       <button class="sp-btn" onclick="doSpSearch()">Rechercher</button>
@@ -919,19 +923,7 @@ nav {
         <span class="filters-head-title">Filtres</span>
         <span class="filters-reset" onclick="clearFilters()">Réinitialiser</span>
       </div>
-      <div class="filter-section">
-        <div class="filter-label">Catégorie</div>
-        <button class="fcat active" onclick="filterCat('',this)">Tout</button>
-        <button class="fcat" onclick="filterCat('beaute-bienetre',this)">💄 Beauté & Santé</button>
-        <button class="fcat" onclick="filterCat('mode-vetements',this)">👗 Mode</button>
-        <button class="fcat" onclick="filterCat('high-tech',this)">📱 High-Tech</button>
-        <button class="fcat" onclick="filterCat('auto-moto',this)">🚗 Auto & Moto</button>
-        <button class="fcat" onclick="filterCat('sport-outdoor',this)">⚽ Sport</button>
-        <button class="fcat" onclick="filterCat('enfants-bebes',this)">👶 Enfants</button>
-        <button class="fcat" onclick="filterCat('maison-jardin',this)">🏠 Maison</button>
-        <button class="fcat" onclick="filterCat('animaux',this)">🐾 Animaux</button>
-        <button class="fcat" onclick="filterCat('alimentation-bio',this)">🌿 Bio</button>
-      </div>
+      <!-- PRIX -->
       <div class="filter-section">
         <div class="filter-label">Prix maximum</div>
         <input type="range" class="price-slider" id="priceSlider" min="0" max="2000" value="2000" oninput="updatePriceDisplay()">
@@ -942,6 +934,21 @@ nav {
         <button class="price-range-btn" onclick="setPriceRange(100)">Moins de 100 €</button>
         <button class="price-range-btn" onclick="setPriceRange(500)">Moins de 500 €</button>
         <button class="filter-apply" onclick="applyFilters()">Appliquer</button>
+      </div>
+      <!-- MARQUES -->
+      <div class="filter-section">
+        <div class="filter-label">Marque</div>
+        <div id="brandFilters" style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:.2rem">
+          <div style="font-size:.73rem;color:var(--dim)">Chargement...</div>
+        </div>
+      </div>
+      <!-- LIVRAISON -->
+      <div class="filter-section">
+        <div class="filter-label">Livraison</div>
+        <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer;padding:.25rem 0">
+          <input type="checkbox" id="filterFreeShip" onchange="applyFilters()" style="accent-color:var(--coral)">
+          Livraison gratuite
+        </label>
       </div>
     </aside>
     <div>
@@ -1120,6 +1127,8 @@ async function runSearch(q) {
     currentResults = data.data;
     renderResults(currentResults);
     updateCount(currentResults.length, q);
+    loadBrandFilters(currentResults);
+    updateSliderMax(currentResults);
   } else {
     document.getElementById('resultsContainer').innerHTML =
       '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun résultat</div><div class="empty-sub">Essayez avec d\'autres mots clés</div></div>';
@@ -1136,6 +1145,7 @@ async function loadCategory(cat) {
   if (data && data.data && data.data.length > 0) {
     currentResults = data.data;
     updateSliderMax(currentResults);
+    loadBrandFilters(currentResults);
     renderResults(currentResults);
     updateCount(currentResults.length, cat || 'tous les produits');
   } else {
@@ -1188,14 +1198,25 @@ function updateSliderMax(results) {
 
 function applyFilters() {
   var maxPrice = parseFloat(document.getElementById('priceSlider').value) || Infinity;
-  var filtered = currentResults.filter(p => (parseFloat(p.price) || 0) <= maxPrice);
+  var checkedBrands = Array.from(document.querySelectorAll('.brand-cb:checked')).map(c => c.value);
+  var freeShip = document.getElementById('filterFreeShip') && document.getElementById('filterFreeShip').checked;
+  var filtered = currentResults.filter(function(p) {
+    if ((parseFloat(p.price)||0) > maxPrice) return false;
+    if (checkedBrands.length > 0) {
+      var b = p.brand || p.program_title || '';
+      if (!checkedBrands.includes(b)) return false;
+    }
+    return true;
+  });
   renderResults(filtered);
   updateCount(filtered.length, '');
 }
 
 function clearFilters() {
-  document.querySelectorAll('.fcat').forEach((b, i) => b.classList.toggle('active', i === 0));
   document.querySelectorAll('.price-range-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.brand-cb').forEach(c => c.checked = false);
+  var fs = document.getElementById('filterFreeShip');
+  if (fs) fs.checked = false;
   updateSliderMax(currentResults);
   renderResults(currentResults);
 }
@@ -1450,6 +1471,54 @@ function prodCardSmall(p, showBadge) {
       + '<div class="prod-card-offers"><span>' + offers + ' offre' + (offers > 1 ? 's' : '') + '</span> comparée' + (offers > 1 ? 's' : '') + '</div>'
     + '</div>'
   + '</div>';
+}
+
+// ══ SUGGESTIONS ══
+var SUGGESTIONS = ['parfum femme','parfum homme','crème visage','shampoing','soin cheveux',
+  'pneu été','pneu hiver','huile moteur','autoradio','kit freinage',
+  'basket homme','basket femme','chaussures running','chaussures randonnée',
+  'ordinateur portable','pc gamer','casque audio','écouteurs bluetooth','tablette',
+  'tapis de course','vélo elliptique','appareil musculation',
+  'robe été','jean slim','manteau femme','veste homme',
+  'siège auto enfant','poussette','jouet bébé','lego',
+  'tondeuse','taille haie','robot cuisine','cafetière'];
+
+function showSuggestions(id, val) {
+  var el = document.getElementById(id);
+  if (!val || val.length < 2) { el.style.display='none'; return; }
+  var matches = SUGGESTIONS.filter(function(s){ return s.toLowerCase().includes(val.toLowerCase()); }).slice(0,6);
+  if (!matches.length) { el.style.display='none'; return; }
+  el.innerHTML = '';
+  matches.forEach(function(s) {
+    var idx = s.toLowerCase().indexOf(val.toLowerCase());
+    var div = document.createElement('div');
+    div.style.cssText = 'padding:.65rem 1rem;cursor:pointer;font-size:.88rem;display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--border);transition:background .15s';
+    div.innerHTML = '🔍 ' + s.slice(0,idx) + '<strong style="color:var(--coral)">' + s.slice(idx,idx+val.length) + '</strong>' + s.slice(idx+val.length);
+    div.onmouseover = function(){ this.style.background='var(--bg3)'; };
+    div.onmouseout = function(){ this.style.background=''; };
+    div.onclick = (function(term,elId){ return function(){ searchFor(term); hideSugg(elId); }; })(s,id);
+    el.appendChild(div);
+  });
+  el.style.display = 'block';
+}
+function hideSugg(id) { var el=document.getElementById(id); if(el) el.style.display='none'; }
+
+// ══ BRAND FILTERS ══
+function loadBrandFilters(results) {
+  var brands = {};
+  results.forEach(function(p) {
+    var b = p.brand || p.program_title || '';
+    if (b) brands[b] = (brands[b]||0) + 1;
+  });
+  var el = document.getElementById('brandFilters');
+  if (!el) return;
+  var sorted = Object.entries(brands).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  el.innerHTML = sorted.map(function(e) {
+    return '<label style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;cursor:pointer;padding:.2rem 0">'
+      + '<input type="checkbox" class="brand-cb" value="' + e[0] + '" onchange="applyFilters()" style="accent-color:var(--coral)">'
+      + e[0] + ' <span style="color:var(--dim);font-size:.7rem;margin-left:auto">(' + e[1] + ')</span>'
+      + '</label>';
+  }).join('');
 }
 
 async function initHome() {
