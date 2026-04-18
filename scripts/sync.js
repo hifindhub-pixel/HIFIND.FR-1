@@ -523,10 +523,6 @@ async function syncAwin() {
       const bytes = new Uint8Array(buffer);
       // Détecte gzip magic bytes (1f 8b)
       if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
-        const { createGunzip } = await import('zlib');
-        const { promisify } = await import('util');
-        const gunzip = promisify(createGunzip());
-        // Use Node.js zlib
         const zlib = await import('zlib');
         const decompressed = await new Promise((resolve, reject) => {
           zlib.gunzip(Buffer.from(buffer), (err, result) => {
