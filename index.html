@@ -1,608 +1,914 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="fr" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HiFind — Comparateur de Prix</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FF6B6B'/%3E%3Ctext x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='17' fill='white'%3EHi%3C/text%3E%3C/svg%3E">
+<title>HiFind — Comparateur de Prix N°1 en France</title>
+<meta name="description" content="Comparez les prix de milliers de produits sur tous les grands marchands français. Économisez jusqu'à 40% sur vos achats.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FF3B30'/%3E%3Ctext x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='14' fill='white'%3EHi%3C/text%3E%3C/svg%3E">
 <link rel="icon" type="image/png" href="/favicon.png">
-<link rel="apple-touch-icon" href="/favicon.png">
-<meta property="og:image" content="https://hifind.fr/favicon.png">
-<meta property="og:title" content="HiFind — Comparateur de Prix">
-<meta property="og:description" content="Comparez les prix de milliers de produits sur tous les grands marchands français.">
-<meta name="description" content="HiFind.fr est un comparateur de prix en ligne. Comparez les offres de marchands partenaires pour trouver le meilleur prix.">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,600;0,700;0,800;0,900;1,800&family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;600&family=Outfit:wght@900&display=swap" rel="stylesheet">
 <style>
-[data-theme="dark"]{
-  --bg:#0f172a;--bg2:#1e293b;--bg3:#334155;
-  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
-  --text:#f1f5f9;--sub:#94a3b8;--dim:#64748b;
-  --hero-bg:linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#0f172a 100%);
-  --card-shadow:0 4px 24px rgba(0,0,0,0.4);
-  --nav-bg:rgba(15,23,42,0.96);--chart-grid:rgba(255,255,255,0.06);
-  --find-color:#ffffff;
+/* ═══════════════════════════════════════
+   VARIABLES & RESET
+═══════════════════════════════════════ */
+:root {
+  --bg: #0a0a0f;
+  --bg2: #111116;
+  --bg3: #1a1a22;
+  --bg4: #222230;
+  --red: #FF3B30;
+  --red-h: #E8352A;
+  --green: #22c55e;
+  --text: #ffffff;
+  --sub: #9999aa;
+  --dim: #555566;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --shadow: 0 8px 32px rgba(0,0,0,0.5);
+  --radius: 12px;
 }
-[data-theme="light"]{
-  --bg:#f8fafc;--bg2:#ffffff;--bg3:#f1f5f9;
-  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
-  --text:#0f172a;--sub:#64748b;--dim:#94a3b8;
-  --hero-bg:linear-gradient(135deg,#fff5f5 0%,#fce7f3 40%,#eff6ff 100%);
-  --card-shadow:0 4px 24px rgba(0,0,0,0.08);
-  --nav-bg:rgba(255,255,255,0.96);--chart-grid:rgba(0,0,0,0.06);
-  --find-color:#1e3a5f;
-}
-:root{--coral:#FF6B6B;--coral-h:#FF5252;--green:#22c55e;--green-bg:rgba(34,197,94,0.1);--green-border:rgba(34,197,94,0.25);--amber:#f59e0b;}
-*{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
-body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;transition:background .3s,color .3s;}
-a{text-decoration:none;color:inherit;}
-button{cursor:pointer;font-family:'Inter',sans-serif;}
-input,select{font-family:'Inter',sans-serif;}
-.outfit{font-family:'Outfit',sans-serif;}
-.hidden{display:none!important;}
-
-/* NAV */
-nav{background:var(--nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;transition:background .3s;}
-.nav-inner{max-width:1280px;margin:0 auto;padding:0 1.5rem;height:64px;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
-.nav-logo{font-family:'Outfit',sans-serif;font-size:1.7rem;font-weight:900;color:var(--coral);cursor:pointer;flex-shrink:0;}
-.nav-actions{display:flex;align-items:center;gap:.5rem;flex-shrink:0;}
-.nav-icon-btn{width:38px;height:38px;border-radius:50%;background:transparent;border:none;display:flex;align-items:center;justify-content:center;color:var(--sub);transition:background .2s;font-size:1rem;}
-.nav-icon-btn:hover{background:var(--bg3);}
-.theme-btn{width:38px;height:38px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all .2s;}
-.theme-btn:hover{transform:rotate(20deg);}
-.nav-btn{padding:.42rem 1.1rem;border-radius:100px;border:none;font-size:.83rem;font-weight:600;transition:all .2s;}
-.nav-btn-ghost{background:transparent;color:var(--sub);}
-.nav-btn-ghost:hover{background:var(--bg3);color:var(--text);}
-.nav-btn-coral{background:var(--coral);color:#fff;}
-.nav-btn-coral:hover{background:var(--coral-h);}
-
-/* PAGES */
-.page{display:none !important;}.page.active{display:block !important;}
-
-/* HERO */
-.hero{background:var(--hero-bg);position:relative;overflow:hidden;padding:5rem 1.5rem 5.5rem;text-align:center;transition:background .3s;}
-.hero-orb{position:absolute;border-radius:50%;pointer-events:none;}
-.hero-orb1{width:500px;height:500px;top:-120px;right:-80px;background:radial-gradient(circle,rgba(255,107,107,.12) 0%,transparent 70%);}
-.hero-orb2{width:400px;height:400px;bottom:-80px;left:-60px;background:radial-gradient(circle,rgba(255,107,107,.08) 0%,transparent 70%);}
-.hero-inner{position:relative;max-width:820px;margin:0 auto;}
-.hero h1{font-family:'Outfit',sans-serif;font-size:clamp(2.8rem,7vw,5.5rem);font-weight:900;line-height:1.0;letter-spacing:-.03em;margin-bottom:1.2rem;}
-.hero h1 .ac{color:var(--coral);}
-.hero-sub{color:var(--sub);font-size:1.05rem;max-width:560px;margin:0 auto 2.8rem;line-height:1.65;}
-
-/* SEARCH WITH SUGGESTIONS */
-.search-wrap{position:relative;max-width:700px;margin:0 auto 1.8rem;}
-.search-box{display:flex;background:#fff;border-radius:100px;overflow:visible;box-shadow:0 0 0 4px rgba(255,107,107,.15),0 20px 60px rgba(0,0,0,.2);transition:box-shadow .3s;position:relative;z-index:10;}
-.search-box:focus-within{box-shadow:0 0 0 4px rgba(255,107,107,.35),0 20px 60px rgba(0,0,0,.25);}
-.search-box-inner{display:flex;width:100%;border-radius:100px;overflow:hidden;}
-.search-icon{display:flex;align-items:center;padding:0 1rem 0 1.5rem;color:#94a3b8;font-size:1.1rem;flex-shrink:0;}
-.search-box input{flex:1;border:none;outline:none;padding:1rem .5rem;font-size:1rem;color:#0f172a;font-weight:500;background:transparent;}
-.search-box input::placeholder{color:#94a3b8;font-weight:400;}
-.search-box button{background:var(--coral);border:none;padding:.7rem 2rem;margin:.38rem;border-radius:100px;color:#fff;font-weight:700;font-size:.95rem;transition:background .2s;white-space:nowrap;flex-shrink:0;}
-.search-box button:hover{background:var(--coral-h);}
-.suggestions{position:absolute;top:calc(100% + 8px);left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:16px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.3);z-index:50;}
-.suggestion-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1.2rem;cursor:pointer;transition:background .15s;font-size:.9rem;}
-.suggestion-item:hover{background:var(--bg3);}
-.suggestion-icon{font-size:1rem;flex-shrink:0;}
-.suggestion-text strong{color:var(--coral);}
-.hero-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem;}
-.hero-tag-lbl{font-size:.8rem;color:var(--dim);align-self:center;}
-.hero-tag{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:.28rem .85rem;font-size:.78rem;color:var(--sub);transition:all .2s;}
-.hero-tag:hover{background:rgba(255,107,107,.1);border-color:rgba(255,107,107,.3);color:var(--coral);}
-
-/* TRUST BAR */
-.trust-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:.7rem 1.5rem;}
-.trust-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:2.5rem;flex-wrap:wrap;}
-.trust-item{display:flex;align-items:center;gap:.45rem;font-size:.8rem;color:var(--sub);}
-.trust-num{font-family:'Outfit',sans-serif;font-weight:800;color:var(--coral);font-size:.95rem;}
-
-/* SECTIONS */
-.section{max-width:1280px;margin:0 auto;padding:2.5rem 1.5rem;}
-.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;}
-.section-title{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:700;}
-.section-link{color:var(--coral);font-size:.83rem;font-weight:600;cursor:pointer;}
-.section-link:hover{opacity:.75;}
-
-/* CATEGORIES */
-.cats-grid{display:flex;flex-wrap:nowrap;gap:.45rem;overflow-x:auto;padding-bottom:.3rem;scrollbar-width:none;}
-.cats-grid::-webkit-scrollbar{display:none;}
-.cat-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem 1.1rem;background:var(--bg2);border:1px solid var(--border);border-radius:12px;gap:.3rem;transition:all .2s;flex-shrink:0;min-width:80px;}
-.cat-btn:hover{border-color:rgba(255,107,107,.4);transform:translateY(-2px);box-shadow:var(--card-shadow);}
-.cat-icon{font-size:2.4rem;}.cat-name{font-size:.68rem;font-weight:600;color:var(--sub);white-space:nowrap;}
-.sp-clear{position:absolute;right:.8rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--dim);font-size:1.1rem;cursor:pointer;padding:.2rem;display:none;line-height:1;}
-.sp-clear:hover{color:var(--text);}
-
-/* ══ ESPACE MODE ══ */
-.mode-section{background:linear-gradient(135deg,#1a0533 0%,#2d1052 50%,#1a0533 100%);padding:2.5rem 1.5rem;margin:2rem 0;}
-[data-theme="light"] .mode-section{background:linear-gradient(135deg,#fdf2f8 0%,#fce7f3 50%,#fdf2f8 100%);}
-.mode-header{max-width:1280px;margin:0 auto 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
-.mode-title{font-size:1.6rem;font-weight:800;color:#fff;margin-bottom:.3rem;}
-[data-theme="light"] .mode-title{color:#4a044e;}
-.mode-sub{font-size:.85rem;color:rgba(255,255,255,.6);}
-[data-theme="light"] .mode-sub{color:#86198f;}
-.mode-see-all{padding:.55rem 1.3rem;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:100px;color:#fff;font-size:.83rem;font-weight:600;transition:all .2s;}
-[data-theme="light"] .mode-see-all{background:rgba(168,85,247,.15);border-color:rgba(168,85,247,.4);color:#7e22ce;}
-.mode-see-all:hover{background:rgba(255,255,255,.25);}
-.mode-tabs{max-width:1280px;margin:0 auto 1.5rem;display:flex;gap:.5rem;flex-wrap:wrap;}
-.mode-tab{padding:.48rem 1.1rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:100px;color:rgba(255,255,255,.7);font-size:.8rem;font-weight:500;transition:all .2s;}
-[data-theme="light"] .mode-tab{background:rgba(168,85,247,.08);border-color:rgba(168,85,247,.2);color:#7e22ce;}
-.mode-tab.active,.mode-tab:hover{background:rgba(255,255,255,.25);color:#fff;border-color:rgba(255,255,255,.5);}
-[data-theme="light"] .mode-tab.active{background:rgba(168,85,247,.2);border-color:#a855f7;}
-.mode-grid{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;}
-.mode-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .2s;}
-[data-theme="light"] .mode-card{background:#fff;border-color:rgba(168,85,247,.15);}
-.mode-card:hover{transform:translateY(-3px);background:rgba(255,255,255,.12);box-shadow:0 8px 32px rgba(0,0,0,.3);}
-.mode-card-img{aspect-ratio:1;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;overflow:hidden;}
-[data-theme="light"] .mode-card-img{background:#fdf4ff;}
-.mode-card-img img{width:100%;height:100%;object-fit:contain;padding:.75rem;}
-.mode-card-body{padding:.85rem;}
-.mode-card-brand{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.5);margin-bottom:.2rem;}
-[data-theme="light"] .mode-card-brand{color:#a855f7;}
-.mode-card-name{font-size:.82rem;font-weight:600;color:#fff;line-height:1.3;margin-bottom:.4rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-[data-theme="light"] .mode-card-name{color:#1e1b4b;}
-.mode-card-price{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;color:#f0abfc;}
-[data-theme="light"] .mode-card-price{color:#7e22ce;}
-
-/* MINI PRODUCTS */
-.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:1rem;}
-.prod-mini{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all .2s;cursor:pointer;}
-.prod-mini:hover{border-color:rgba(255,107,107,.35);transform:translateY(-2px);box-shadow:var(--card-shadow);}
-.prod-mini-img{aspect-ratio:1;background:#fff;display:flex;align-items:center;justify-content:center;font-size:3.5rem;position:relative;overflow:hidden;}
-.prod-mini-img img{width:100%;height:100%;object-fit:contain;padding:.75rem;}
-.prod-mini-rank{position:absolute;top:.5rem;left:.5rem;background:var(--coral);color:#fff;font-size:.63rem;font-weight:700;border-radius:100px;padding:.12rem .45rem;}
-.prod-mini-deal{position:absolute;top:.5rem;right:.5rem;background:#16a34a;color:#fff;font-size:.6rem;font-weight:700;border-radius:100px;padding:.12rem .45rem;}
-.prod-mini-body{padding:.8rem;}
-.prod-mini-brand{font-size:.67rem;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem;}
-.prod-mini-name{font-size:.8rem;font-weight:600;margin-bottom:.45rem;line-height:1.35;min-height:2.1rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.prod-mini-from{font-size:.67rem;color:var(--dim);}
-.prod-mini-price{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;color:var(--coral);}
-.prod-mini-meta{display:flex;align-items:center;justify-content:space-between;margin-top:.3rem;}
-.prod-mini-offers{font-size:.67rem;color:var(--dim);}
-.prod-mini-rating{display:flex;align-items:center;gap:.2rem;font-size:.67rem;color:var(--dim);}
-.prod-mini-stars{color:#f59e0b;font-size:.65rem;}
-
-/* WHY */
-.why{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:4rem 1.5rem;}
-.why-inner{max-width:1280px;margin:0 auto;text-align:center;}
-.why h2{font-family:'Outfit',sans-serif;font-size:1.9rem;font-weight:800;margin-bottom:.5rem;}
-.why-sub{color:var(--sub);margin-bottom:2.5rem;font-size:.93rem;}
-.why-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;}
-.why-card{padding:2rem 1.5rem;text-align:center;}
-.why-icon{width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.6rem;}
-.why-card h3{font-weight:700;margin-bottom:.45rem;font-size:.97rem;}
-.why-card p{font-size:.82rem;color:var(--sub);line-height:1.65;}
-
-/* NEWSLETTER */
-.newsletter{background:linear-gradient(135deg,var(--coral),#FF8E8E);padding:3.5rem 1.5rem;text-align:center;}
-.newsletter-inner{max-width:500px;margin:0 auto;}
-.newsletter h2{font-family:'Outfit',sans-serif;font-size:1.9rem;font-weight:800;color:#fff;margin-bottom:.5rem;}
-.newsletter p{color:rgba(255,255,255,.85);margin-bottom:1.5rem;font-size:.93rem;}
-.newsletter-form{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;}
-.newsletter-form input{flex:1;min-width:200px;padding:.72rem 1.2rem;border-radius:100px;border:none;font-size:.88rem;outline:none;}
-.newsletter-form button{background:#0f172a;color:#fff;border:none;border-radius:100px;padding:.72rem 1.8rem;font-weight:700;font-size:.88rem;transition:background .2s;}
-.newsletter-form button:hover{background:#1e293b;}
-
-/* FOOTER */
-footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5rem 2rem;}
-.footer-inner{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:2rem;}
-.footer-brand{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:900;color:var(--coral);margin-bottom:.5rem;}
-.footer-desc{font-size:.8rem;color:var(--dim);line-height:1.6;}
-.footer-col h4{font-size:.83rem;font-weight:700;margin-bottom:.7rem;}
-.footer-col a{display:block;font-size:.8rem;color:var(--dim);margin-bottom:.38rem;transition:color .2s;cursor:pointer;}
-.footer-col a:hover{color:var(--coral);}
-.footer-bottom{max-width:1280px;margin:2rem auto 0;border-top:1px solid var(--border);padding-top:1.4rem;text-align:center;font-size:.76rem;color:var(--dim);}
-
-/* SEARCH PAGE */
-.sp-bar{background:var(--nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:64px;z-index:100;padding:.8rem 1.5rem;}
-.sp-bar-inner{max-width:1280px;margin:0 auto;display:flex;gap:.7rem;}
-.sp-wrap{flex:1;position:relative;}
-.sp-icon{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:var(--dim);pointer-events:none;}
-.sp-input{width:100%;height:44px;padding:0 1rem 0 2.7rem;background:var(--bg2);border:2px solid var(--border);border-radius:100px;color:var(--text);font-size:.92rem;outline:none;transition:border-color .2s;}
-.sp-input:focus{border-color:var(--coral);}
-.sp-input::placeholder{color:var(--dim);}
-.sp-btn{background:var(--coral);border:none;color:#fff;font-weight:700;border-radius:100px;padding:0 1.6rem;font-size:.88rem;transition:all .2s;white-space:nowrap;}
-.sp-btn:hover{background:var(--coral-h);}
-.sp-suggestions{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.3);z-index:150;}
-
-/* LAYOUT */
-.search-layout{max-width:1280px;margin:0 auto;padding:1.5rem;display:grid;grid-template-columns:240px 1fr;gap:1.5rem;align-items:start;}
-
-/* FILTERS */
-.filters-panel{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;position:sticky;top:128px;}
-.filters-head{padding:.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--bg3);}
-.filters-head-title{font-size:.8rem;font-weight:700;}
-.filters-reset{font-size:.73rem;color:var(--coral);font-weight:600;}
-.filter-section{padding:.85rem 1.1rem;border-bottom:1px solid var(--border);}
-.filter-section:last-child{border-bottom:none;}
-.filter-label{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);margin-bottom:.5rem;}
-.filter-select{width:100%;padding:.48rem .75rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.82rem;outline:none;}
-.filter-select:focus{border-color:var(--coral);}
-.price-row{display:flex;align-items:center;gap:.4rem;margin-bottom:.5rem;}
-.price-row .price-in{flex:1;}
-.price-in{width:100%;padding:.46rem .5rem;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.8rem;outline:none;text-align:center;min-width:0;}
-.price-in:focus{border-color:var(--coral);}
-.filter-apply{width:100%;padding:.5rem;background:var(--coral);border:none;border-radius:8px;color:#fff;font-weight:700;font-size:.8rem;margin-top:.6rem;transition:background .2s;}
-.filter-apply:hover{background:var(--coral-h);}
-.filter-check{display:flex;align-items:center;gap:.5rem;padding:.26rem 0;font-size:.82rem;cursor:pointer;}
-.filter-check input{accent-color:var(--coral);}
-.filter-cats{display:flex;flex-direction:column;gap:.3rem;}
-.fcat{text-align:left;padding:.42rem .7rem;background:transparent;border:1px solid var(--border);border-radius:8px;font-size:.78rem;color:var(--sub);transition:all .2s;cursor:pointer;}
-.fcat:hover{border-color:var(--coral);color:var(--coral);}
-.fcat.active{background:rgba(255,107,107,.12);border-color:var(--coral);color:var(--coral);font-weight:600;}
-.price-slider{width:100%;accent-color:var(--coral);margin:.3rem 0;display:block;}
-.price-ranges{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.5rem;}
-.price-range-btn{text-align:left;padding:.35rem .7rem;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:.75rem;color:var(--sub);cursor:pointer;transition:all .2s;}
-.price-range-btn:hover,.price-range-btn.active{border-color:var(--coral);color:var(--coral);background:rgba(255,107,107,.08);}
-.filter-partners{display:flex;flex-direction:column;gap:.25rem;max-height:180px;overflow-y:auto;}
-.fpartner{display:flex;align-items:center;gap:.4rem;padding:.28rem 0;font-size:.78rem;cursor:pointer;}
-.fpartner input{accent-color:var(--coral);}
-.results-col{flex:1;min-width:0;}
-
-/* RESULTS */
-.results-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem;}
-.results-count{font-size:.85rem;color:var(--sub);}
-.results-count strong{color:var(--text);}
-.sort-select{padding:.4rem .7rem;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.78rem;outline:none;}
-
-/* ══ PRODUCT CARD — IDEALO STYLE ══ */
-.pcard{background:var(--bg2);border:1px solid var(--border);border-radius:16px;margin-bottom:1rem;overflow:hidden;display:flex;flex-direction:row;min-height:180px;transition:border-color .2s,box-shadow .2s,transform .2s;}
-.pcard:hover{border-color:rgba(255,107,107,.35);box-shadow:var(--card-shadow);transform:translateY(-1px);}
-.pcard-img-col{width:200px;flex-shrink:0;background:#fff;display:flex;align-items:center;justify-content:center;padding:1rem;position:relative;border-right:1px solid var(--border);}
-.pcard-img-col img{width:165px;height:165px;object-fit:contain;}
-.pcard-fav{position:absolute;top:.5rem;right:.5rem;width:30px;height:30px;border-radius:50%;border:none;background:rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:.8rem;transition:all .2s;}
-.pcard-fav:hover{background:rgba(255,107,107,.2);}
-.pcard-fav.on{background:var(--coral);}
-.pcard-body{flex:1;padding:1.2rem 1.5rem;display:flex;flex-direction:column;gap:.55rem;min-width:0;}
-.pcard-merchant{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--coral);}
-.pcard-name{font-family:'Outfit',sans-serif;font-size:1.05rem;font-weight:700;line-height:1.35;color:var(--text);}
-.pcard-desc{font-size:.78rem;color:var(--sub);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.pcard-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:.7rem;border-top:1px solid var(--border);flex-wrap:wrap;gap:.5rem;}
-.pcard-price-block{}
-.pcard-price-from{font-size:.65rem;color:var(--dim);display:block;margin-bottom:.1rem;}
-.pcard-price{font-family:'Outfit',sans-serif;font-size:1.7rem;font-weight:900;color:var(--coral);line-height:1;}
-.pcard-delivery{font-size:.7rem;color:var(--green);margin-top:.2rem;}
-.pcard-actions{display:flex;gap:.5rem;align-items:center;}
-.pcard-btn-primary{padding:.6rem 1.5rem;background:var(--coral);color:#fff;border:none;border-radius:100px;font-size:.84rem;font-weight:700;transition:background .2s;white-space:nowrap;}
-.pcard-btn-primary:hover{background:var(--coral-h);}
-.pcard-btn-amazon{padding:.6rem .8rem;background:#FF9900;color:#fff;border:none;border-radius:100px;font-size:.84rem;font-weight:700;transition:background .2s;}
-.pcard-btn-amazon:hover{background:#e68a00;}
-.pcard-btn-fav{padding:.6rem .9rem;background:transparent;border:1.5px solid var(--border2);border-radius:100px;font-size:.84rem;color:var(--sub);transition:all .2s;white-space:nowrap;}
-.pcard-btn-fav:hover{border-color:var(--coral);color:var(--coral);}
-@media(max-width:640px){
-  .pcard{flex-direction:column;}
-  .pcard-img-col{width:100%;height:180px;border-right:none;border-bottom:1px solid var(--border);}
-  .pcard-img-col img{width:140px;height:140px;}
+[data-theme="light"] {
+  --bg: #f4f4f8;
+  --bg2: #ffffff;
+  --bg3: #f0f0f5;
+  --bg4: #e8e8f0;
+  --text: #0a0a0f;
+  --sub: #555566;
+  --dim: #999aaa;
+  --border: rgba(0,0,0,0.08);
+  --border2: rgba(0,0,0,0.14);
+  --shadow: 0 8px 32px rgba(0,0,0,0.1);
 }
 
-/* ══ PRODUCT DETAIL PAGE ══ */
-.detail-page{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
-.detail-back{display:inline-flex;align-items:center;gap:.4rem;color:var(--sub);font-size:.85rem;font-weight:600;margin-bottom:1.5rem;cursor:pointer;transition:color .2s;}
-.detail-back:hover{color:var(--text);}
-.detail-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:2rem;margin-bottom:2rem;}
-.detail-left{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2rem;display:flex;flex-direction:column;align-items:center;gap:1rem;}
-.detail-emoji{font-size:7rem;line-height:1;}
-.detail-badges{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;}
-.detail-badge{font-size:.7rem;font-weight:700;padding:.2rem .65rem;border-radius:100px;}
-.detail-badge.hot{background:rgba(255,107,107,.15);color:var(--coral);}
-.detail-badge.new{background:rgba(59,130,246,.12);color:#60a5fa;}
-.detail-right{}
-.detail-brand{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);margin-bottom:.4rem;}
-.detail-name{font-family:'Outfit',sans-serif;font-size:1.6rem;font-weight:800;line-height:1.2;margin-bottom:1rem;letter-spacing:-.02em;}
-.detail-price-row{display:flex;align-items:baseline;gap:.75rem;margin-bottom:1.2rem;}
-.detail-price{font-family:'Outfit',sans-serif;font-size:2.5rem;font-weight:900;color:var(--coral);}
-.detail-price-from{font-size:.88rem;color:var(--sub);}
-.detail-price-at{font-size:.88rem;color:var(--sub);}
-.detail-price-merchant{font-size:.88rem;font-weight:600;}
-.detail-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1.2rem;}
-.detail-stat{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:.8rem;text-align:center;}
-.detail-stat-val{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;color:var(--coral);}
-.detail-stat-lbl{font-size:.68rem;color:var(--sub);margin-top:.2rem;}
-.detail-actions{display:flex;gap:.75rem;flex-wrap:wrap;}
-.detail-btn-primary{flex:1;padding:.7rem 1.5rem;background:var(--coral);border:none;border-radius:100px;color:#fff;font-weight:700;font-size:.9rem;transition:all .2s;min-width:140px;}
-.detail-btn-primary:hover{background:var(--coral-h);}
-.detail-btn-secondary{padding:.7rem 1.2rem;background:var(--bg2);border:1.5px solid var(--border2);border-radius:100px;color:var(--sub);font-size:.85rem;font-weight:600;transition:all .2s;}
-.detail-btn-secondary:hover{border-color:var(--coral);color:var(--coral);}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; transition:background .3s,color .3s; }
+a { text-decoration:none; color:inherit; }
+button { cursor:pointer; font-family:'Inter',sans-serif; }
+input { font-family:'Inter',sans-serif; }
+.barlow { font-family:'Barlow',sans-serif; }
+.barlow-c { font-family:'Barlow Condensed',sans-serif; }
+.hidden { display:none !important; }
+img { max-width:100%; }
 
-/* PRICE HISTORY CHART */
-.chart-section{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:1.5rem;margin-bottom:1.5rem;}
-.chart-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:.5rem;}
-.chart-title{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:700;}
-.chart-tabs{display:flex;gap:.35rem;}
-.chart-tab{padding:.3rem .75rem;background:var(--bg3);border:none;border-radius:100px;font-size:.75rem;color:var(--sub);font-weight:600;transition:all .2s;}
-.chart-tab.active{background:var(--coral);color:#fff;}
-.chart-container{position:relative;height:200px;}
-.chart-stats{display:flex;gap:1.5rem;margin-top:1rem;flex-wrap:wrap;}
-.chart-stat{text-align:center;}
-.chart-stat-val{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;}
-.chart-stat-val.low{color:var(--green);}
-.chart-stat-val.high{color:var(--coral);}
-.chart-stat-lbl{font-size:.68rem;color:var(--sub);margin-top:.1rem;}
+/* ═══════════════════════════════════════
+   PAGES
+═══════════════════════════════════════ */
+.page { display:none !important; }
+.page.active { display:block !important; }
 
-/* ALL OFFERS TABLE */
-.all-offers-section{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:1.5rem;}
-.all-offers-head{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:1rem;}
+/* ═══════════════════════════════════════
+   NAVBAR
+═══════════════════════════════════════ */
+nav {
+  background:var(--bg);
+  border-bottom:1px solid var(--border);
+  position:sticky; top:0; z-index:200;
+  transition:background .3s;
+}
+.nav-inner {
+  max-width:1400px; margin:0 auto;
+  padding:0 1.5rem; height:60px;
+  display:flex; align-items:center; gap:1.5rem;
+}
+.nav-logo {
+  font-family:'Outfit',sans-serif;
+  font-size:1.7rem; font-weight:900;
+  letter-spacing:0; flex-shrink:0;
+  cursor:pointer;
+}
+.nav-logo .hi { color:#FF6B6B; }
+.nav-logo .find { color:#ffffff; }
+[data-theme="light"] .nav-logo .find { color:#1e3a5f; }
 
-/* ABOUT PAGE */
-.about-hero{background:var(--hero-bg);padding:5rem 1.5rem;text-align:center;position:relative;overflow:hidden;}
-.about-hero h1{font-family:'Outfit',sans-serif;font-size:clamp(2.5rem,6vw,4rem);font-weight:900;letter-spacing:-.03em;margin-bottom:1rem;}
-.about-hero p{color:var(--sub);font-size:1.05rem;max-width:580px;margin:0 auto;line-height:1.65;}
-.about-section{max-width:1100px;margin:0 auto;padding:3rem 1.5rem;}
-.about-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:3rem;}
-.about-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2rem;}
-.about-card-icon{font-size:2.2rem;margin-bottom:.75rem;}
-.about-card h3{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:.6rem;}
-.about-card p{font-size:.85rem;color:var(--sub);line-height:1.7;}
-.about-team{text-align:center;margin-bottom:3rem;}
-.about-team h2{font-family:'Outfit',sans-serif;font-size:1.7rem;font-weight:800;margin-bottom:.5rem;}
-.about-team p{color:var(--sub);margin-bottom:2rem;font-size:.93rem;}
-.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;}
-.team-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.5rem 1rem;text-align:center;}
-.team-avatar{font-size:2.5rem;margin-bottom:.6rem;}
-.team-name{font-weight:700;font-size:.9rem;margin-bottom:.2rem;}
-.team-role{font-size:.78rem;color:var(--sub);}
-.about-mission{background:linear-gradient(135deg,rgba(255,107,107,.1),rgba(59,130,246,.06));border:1px solid rgba(255,107,107,.2);border-radius:20px;padding:3rem;text-align:center;margin-bottom:3rem;}
-.about-mission h2{font-family:'Outfit',sans-serif;font-size:1.7rem;font-weight:800;margin-bottom:1rem;}
-.about-mission p{color:var(--sub);max-width:600px;margin:0 auto;line-height:1.7;font-size:.95rem;}
-.about-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-bottom:3rem;}
-.about-stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.5rem;text-align:center;}
-.about-stat-val{font-family:'Outfit',sans-serif;font-size:2rem;font-weight:900;color:var(--coral);}
-.about-stat-lbl{font-size:.78rem;color:var(--sub);margin-top:.3rem;}
+.nav-search {
+  flex:1; max-width:520px;
+  display:flex; align-items:center;
+  background:var(--bg3); border:1px solid var(--border2);
+  border-radius:8px; overflow:hidden;
+  transition:border-color .2s, box-shadow .2s;
+}
+.nav-search:focus-within {
+  border-color:var(--red);
+  box-shadow:0 0 0 3px rgba(255,59,48,.15);
+}
+.nav-search input {
+  flex:1; border:none; outline:none; padding:.65rem 1rem;
+  background:transparent; color:var(--text); font-size:.9rem;
+}
+.nav-search input::placeholder { color:var(--dim); }
+.nav-search button {
+  padding:.65rem 1rem; background:var(--red); border:none;
+  color:#fff; font-size:.9rem; transition:background .2s;
+}
+.nav-search button:hover { background:var(--red-h); }
 
-/* PAGES HEADER */
-.page-hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:1.3rem 1.5rem;}
-.page-hdr-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:1rem;}
-.page-hdr-back{width:36px;height:36px;border-radius:50%;background:transparent;border:none;color:var(--sub);display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:background .2s;}
-.page-hdr-back:hover{background:var(--bg3);}
-.page-hdr-icon{width:46px;height:46px;border-radius:12px;background:rgba(255,107,107,.1);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
-.page-hdr-title{font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:700;}
-.page-hdr-sub{font-size:.8rem;color:var(--sub);margin-top:.1rem;}
+.nav-cats {
+  display:flex; align-items:center; gap:.15rem;
+  list-style:none; margin-left:auto;
+}
+.nav-cat {
+  padding:.4rem .7rem; font-size:.78rem; font-weight:600;
+  letter-spacing:.04em; text-transform:uppercase;
+  color:var(--sub); border-radius:6px;
+  transition:color .2s, background .2s; cursor:pointer;
+  white-space:nowrap;
+}
+.nav-cat:hover { color:var(--text); background:var(--bg3); }
+.nav-cat.active { color:var(--red); }
 
-/* ALERTS */
-.alert-form{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.3rem;margin-bottom:1.4rem;}
-.alert-form h2{font-size:.93rem;font-weight:700;margin-bottom:.9rem;}
-.alert-row{display:flex;gap:.7rem;flex-wrap:wrap;}
-.alert-in{flex:1;min-width:180px;height:44px;padding:0 1rem;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.87rem;outline:none;}
-.alert-in:focus{border-color:var(--coral);}
-.alert-in::placeholder{color:var(--dim);}
-.alert-price-in{width:110px;flex:none;}
-.alert-submit{height:44px;padding:0 1.1rem;background:var(--coral);border:none;border-radius:10px;color:#fff;font-weight:700;font-size:.83rem;display:flex;align-items:center;gap:.35rem;transition:background .2s;}
-.alert-submit:hover{background:var(--coral-h);}
-.alert-item{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:.9rem 1.1rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
-.alert-item-q{font-weight:600;font-size:.88rem;}
-.alert-item-p{font-size:.76rem;color:var(--sub);margin-top:.1rem;}
-.alert-del{width:32px;height:32px;border-radius:50%;background:transparent;border:none;color:#ef4444;display:flex;align-items:center;justify-content:center;transition:background .2s;font-size:.95rem;}
-.alert-del:hover{background:rgba(239,68,68,.1);}
+.nav-actions { display:flex; align-items:center; gap:.5rem; flex-shrink:0; }
+.nav-icon-btn {
+  width:36px; height:36px; border-radius:8px;
+  background:transparent; border:none;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--sub); transition:background .2s, color .2s; font-size:1rem;
+}
+.nav-icon-btn:hover { background:var(--bg3); color:var(--text); }
 
-/* EMPTY / SPINNER */
-.empty-state{text-align:center;padding:3.5rem 1.5rem;background:var(--bg2);border:1px solid var(--border);border-radius:20px;}
-.empty-icon{font-size:3rem;margin-bottom:.9rem;}
-.empty-title{font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:700;margin-bottom:.45rem;}
-.empty-sub{color:var(--sub);font-size:.85rem;max-width:320px;margin:0 auto 1.4rem;line-height:1.6;}
-.empty-cta{background:var(--coral);border:none;color:#fff;padding:.62rem 1.5rem;border-radius:100px;font-weight:700;font-size:.85rem;}
-.empty-cta:hover{background:var(--coral-h);}
-.spinner{display:flex;align-items:center;justify-content:center;padding:4rem;flex-direction:column;gap:1rem;}
-.spin{width:38px;height:38px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--coral);animation:spin .7s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.spin-lbl{color:var(--sub);font-size:.85rem;}
+/* ═══════════════════════════════════════
+   HERO
+═══════════════════════════════════════ */
+.hero {
+  background:var(--bg);
+  padding:5rem 1.5rem 4rem;
+  position:relative; overflow:hidden;
+}
+.hero::before {
+  content:''; position:absolute;
+  top:-200px; right:-100px;
+  width:600px; height:600px;
+  background:radial-gradient(circle, rgba(255,59,48,.08) 0%, transparent 70%);
+  pointer-events:none;
+}
+.hero-inner {
+  max-width:1400px; margin:0 auto;
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:4rem; align-items:center;
+}
+.hero-badge {
+  display:inline-flex; align-items:center; gap:.4rem;
+  background:rgba(255,59,48,.12); border:1px solid rgba(255,59,48,.3);
+  color:var(--red); font-size:.73rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:.08em;
+  padding:.3rem .8rem; border-radius:100px; margin-bottom:1.5rem;
+}
+.hero h1 {
+  font-family:'Barlow',sans-serif;
+  font-size:clamp(2.8rem,5vw,4.2rem);
+  font-weight:900; line-height:1.05;
+  letter-spacing:-.02em; margin-bottom:1.2rem;
+}
+.hero h1 .accent { color:var(--red); }
+.hero-sub {
+  color:var(--sub); font-size:1rem; line-height:1.7;
+  max-width:480px; margin-bottom:2rem;
+}
+.hero-search {
+  display:flex; gap:.5rem; margin-bottom:1.2rem; max-width:520px;
+}
+.hero-search input {
+  flex:1; padding:.85rem 1.2rem;
+  background:var(--bg3); border:1px solid var(--border2);
+  border-radius:8px; color:var(--text); font-size:.95rem;
+  outline:none; transition:border-color .2s;
+}
+.hero-search input:focus { border-color:var(--red); }
+.hero-search input::placeholder { color:var(--dim); }
+.hero-search button {
+  padding:.85rem 1.8rem; background:var(--red); border:none;
+  border-radius:8px; color:#fff; font-weight:700; font-size:.9rem;
+  transition:background .2s; white-space:nowrap;
+}
+.hero-search button:hover { background:var(--red-h); }
+.hero-popular {
+  display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;
+}
+.hero-popular-label { font-size:.75rem; color:var(--dim); font-weight:600; text-transform:uppercase; letter-spacing:.06em; }
+.hero-tag {
+  padding:.3rem .75rem; background:var(--bg3); border:1px solid var(--border2);
+  border-radius:6px; font-size:.78rem; color:var(--sub);
+  transition:all .2s; cursor:pointer;
+}
+.hero-tag:hover { background:rgba(255,59,48,.1); border-color:rgba(255,59,48,.3); color:var(--red); }
 
-/* ANIMATIONS */
-@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
-.fade-up{animation:fadeUp .4s ease both;}
+.hero-visual {
+  position:relative; display:flex; justify-content:center; align-items:center;
+}
+.hero-img-wrap {
+  position:relative; border-radius:16px; overflow:hidden;
+  width:100%; max-width:480px; aspect-ratio:4/3;
+  background:var(--bg3);
+}
+.hero-img-wrap img { width:100%; height:100%; object-fit:cover; }
+.hero-badge-float {
+  position:absolute; top:1rem; right:1rem;
+  background:var(--green); color:#fff;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:1.1rem; font-weight:900; letter-spacing:.04em;
+  padding:.4rem .8rem; border-radius:6px;
+}
+.hero-price-float {
+  position:absolute; bottom:1rem; left:1rem;
+  background:rgba(10,10,15,.9); backdrop-filter:blur(10px);
+  border:1px solid var(--border2); border-radius:10px;
+  padding:.7rem 1rem;
+}
+.hero-price-float .from { font-size:.65rem; color:var(--sub); }
+.hero-price-float .price { font-family:'Barlow Condensed',sans-serif; font-size:1.5rem; font-weight:900; color:var(--red); }
+.hero-price-float .offers { font-size:.65rem; color:var(--sub); margin-top:.1rem; }
 
-/* RESPONSIVE */
+/* ═══════════════════════════════════════
+   MARCHANDS SCROLL
+═══════════════════════════════════════ */
+.marchands-bar {
+  background:var(--bg2); border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+  padding:.75rem 0; overflow:hidden;
+}
+.marchands-track {
+  display:flex; gap:3rem; align-items:center;
+  animation:scroll-left 25s linear infinite;
+  width:max-content;
+}
+.marchands-bar:hover .marchands-track { animation-play-state:paused; }
+.marchand-item {
+  font-size:.72rem; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--dim); white-space:nowrap;
+  transition:color .2s; cursor:default;
+}
+.marchand-item:hover { color:var(--sub); }
+@keyframes scroll-left {
+  0% { transform:translateX(0); }
+  100% { transform:translateX(-50%); }
+}
+
+/* ═══════════════════════════════════════
+   SECTIONS
+═══════════════════════════════════════ */
+.section { max-width:1400px; margin:0 auto; padding:3rem 1.5rem; }
+.section-label {
+  font-size:.7rem; font-weight:700; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--red); margin-bottom:.4rem;
+  display:flex; align-items:center; gap:.4rem;
+}
+.section-title {
+  font-family:'Barlow',sans-serif;
+  font-size:clamp(1.6rem,3vw,2.2rem);
+  font-weight:900; letter-spacing:-.02em; margin-bottom:.4rem;
+}
+.section-sub { color:var(--sub); font-size:.88rem; margin-bottom:2rem; }
+
+/* ═══════════════════════════════════════
+   CATÉGORIES GRID
+═══════════════════════════════════════ */
+.cats-grid {
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr;
+  grid-template-rows:auto auto;
+  gap:1rem;
+}
+.cat-card {
+  position:relative; border-radius:12px; overflow:hidden;
+  cursor:pointer; transition:transform .2s;
+  background:var(--bg3); border:1px solid var(--border);
+}
+.cat-card:hover { transform:translateY(-2px); }
+.cat-card:hover .cat-img { transform:scale(1.04); }
+.cat-card.large { grid-row:span 2; min-height:320px; }
+.cat-card.medium { min-height:150px; }
+.cat-img {
+  width:100%; height:100%; object-fit:cover;
+  transition:transform .4s;
+}
+.cat-card.large .cat-img { min-height:320px; }
+.cat-card.medium .cat-img { min-height:150px; }
+.cat-overlay {
+  position:absolute; inset:0;
+  background:linear-gradient(to top, rgba(0,0,0,.8) 0%, rgba(0,0,0,.1) 60%);
+}
+.cat-content {
+  position:absolute; bottom:0; left:0; right:0; padding:1.2rem;
+}
+.cat-tag {
+  font-size:.6rem; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:rgba(255,255,255,.6); margin-bottom:.25rem;
+}
+.cat-name {
+  font-family:'Barlow',sans-serif;
+  font-size:1.3rem; font-weight:900;
+  color:#fff; line-height:1.1; margin-bottom:.5rem;
+}
+.cat-card.large .cat-name { font-size:1.8rem; }
+.cat-link {
+  font-size:.72rem; font-weight:700; letter-spacing:.06em;
+  text-transform:uppercase; color:rgba(255,255,255,.7);
+  display:flex; align-items:center; gap:.3rem;
+}
+.cat-link:hover { color:#fff; }
+.hiflight-card {
+  background:linear-gradient(135deg,#1a56db,#2563eb);
+  border:none !important;
+}
+.hiflight-card .cat-content { padding:1.5rem; }
+.hiflight-icon { font-size:2rem; margin-bottom:.5rem; }
+
+/* ═══════════════════════════════════════
+   PRODUCT CARDS
+═══════════════════════════════════════ */
+.prod-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:1rem;
+}
+.prod-card {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:12px; overflow:hidden; cursor:pointer;
+  transition:border-color .2s, transform .2s, box-shadow .2s;
+  position:relative;
+}
+.prod-card:hover {
+  border-color:rgba(255,59,48,.3);
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(0,0,0,.3);
+}
+.prod-card-img {
+  aspect-ratio:1; background:#fff;
+  display:flex; align-items:center; justify-content:center;
+  padding:1rem; position:relative; overflow:hidden;
+}
+.prod-card-img img {
+  width:100%; height:100%; object-fit:contain;
+  transition:transform .3s;
+}
+.prod-card:hover .prod-card-img img { transform:scale(1.05); }
+.prod-card-badge {
+  position:absolute; top:.6rem; left:.6rem;
+  background:var(--red); color:#fff;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:.75rem; font-weight:900; letter-spacing:.04em;
+  padding:.2rem .5rem; border-radius:5px;
+}
+.prod-card-fav {
+  position:absolute; top:.6rem; right:.6rem;
+  width:30px; height:30px; border-radius:50%;
+  background:rgba(10,10,15,.7); border:none;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.8rem; transition:all .2s;
+}
+.prod-card-fav:hover { background:rgba(255,59,48,.2); }
+.prod-card-body { padding:.9rem; }
+.prod-card-brand {
+  font-size:.65rem; font-weight:700; text-transform:uppercase;
+  letter-spacing:.08em; color:var(--sub); margin-bottom:.2rem;
+}
+.prod-card-name {
+  font-size:.85rem; font-weight:600; line-height:1.35;
+  margin-bottom:.5rem; color:var(--text);
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.prod-card-stars {
+  display:flex; align-items:center; gap:.3rem;
+  margin-bottom:.5rem; font-size:.72rem; color:var(--sub);
+}
+.stars { color:#f59e0b; }
+.prod-card-price {
+  display:flex; align-items:baseline; gap:.4rem; margin-bottom:.2rem;
+}
+.prod-card-from { font-size:.65rem; color:var(--sub); font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+.prod-card-amount {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:1.4rem; font-weight:900; color:var(--text);
+}
+.prod-card-old {
+  font-size:.78rem; color:var(--dim); text-decoration:line-through;
+}
+.prod-card-offers { font-size:.7rem; color:var(--sub); }
+.prod-card-offers span { color:var(--green); font-weight:600; }
+
+/* ═══════════════════════════════════════
+   SEARCH PAGE
+═══════════════════════════════════════ */
+.sp-bar {
+  background:var(--bg); border-bottom:1px solid var(--border);
+  position:sticky; top:60px; z-index:100; padding:.8rem 1.5rem;
+}
+.sp-bar-inner { max-width:1400px; margin:0 auto; display:flex; gap:.7rem; }
+.sp-wrap { flex:1; position:relative; max-width:600px; }
+.sp-icon { position:absolute; left:.9rem; top:50%; transform:translateY(-50%); color:var(--dim); font-size:.9rem; }
+.sp-input {
+  width:100%; height:42px; padding:0 1rem 0 2.5rem;
+  background:var(--bg3); border:1px solid var(--border2);
+  border-radius:8px; color:var(--text); font-size:.9rem; outline:none;
+  transition:border-color .2s;
+}
+.sp-input:focus { border-color:var(--red); }
+.sp-input::placeholder { color:var(--dim); }
+.sp-btn {
+  padding:0 1.4rem; background:var(--red); border:none;
+  color:#fff; font-weight:700; border-radius:8px; font-size:.85rem;
+  transition:background .2s;
+}
+.sp-btn:hover { background:var(--red-h); }
+
+.search-layout {
+  max-width:1400px; margin:0 auto;
+  padding:1.5rem; display:grid;
+  grid-template-columns:240px 1fr; gap:1.5rem; align-items:start;
+}
+.filters-panel {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:12px; overflow:hidden; position:sticky; top:112px;
+}
+.filters-head {
+  padding:.8rem 1rem; background:var(--bg3);
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.filters-head-title { font-size:.8rem; font-weight:700; }
+.filters-reset { font-size:.72rem; color:var(--red); font-weight:600; cursor:pointer; }
+.filter-section { padding:.8rem 1rem; border-bottom:1px solid var(--border); }
+.filter-section:last-child { border-bottom:none; }
+.filter-label { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--dim); margin-bottom:.5rem; }
+.fcat {
+  display:block; width:100%; text-align:left; padding:.38rem .6rem;
+  background:transparent; border:1px solid transparent;
+  border-radius:7px; font-size:.8rem; color:var(--sub);
+  transition:all .2s; cursor:pointer; margin-bottom:.2rem;
+}
+.fcat:hover { background:var(--bg3); color:var(--text); }
+.fcat.active { background:rgba(255,59,48,.1); border-color:rgba(255,59,48,.3); color:var(--red); font-weight:600; }
+.price-slider { width:100%; accent-color:var(--red); margin:.4rem 0; }
+.price-range-btn {
+  display:block; width:100%; text-align:left; padding:.35rem .6rem;
+  background:var(--bg3); border:1px solid var(--border);
+  border-radius:7px; font-size:.75rem; color:var(--sub);
+  cursor:pointer; margin-bottom:.2rem; transition:all .2s;
+}
+.price-range-btn:hover, .price-range-btn.active { border-color:var(--red); color:var(--red); }
+.filter-apply {
+  width:100%; padding:.5rem; background:var(--red); border:none;
+  border-radius:7px; color:#fff; font-weight:700; font-size:.8rem;
+  margin-top:.5rem; transition:background .2s;
+}
+.filter-apply:hover { background:var(--red-h); }
+
+.results-top {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:1rem; flex-wrap:wrap; gap:.5rem;
+}
+.results-count { font-size:.85rem; color:var(--sub); }
+.results-count strong { color:var(--text); }
+.sort-select {
+  padding:.38rem .7rem; background:var(--bg2); border:1px solid var(--border);
+  border-radius:7px; color:var(--text); font-size:.78rem; outline:none;
+}
+
+/* ═══════════════════════════════════════
+   PCARD - HORIZONTAL IDEALO STYLE
+═══════════════════════════════════════ */
+.pcard {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:12px; margin-bottom:.75rem; overflow:hidden;
+  display:flex; min-height:160px; cursor:pointer;
+  transition:border-color .2s, box-shadow .2s, transform .2s;
+}
+.pcard:hover {
+  border-color:rgba(255,59,48,.25);
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+  transform:translateY(-1px);
+}
+.pcard-img-col {
+  width:175px; flex-shrink:0; background:#fff;
+  display:flex; align-items:center; justify-content:center;
+  padding:.8rem; border-right:1px solid var(--border);
+}
+.pcard-img-col img { width:145px; height:145px; object-fit:contain; }
+.pcard-body {
+  flex:1; padding:1rem 1.2rem;
+  display:flex; flex-direction:column; gap:.4rem; min-width:0;
+}
+.pcard-brand { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--red); }
+.pcard-name {
+  font-size:.92rem; font-weight:700; line-height:1.35; color:var(--text);
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.pcard-offers-badge {
+  display:inline-flex; align-items:center; gap:.3rem;
+  background:rgba(34,197,94,.1); border:1px solid rgba(34,197,94,.2);
+  color:var(--green); font-size:.7rem; font-weight:700;
+  padding:.15rem .5rem; border-radius:100px; width:fit-content;
+}
+.pcard-bottom {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-top:auto; padding-top:.5rem; border-top:1px solid var(--border);
+  flex-wrap:wrap; gap:.5rem;
+}
+.pcard-price-block {}
+.pcard-price-from { font-size:.62rem; color:var(--sub); font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+.pcard-price {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:1.6rem; font-weight:900; color:var(--text); line-height:1;
+}
+.pcard-actions { display:flex; gap:.4rem; }
+.pcard-btn {
+  padding:.48rem 1.1rem; background:var(--red); border:none;
+  border-radius:7px; color:#fff; font-weight:700;
+  font-size:.8rem; transition:background .2s;
+}
+.pcard-btn:hover { background:var(--red-h); }
+.pcard-btn-fav {
+  width:34px; height:34px; border-radius:7px;
+  background:var(--bg3); border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:.85rem; transition:all .2s;
+}
+.pcard-btn-fav:hover { border-color:var(--red); }
+
+/* ═══════════════════════════════════════
+   DETAIL PAGE
+═══════════════════════════════════════ */
+.detail-page { max-width:1200px; margin:0 auto; padding:2rem 1.5rem; }
+.breadcrumb { font-size:.73rem; color:var(--dim); margin-bottom:1.5rem; display:flex; align-items:center; gap:.3rem; flex-wrap:wrap; }
+.breadcrumb span { cursor:pointer; }
+.breadcrumb span:hover { color:var(--text); }
+.breadcrumb-sep { color:var(--dim); }
+
+.detail-grid {
+  display:grid; grid-template-columns:300px 1fr;
+  gap:2rem; align-items:start; margin-bottom:2rem;
+}
+.detail-img-box {
+  background:#fff; border:1px solid var(--border);
+  border-radius:14px; padding:1.5rem;
+  display:flex; align-items:center; justify-content:center;
+  height:280px;
+}
+.detail-img-box img { max-width:240px; max-height:240px; object-fit:contain; }
+.detail-info {}
+.detail-brand {
+  font-size:.7rem; font-weight:700; text-transform:uppercase;
+  letter-spacing:.08em; color:var(--red); margin-bottom:.4rem;
+}
+.detail-name {
+  font-family:'Barlow',sans-serif; font-size:1.6rem;
+  font-weight:800; line-height:1.2; margin-bottom:1rem; color:var(--text);
+}
+.detail-price-box {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:12px; padding:1rem 1.2rem; margin-bottom:1.2rem;
+  display:flex; align-items:center; justify-content:space-between; gap:1rem;
+}
+.detail-price-label { font-size:.7rem; color:var(--sub); font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.2rem; }
+.detail-price-val {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:2.2rem; font-weight:900; color:var(--red); line-height:1;
+}
+.detail-price-ship { font-size:.72rem; color:var(--green); margin-top:.2rem; }
+.detail-fav-btn {
+  padding:.55rem 1.2rem; background:var(--bg3);
+  border:1px solid var(--border2); border-radius:8px;
+  font-weight:600; font-size:.82rem; color:var(--text); cursor:pointer;
+  transition:all .2s; white-space:nowrap;
+}
+.detail-fav-btn:hover { border-color:var(--red); color:var(--red); }
+
+.offers-table {
+  border:1px solid var(--border); border-radius:12px; overflow:hidden;
+}
+.offers-table-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:.7rem 1.1rem; background:var(--bg3); border-bottom:1px solid var(--border);
+}
+.offers-table-title { font-weight:700; font-size:.88rem; }
+.offers-table-count { font-size:.75rem; color:var(--sub); }
+.offers-table-cols {
+  display:grid; grid-template-columns:1fr 120px 140px 130px;
+  gap:.5rem; padding:.5rem 1.1rem;
+  background:var(--bg3); border-bottom:1px solid var(--border);
+  font-size:.65rem; font-weight:700; color:var(--dim); text-transform:uppercase; letter-spacing:.06em;
+}
+.offer-row {
+  display:grid; grid-template-columns:1fr 120px 140px 130px;
+  gap:.5rem; align-items:center; padding:.85rem 1.1rem;
+  border-bottom:1px solid var(--border); transition:background .15s;
+}
+.offer-row:last-child { border-bottom:none; }
+.offer-row:hover { background:var(--bg3); }
+.offer-row.best { background:rgba(34,197,94,.04); }
+.offer-merchant { display:flex; align-items:center; gap:.6rem; }
+.offer-logo { width:22px; height:22px; border-radius:4px; object-fit:contain; }
+.offer-logo-placeholder {
+  width:22px; height:22px; border-radius:4px;
+  background:var(--red); display:flex; align-items:center;
+  justify-content:center; color:#fff; font-size:.55rem; font-weight:900;
+}
+.offer-name { font-weight:700; font-size:.85rem; }
+.offer-badges { display:flex; gap:.3rem; margin-top:.15rem; flex-wrap:wrap; }
+.offer-badge {
+  font-size:.6rem; font-weight:700; padding:.1rem .35rem;
+  border-radius:4px;
+}
+.offer-badge.best { background:#22c55e; color:#fff; }
+.offer-badge.stock { background:rgba(34,197,94,.12); color:#22c55e; }
+.offer-ship { font-size:.8rem; color:var(--green); font-weight:600; }
+.offer-price-col { text-align:right; }
+.offer-price {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:1.2rem; font-weight:900;
+}
+.offer-price.best-price { color:#22c55e; }
+.offer-price-ship { font-size:.62rem; color:var(--dim); }
+.offer-btn-col { display:flex; justify-content:flex-end; }
+.offer-btn {
+  padding:.45rem .9rem; border:none; border-radius:7px;
+  font-weight:700; font-size:.78rem; cursor:pointer;
+  transition:opacity .2s; white-space:nowrap;
+}
+.offer-btn.primary { background:#22c55e; color:#fff; }
+.offer-btn.secondary { background:var(--bg4); color:var(--text); border:1px solid var(--border2); }
+.offer-btn:hover { opacity:.85; }
+
+/* ═══════════════════════════════════════
+   FAVORITES
+═══════════════════════════════════════ */
+.page-header {
+  background:var(--bg2); border-bottom:1px solid var(--border);
+  padding:1.2rem 1.5rem;
+}
+.page-header-inner { max-width:1400px; margin:0 auto; display:flex; align-items:center; gap:1rem; }
+.page-header-back {
+  width:34px; height:34px; border-radius:7px; background:var(--bg3);
+  border:1px solid var(--border); display:flex; align-items:center;
+  justify-content:center; color:var(--sub); cursor:pointer;
+  transition:all .2s; font-size:.9rem;
+}
+.page-header-back:hover { color:var(--text); }
+.page-header-title { font-family:'Barlow',sans-serif; font-size:1.3rem; font-weight:800; }
+.page-header-sub { font-size:.78rem; color:var(--sub); }
+
+/* ═══════════════════════════════════════
+   EMPTY STATES & SPINNER
+═══════════════════════════════════════ */
+.empty-state { text-align:center; padding:4rem 1.5rem; }
+.empty-icon { font-size:3rem; margin-bottom:1rem; }
+.empty-title { font-family:'Barlow',sans-serif; font-size:1.2rem; font-weight:800; margin-bottom:.5rem; }
+.empty-sub { color:var(--sub); font-size:.85rem; max-width:300px; margin:0 auto 1.5rem; line-height:1.6; }
+.empty-btn { padding:.6rem 1.5rem; background:var(--red); border:none; border-radius:7px; color:#fff; font-weight:700; font-size:.85rem; cursor:pointer; }
+.spinner { display:flex; align-items:center; justify-content:center; padding:4rem; flex-direction:column; gap:1rem; }
+.spin { width:36px; height:36px; border-radius:50%; border:3px solid var(--border); border-top-color:var(--red); animation:spin .7s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.spin-lbl { color:var(--sub); font-size:.82rem; }
+
+/* ═══════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════ */
+#global-footer {
+  background:var(--bg2); border-top:1px solid var(--border);
+  padding:3rem 1.5rem 2rem; margin-top:4rem;
+}
+.footer-inner { max-width:1400px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:2rem; }
+.footer-brand { font-family:'Outfit',sans-serif; font-size:1.4rem; font-weight:900; margin-bottom:.5rem; }
+.footer-brand .hi { color:#FF6B6B; }
+.footer-brand .find { color:var(--text); }
+.footer-desc { font-size:.8rem; color:var(--dim); line-height:1.6; }
+.footer-col h4 { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin-bottom:.75rem; color:var(--sub); }
+.footer-col a { display:block; font-size:.8rem; color:var(--dim); margin-bottom:.4rem; cursor:pointer; transition:color .2s; }
+.footer-col a:hover { color:var(--text); }
+.footer-bottom { max-width:1400px; margin:2rem auto 0; border-top:1px solid var(--border); padding-top:1.2rem; text-align:center; font-size:.73rem; color:var(--dim); }
+.footer-bottom a { color:var(--red); cursor:pointer; }
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
 @media(max-width:900px){
-  .search-layout{grid-template-columns:1fr;}
-  .filters-panel{position:static;}
-  .detail-grid{grid-template-columns:1fr;}
+  .hero-inner { grid-template-columns:1fr; }
+  .hero-visual { display:none; }
+  .cats-grid { grid-template-columns:1fr 1fr; }
+  .cat-card.large { grid-row:auto; }
+  .search-layout { grid-template-columns:1fr; }
+  .filters-panel { position:static; }
+  .detail-grid { grid-template-columns:1fr; }
+  .offer-row, .offers-table-cols { grid-template-columns:1fr auto auto; }
+  .offer-ship { display:none; }
+  .nav-cats { display:none; }
 }
 @media(max-width:640px){
-  .pcard-top{flex-direction:column;}
-  .pcard-img-col{width:100%;height:160px;flex-direction:row;gap:1rem;border-right:none;border-bottom:1px solid var(--border);}
-  .pcard-emoji{font-size:3rem;margin-bottom:0;}
-  .nav-btn-ghost{display:none;}
-  .prod-grid{grid-template-columns:repeat(2,1fr);}
-  .hero h1{font-size:2.5rem;}
-  .detail-stats-grid{grid-template-columns:repeat(2,1fr);}
+  .pcard { flex-direction:column; }
+  .pcard-img-col { width:100%; height:180px; border-right:none; border-bottom:1px solid var(--border); }
+  .prod-grid { grid-template-columns:repeat(2,1fr); }
+  .hero h1 { font-size:2.2rem; }
 }
 </style>
 </head>
 <body>
 
-<!-- NAVBAR -->
+<!-- ══ NAVBAR ══ -->
 <nav>
   <div class="nav-inner">
-    <div class="nav-logo" onclick="showPage('home')">Hi<span style="color:var(--find-color)">Find</span></div>
+    <div class="nav-logo" onclick="showPage('home')">
+      <span class="hi">Hi</span><span class="find">Find</span>
+    </div>
+    <div class="nav-search">
+      <input type="text" id="navInput" placeholder="Rechercher un produit..."
+        onkeydown="if(event.key==='Enter') doNavSearch()"
+        autocomplete="off">
+      <button onclick="doNavSearch()">🔍</button>
+    </div>
+    <ul class="nav-cats">
+      <li class="nav-cat active" onclick="showPage('home');setActiveNavCat(this)">Bons plans</li>
+      <li class="nav-cat" onclick="goCategory('high-tech',this)">High-Tech</li>
+      <li class="nav-cat" onclick="goCategory('sport-outdoor',this)">Sport</li>
+      <li class="nav-cat" onclick="goCategory('maison-jardin',this)">Maison & Jardin</li>
+      <li class="nav-cat" onclick="goCategory('beaute-bienetre',this)">Beauté & Santé</li>
+      <li class="nav-cat" onclick="goCategory('auto-moto',this)">Auto & Moto</li>
+    </ul>
     <div class="nav-actions">
-      <button class="nav-icon-btn" onclick="showPage('favorites')" title="Favoris">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-      </button>
-      <button class="nav-btn nav-btn-ghost" onclick="showPage('login')">Connexion</button>
-      <button class="nav-btn nav-btn-coral" onclick="showPage('register')">Inscription</button>
-      <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="Changer le thème">
-        <svg id="iconMoon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        <svg id="iconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-      </button>
+      <button class="nav-icon-btn" onclick="showPage('favorites')" title="Favoris">❤️</button>
+      <button class="nav-icon-btn" onclick="toggleTheme()" id="themeBtn" title="Thème">🌙</button>
     </div>
   </div>
 </nav>
 
-<!-- ══════ HOME ══════ -->
+<!-- ══════════════ HOME ══════════════ -->
 <div id="page-home" class="page active">
+
+  <!-- HERO -->
   <div class="hero">
-    <div class="hero-orb hero-orb1"></div>
-    <div class="hero-orb hero-orb2"></div>
     <div class="hero-inner">
-      <h1 class="fade-up">Des milliers d'offres.<br><span class="ac">Un seul endroit.</span></h1>
-      <p class="hero-sub fade-up" style="animation-delay:.08s">Trouvez les meilleures offres parmi des milliers de marchands. Amazon, Fnac, Cdiscount, Darty et bien plus.</p>
-      <div class="search-wrap fade-up" style="animation-delay:.16s">
-        <div class="search-box">
-          <div class="search-box-inner">
-            <div class="search-icon">🔍</div>
-            <input type="text" id="heroInput" placeholder="Rechercher un produit..." autocomplete="off"
-              oninput="showSuggestions('heroSugg',this.value)"
-              onkeydown="if(event.key==='Enter'){hideSugg('heroSugg');doHeroSearch();}"
-              onblur="setTimeout(()=>hideSugg('heroSugg'),200)">
-            <button onclick="doHeroSearch()">Rechercher</button>
+      <div class="hero-left">
+        <div class="hero-badge">🏆 Comparateur N°1 en France</div>
+        <h1 class="barlow">Le <span class="accent">meilleur prix</span>,<br>à chaque fois.</h1>
+        <p class="hero-sub">Comparez en temps réel des milliers d'offres chez vos marchands préférés. Économisez jusqu'à 40% sur vos produits.</p>
+        <div class="hero-search">
+          <input type="text" id="heroInput" placeholder="Que cherchez-vous au meilleur prix ?"
+            onkeydown="if(event.key==='Enter') doHeroSearch()"
+            autocomplete="off">
+          <button onclick="doHeroSearch()">Comparer</button>
+        </div>
+        <div class="hero-popular">
+          <span class="hero-popular-label">Populaire :</span>
+          <button class="hero-tag" onclick="searchFor('iPhone 15 Pro')">iPhone 15 Pro</button>
+          <button class="hero-tag" onclick="searchFor('PS5')">PS5</button>
+          <button class="hero-tag" onclick="searchFor('AirPods Pro')">AirPods Pro</button>
+          <button class="hero-tag" onclick="searchFor('Dyson V15')">Dyson V15</button>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-img-wrap">
+          <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80" alt="Shopping">
+          <div class="hero-badge-float">ÉCONOMIE -40%</div>
+          <div class="hero-price-float">
+            <div class="from">À PARTIR DE</div>
+            <div class="price" id="hero-float-price">—</div>
+            <div class="offers" id="hero-float-offers">Chargement...</div>
           </div>
         </div>
-        <div class="suggestions hidden" id="heroSugg"></div>
-      </div>
-      <div class="hero-tags fade-up" style="animation-delay:.24s">
-        <span class="hero-tag-lbl">Populaires :</span>
-        <button class="hero-tag" onclick="searchFor('iPhone 15')">iPhone 15</button>
-        <button class="hero-tag" onclick="searchFor('PS5')">PS5</button>
-        <button class="hero-tag" onclick="searchFor('Nike Air Max')">Nike Air Max</button>
-        <button class="hero-tag" onclick="searchFor('Dyson V15')">Dyson V15</button>
-        <button class="hero-tag" onclick="searchFor('Dior Sauvage')">Dior Sauvage</button>
-        <button class="hero-tag" onclick="searchFor('jouets')">LEGO</button>
-        <button class="hero-tag" onclick="searchFor('cuisine')">Nespresso</button>
       </div>
     </div>
   </div>
 
-  <div class="trust-bar">
-    <div class="trust-inner">
-      <div class="trust-item"><span class="trust-num">12M+</span> annonces</div>
-      <div class="trust-item"><span class="trust-num">15+</span> marchands</div>
-      <div class="trust-item"><span class="trust-num">-31%</span> d'économie moy.</div>
-      <div class="trust-item"><span class="trust-num">100%</span> gratuit</div>
-
+  <!-- MARCHANDS SCROLL -->
+  <div class="marchands-bar">
+    <div class="marchands-track">
+      <span class="marchand-item">Beauty Success</span>
+      <span class="marchand-item">News Parfums</span>
+      <span class="marchand-item">Norauto</span>
+      <span class="marchand-item">Pièces et Pneus</span>
+      <span class="marchand-item">Made in Sport</span>
+      <span class="marchand-item">Vertbaudet</span>
+      <span class="marchand-item">PC Portable.net</span>
+      <span class="marchand-item">Electro Dépôt</span>
+      <span class="marchand-item">DIM</span>
+      <span class="marchand-item">Daxon</span>
+      <span class="marchand-item">Cabesto</span>
+      <span class="marchand-item">Rakuten</span>
+      <span class="marchand-item">Mon Pied ce Héros</span>
+      <!-- Repeat for infinite scroll -->
+      <span class="marchand-item">Beauty Success</span>
+      <span class="marchand-item">News Parfums</span>
+      <span class="marchand-item">Norauto</span>
+      <span class="marchand-item">Pièces et Pneus</span>
+      <span class="marchand-item">Made in Sport</span>
+      <span class="marchand-item">Vertbaudet</span>
+      <span class="marchand-item">PC Portable.net</span>
+      <span class="marchand-item">Electro Dépôt</span>
+      <span class="marchand-item">DIM</span>
+      <span class="marchand-item">Daxon</span>
+      <span class="marchand-item">Cabesto</span>
+      <span class="marchand-item">Rakuten</span>
+      <span class="marchand-item">Mon Pied ce Héros</span>
     </div>
   </div>
 
+  <!-- CATÉGORIES -->
   <div class="section">
-    <div class="section-head"><h2 class="section-title outfit">Catégories</h2><span class="section-link" onclick="showPage('search')">Tout voir ›</span></div>
+    <div class="section-label">📦 Univers</div>
+    <h2 class="section-title barlow">Trouvez par univers</h2>
     <div class="cats-grid">
-      <button class="cat-btn" onclick="loadCategory('high-tech')"><span class="cat-icon">💻</span><span class="cat-name">High-Tech</span></button>
-      <button class="cat-btn" onclick="loadCategory('sport-outdoor')"><span class="cat-icon">🎮</span><span class="cat-name">Gaming</span></button>
-      <button class="cat-btn" onclick="loadCategory('mode-vetements')"><span class="cat-icon">👕</span><span class="cat-name">Mode</span></button>
-      <button class="cat-btn" onclick="loadCategory('maison-jardin')"><span class="cat-icon">🏡</span><span class="cat-name">Maison</span></button>
-      <button class="cat-btn" onclick="loadCategory('animaux')"><span class="cat-icon">🐾</span><span class="cat-name">Animaux</span></button>
-      <button class="cat-btn" onclick="loadCategory('beaute-bienetre')"><span class="cat-icon">💄</span><span class="cat-name">Beauté</span></button>
-      <button class="cat-btn" onclick="loadCategory('enfants-bebes')"><span class="cat-icon">🧸</span><span class="cat-name">Enfants</span></button>
-      <button class="cat-btn" onclick="loadCategory('alimentation-bio')"><span class="cat-icon">🍳</span><span class="cat-name">Cuisine</span></button>
-      <button class="cat-btn" onclick="loadCategory('auto-moto')"><span class="cat-icon">🚗</span><span class="cat-name">Auto</span></button>
-      <button class="cat-btn" onclick="loadCategory('sante-nutrition')"><span class="cat-icon">💊</span><span class="cat-name">Santé</span></button>
-      <a href="https://hiflight.fr" target="_blank" rel="noopener" class="cat-btn" style="text-decoration:none;border-color:rgba(99,179,237,0.4);background:linear-gradient(135deg,var(--bg2),rgba(99,179,237,0.08))"><span class="cat-icon">✈️</span><span class="cat-name" style="color:#63b3ed">Vols</span></a>
-    </div>
-  </div>
-
-  <div style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
-    <div class="section">
-      <div class="section-head"><h2 class="section-title outfit">✨ Nouveautés</h2><span class="section-link" onclick="searchFor('')">Voir tout ›</span></div>
-      <div class="prod-grid" id="featuredGrid"></div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-head"><h2 class="section-title outfit">🏷️ Bons plans du moment</h2><span class="section-link" onclick="searchFor('bons plans')">Voir tout ›</span></div>
-    <div class="prod-grid" id="bonsPlansGrid"></div>
-  </div>
-
-  <div class="section">
-    <div class="section-head"><h2 class="section-title outfit">📈 N°1 des ventes</h2><span class="section-link" onclick="searchFor('samsung')">Voir tout ›</span></div>
-    <div class="prod-grid" id="trendingGrid"></div>
-  </div>
-
-  <!-- ══ ESPACE MODE ══ -->
-  <div class="mode-section">
-    <div class="mode-header">
-      <div>
-        <h2 class="mode-title outfit">✨ Espace Mode & Beauté</h2>
-        <p class="mode-sub">Les meilleures offres sélectionnées pour vous</p>
-      </div>
-      <button class="mode-see-all" onclick="filterByCategory('mode-vetements',null);showPage('search')">Voir tout →</button>
-    </div>
-    <div class="mode-tabs">
-      <button class="mode-tab active" onclick="loadModeTab('mode-vetements',this)">👗 Mode</button>
-      <button class="mode-tab" onclick="loadModeTab('beaute-bienetre',this)">💄 Beauté</button>
-      <button class="mode-tab" onclick="loadModeTab('sante-nutrition',this)">💊 Santé</button>
-      <button class="mode-tab" onclick="loadModeTab('sport-outdoor',this)">⚽ Sport</button>
-    </div>
-    <div class="mode-grid" id="modeGrid">
-      <div style="color:var(--sub);font-size:.85rem;padding:1rem">Chargement...</div>
-    </div>
-  </div>
-
-  <div class="why">
-    <div class="why-inner">
-      <h2>Pourquoi choisir HiFind ?</h2>
-      <p class="why-sub">Le comparateur qui fait vraiment la différence</p>
-      <div class="why-grid">
-        <div class="why-card"><div class="why-icon" style="background:rgba(255,107,107,.12);">🛍️</div><h3>15+ marchands</h3><p>Comparez les prix des meilleurs sites e-commerce français en un clic</p></div>
-        <div class="why-card"><div class="why-icon" style="background:rgba(34,197,94,.12);">📊</div><h3>Prix actualisés</h3><p>Les prix sont mis à jour toutes les heures depuis nos marchands partenaires</p></div>
-        
-        <div class="why-card"><div class="why-icon" style="background:rgba(245,158,11,.12);">✨</div><h3>100% gratuit</h3><p>Aucune inscription requise, aucun abonnement caché</p></div>
-      </div>
-    </div>
-  </div>
-
-      </div>
-  </div>
-
-  <!-- ══ SECTION VOLS ══ -->
-  <div id="section-vols" style="background:var(--bg2);border-top:1px solid var(--border);padding:2.5rem 1.5rem;">
-    <div style="max-width:1280px;margin:0 auto;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
-        <div>
-          <h2 style="font-family:Outfit,sans-serif;font-size:1.35rem;font-weight:800">✈️ Voyagez moins cher avec HiFlight</h2>
+      <div class="cat-card large" onclick="goCategory('beaute-bienetre')">
+        <img class="cat-img" src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&q=80" alt="Beauté">
+        <div class="cat-overlay"></div>
+        <div class="cat-content">
+          <div class="cat-tag">Et soins</div>
+          <div class="cat-name">Beauté & Santé</div>
+          <div class="cat-link">Explorer →</div>
         </div>
-        <a href="https://hiflight.fr" target="_blank" rel="noopener" style="text-decoration:none">
-          <button style="padding:.55rem 1.2rem;background:transparent;border:1.5px solid #63b3ed;color:#63b3ed;border-radius:100px;font-weight:600;font-size:.82rem;cursor:pointer;white-space:nowrap">Toutes les offres de vols ✈</button>
-        </a>
       </div>
-
-      <!-- Cartes destinations -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.8rem;margin-bottom:1.5rem">
-
-        <a href="https://hiflight.fr/?origin=CDG&destination=TUN" target="_blank" rel="noopener" style="text-decoration:none;display:block;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--bg);transition:transform .2s,box-shadow .2s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='var(--card-shadow)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-          <div style="position:relative;height:110px;overflow:hidden"><img src="https://images.unsplash.com/photo-1549877452-9c387954fbc2?w=400&q=80" alt="Tunis" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.65));padding:.4rem .7rem"><div style="color:#fff;font-weight:700;font-size:.88rem">Tunis</div></div></div>
-          <div style="padding:.6rem .8rem"><div style="font-size:.7rem;color:var(--sub)">Paris ↔ Tunis · Aller-retour</div><div style="margin-top:.4rem;font-size:1rem;font-weight:800;font-family:Outfit,sans-serif;color:var(--coral)" id="fp-CDG-TUN"><span style="font-size:.65rem;font-weight:400;color:var(--dim)">dès </span>—</div></div>
-        </a>
-
-        <a href="https://hiflight.fr/?origin=CDG&destination=RAK" target="_blank" rel="noopener" style="text-decoration:none;display:block;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--bg);transition:transform .2s,box-shadow .2s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='var(--card-shadow)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-          <div style="position:relative;height:110px;overflow:hidden"><img src="https://images.unsplash.com/photo-1597212618440-806262de4f6b?w=400&q=80" alt="Marrakech" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.65));padding:.4rem .7rem"><div style="color:#fff;font-weight:700;font-size:.88rem">Marrakech</div></div></div>
-          <div style="padding:.6rem .8rem"><div style="font-size:.7rem;color:var(--sub)">Paris ↔ Marrakech · Aller-retour</div><div style="margin-top:.4rem;font-size:1rem;font-weight:800;font-family:Outfit,sans-serif;color:var(--coral)" id="fp-CDG-RAK"><span style="font-size:.65rem;font-weight:400;color:var(--dim)">dès </span>—</div></div>
-        </a>
-
-        <a href="https://hiflight.fr/?origin=CDG&destination=BCN" target="_blank" rel="noopener" style="text-decoration:none;display:block;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--bg);transition:transform .2s,box-shadow .2s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='var(--card-shadow)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-          <div style="position:relative;height:110px;overflow:hidden"><img src="https://images.unsplash.com/photo-1583422409516-2895a77efded?w=400&q=80" alt="Barcelone" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.65));padding:.4rem .7rem"><div style="color:#fff;font-weight:700;font-size:.88rem">Barcelone</div></div></div>
-          <div style="padding:.6rem .8rem"><div style="font-size:.7rem;color:var(--sub)">Paris ↔ Barcelone · Aller-retour</div><div style="margin-top:.4rem;font-size:1rem;font-weight:800;font-family:Outfit,sans-serif;color:var(--coral)" id="fp-CDG-BCN"><span style="font-size:.65rem;font-weight:400;color:var(--dim)">dès </span>—</div></div>
-        </a>
-
-        <a href="https://hiflight.fr/?origin=CDG&destination=FCO" target="_blank" rel="noopener" style="text-decoration:none;display:block;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--bg);transition:transform .2s,box-shadow .2s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='var(--card-shadow)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-          <div style="position:relative;height:110px;overflow:hidden"><img src="https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&q=80" alt="Rome" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.65));padding:.4rem .7rem"><div style="color:#fff;font-weight:700;font-size:.88rem">Rome</div></div></div>
-          <div style="padding:.6rem .8rem"><div style="font-size:.7rem;color:var(--sub)">Paris ↔ Rome · Aller-retour</div><div style="margin-top:.4rem;font-size:1rem;font-weight:800;font-family:Outfit,sans-serif;color:var(--coral)" id="fp-CDG-FCO"><span style="font-size:.65rem;font-weight:400;color:var(--dim)">dès </span>—</div></div>
-        </a>
-
-        <a href="https://hiflight.fr/?origin=CDG&destination=DXB" target="_blank" rel="noopener" style="text-decoration:none;display:block;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--bg);transition:transform .2s,box-shadow .2s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='var(--card-shadow)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-          <div style="position:relative;height:110px;overflow:hidden"><img src="https://images.unsplash.com/photo-1548013146-72479768bada?w=400&q=80" alt="Dubai" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.65));padding:.4rem .7rem"><div style="color:#fff;font-weight:700;font-size:.88rem">Dubai</div></div></div>
-          <div style="padding:.6rem .8rem"><div style="font-size:.7rem;color:var(--sub)">Paris ↔ Dubai · Aller-retour</div><div style="margin-top:.4rem;font-size:1rem;font-weight:800;font-family:Outfit,sans-serif;color:var(--coral)" id="fp-CDG-DXB"><span style="font-size:.65rem;font-weight:400;color:var(--dim)">dès </span>—</div></div>
-        </a>
-
-        <a href="https://hiflight.fr/?origin=MRS&destination=ALG" target="_blank" rel="noopener" style="text-decoration:none;display:block;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--bg);transition:transform .2s,box-shadow .2s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='var(--card-shadow)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-          <div style="position:relative;height:110px;overflow:hidden"><img src="https://images.unsplash.com/photo-1484821582734-6c6c9f99a672?w=400&q=80" alt="Alger" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.65));padding:.4rem .7rem"><div style="color:#fff;font-weight:700;font-size:.88rem">Alger</div></div></div>
-          <div style="padding:.6rem .8rem"><div style="font-size:.7rem;color:var(--sub)">Marseille ↔ Alger · Aller-retour</div><div style="margin-top:.4rem;font-size:1rem;font-weight:800;font-family:Outfit,sans-serif;color:var(--coral)" id="fp-MRS-ALG"><span style="font-size:.65rem;font-weight:400;color:var(--dim)">dès </span>—</div></div>
-        </a>
-
+      <div class="cat-card medium" onclick="goCategory('high-tech')">
+        <img class="cat-img" src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&q=80" alt="High-Tech">
+        <div class="cat-overlay"></div>
+        <div class="cat-content">
+          <div class="cat-tag">Ordinateurs, Audio, TV et Gaming</div>
+          <div class="cat-name">High-Tech</div>
+          <div class="cat-link">Explorer →</div>
+        </div>
+      </div>
+      <div class="cat-card medium" onclick="goCategory('sport-outdoor')">
+        <img class="cat-img" src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=80" alt="Sport">
+        <div class="cat-overlay"></div>
+        <div class="cat-content">
+          <div class="cat-tag">Équipement, Textile et Running</div>
+          <div class="cat-name">Sport</div>
+          <div class="cat-link">Explorer →</div>
+        </div>
+      </div>
+      <div class="cat-card medium" onclick="goCategory('maison-jardin')">
+        <img class="cat-img" src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80" alt="Maison">
+        <div class="cat-overlay"></div>
+        <div class="cat-content">
+          <div class="cat-tag">Et Jardin</div>
+          <div class="cat-name">Maison & Jardin</div>
+          <div class="cat-link">Explorer →</div>
+        </div>
+      </div>
+      <div class="cat-card medium" onclick="goCategory('auto-moto')">
+        <img class="cat-img" src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=600&q=80" alt="Auto">
+        <div class="cat-overlay"></div>
+        <div class="cat-content">
+          <div class="cat-tag">Pneus, Pièces et Accessoires</div>
+          <div class="cat-name">Auto & Moto</div>
+          <div class="cat-link">Explorer →</div>
+        </div>
+      </div>
+      <div class="cat-card medium" onclick="goCategory('mode-vetements')">
+        <img class="cat-img" src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=600&q=80" alt="Mode">
+        <div class="cat-overlay"></div>
+        <div class="cat-content">
+          <div class="cat-tag">Accessoires</div>
+          <div class="cat-name">Mode & Accessoires</div>
+          <div class="cat-link">Explorer →</div>
+        </div>
+      </div>
+      <div class="cat-card medium hiflight-card" onclick="window.open('https://hiflight.fr','_blank')">
+        <div class="cat-content" style="bottom:auto;top:0;padding:1.5rem">
+          <div style="font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.6);background:rgba(255,255,255,.15);padding:.2rem .5rem;border-radius:4px;display:inline-block;margin-bottom:.5rem">★ SITE PARTENAIRE</div>
+          <div style="font-size:2rem;margin-bottom:.3rem">✈️</div>
+          <div class="cat-tag">Comparez les vols</div>
+          <div class="cat-name">Vols</div>
+          <div class="cat-link" style="color:rgba(255,255,255,.8)">Direction hiflight.fr — notre comparateur dédié aux billets d'avion.</div>
+        </div>
       </div>
     </div>
   </div>
 
-</div>
+  <!-- TENDANCES -->
+  <div style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:3rem 0">
+    <div class="section" style="padding-top:0;padding-bottom:0">
+      <div class="section-label">🔥 Tendances du moment</div>
+      <h2 class="section-title barlow">Ce que les Français achètent</h2>
+      <div class="prod-grid" id="trendingGrid">
+        <div class="spinner"><div class="spin"></div></div>
+      </div>
+    </div>
+  </div>
 
-<!-- ══════ SEARCH ══════ -->
+  <!-- MEILLEURES AFFAIRES -->
+  <div class="section">
+    <div class="section-label">💰 Économies maximales</div>
+    <h2 class="section-title barlow">Les meilleures affaires</h2>
+    <p class="section-sub">Produits avec le plus gros écart de prix entre marchands</p>
+    <div class="prod-grid" id="dealsGrid">
+      <div class="spinner"><div class="spin"></div></div>
+    </div>
+  </div>
+
+</div><!-- /page-home -->
+
+<!-- ══════════════ SEARCH ══════════════ -->
 <div id="page-search" class="page">
   <div class="sp-bar">
     <div class="sp-bar-inner">
       <div class="sp-wrap">
         <span class="sp-icon">🔍</span>
-        <input class="sp-input" type="text" id="spInput" placeholder="Rechercher un produit..." autocomplete="off"
-          oninput="showSuggestions('spSugg',this.value);document.getElementById('spClear').style.display=this.value?'block':'none';"
-          onkeydown="if(event.key==='Enter'){hideSugg('spSugg');doSpSearch();}"
-          onblur="setTimeout(()=>hideSugg('spSugg'),200)">
-        <button class="sp-clear" id="spClear" onclick="document.getElementById('spInput').value='';this.style.display='none';document.getElementById('spInput').focus()">✕</button>
-        <div class="sp-suggestions hidden" id="spSugg"></div>
+        <input class="sp-input" type="text" id="spInput" placeholder="Rechercher un produit..."
+          onkeydown="if(event.key==='Enter') doSpSearch()"
+          oninput="document.getElementById('spClear').style.display=this.value?'block':'none'"
+          autocomplete="off">
+        <button id="spClear" style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--dim);font-size:1rem;cursor:pointer;display:none" onclick="clearSearch()">✕</button>
       </div>
       <button class="sp-btn" onclick="doSpSearch()">Rechercher</button>
     </div>
@@ -610,1045 +916,587 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 1.5
   <div class="search-layout">
     <aside class="filters-panel">
       <div class="filters-head">
-        <span class="filters-head-title">🔧 Filtres</span>
-        <button class="filters-reset" onclick="clearFilters()">Réinitialiser</button>
+        <span class="filters-head-title">Filtres</span>
+        <span class="filters-reset" onclick="clearFilters()">Réinitialiser</span>
       </div>
-
-      <!-- CATÉGORIE -->
       <div class="filter-section">
         <div class="filter-label">Catégorie</div>
-        <div class="filter-cats" id="filterCats">
-          <button class="fcat active" onclick="filterByCategory('',this)">Tout</button>
-          <button class="fcat" onclick="filterByCategory('beaute-bienetre',this)">💄 Beauté & Bien-être</button>
-          <button class="fcat" onclick="filterByCategory('sante-nutrition',this)">💊 Santé & Nutrition</button>
-          <button class="fcat" onclick="filterByCategory('mode-vetements',this)">👗 Mode & Vêtements</button>
-          <button class="fcat" onclick="filterByCategory('maison-jardin',this)">🏠 Maison & Jardin</button>
-          <button class="fcat" onclick="filterByCategory('alimentation-bio',this)">🌿 Alimentation Bio</button>
-          <button class="fcat" onclick="filterByCategory('cbd-chanvre',this)">🌱 CBD & Chanvre</button>
-          <button class="fcat" onclick="filterByCategory('enfants-bebes',this)">👶 Enfants & Bébés</button>
-          <button class="fcat" onclick="filterByCategory('sport-outdoor',this)">⚽ Sport & Outdoor</button>
-          <button class="fcat" onclick="filterByCategory('high-tech',this)">📱 High-Tech</button>
-          <button class="fcat" onclick="filterByCategory('animaux',this)">🐾 Animaux</button>
-          <button class="fcat" onclick="filterByCategory('auto-moto',this)">🚗 Auto & Moto</button>
-        </div>
+        <button class="fcat active" onclick="filterCat('',this)">Tout</button>
+        <button class="fcat" onclick="filterCat('beaute-bienetre',this)">💄 Beauté & Santé</button>
+        <button class="fcat" onclick="filterCat('mode-vetements',this)">👗 Mode</button>
+        <button class="fcat" onclick="filterCat('high-tech',this)">📱 High-Tech</button>
+        <button class="fcat" onclick="filterCat('auto-moto',this)">🚗 Auto & Moto</button>
+        <button class="fcat" onclick="filterCat('sport-outdoor',this)">⚽ Sport</button>
+        <button class="fcat" onclick="filterCat('enfants-bebes',this)">👶 Enfants</button>
+        <button class="fcat" onclick="filterCat('maison-jardin',this)">🏠 Maison</button>
+        <button class="fcat" onclick="filterCat('animaux',this)">🐾 Animaux</button>
+        <button class="fcat" onclick="filterCat('alimentation-bio',this)">🌿 Bio</button>
       </div>
-
-      <!-- PRIX -->
       <div class="filter-section">
         <div class="filter-label">Prix maximum</div>
-        <input type="range" class="price-slider" id="priceSliderMax" min="0" max="1000" value="1000" oninput="updatePriceSlider()">
-        <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--dim);margin-bottom:.5rem">
-          <span>0 €</span><span id="priceSliderVal">1000 €</span>
+        <input type="range" class="price-slider" id="priceSlider" min="0" max="2000" value="2000" oninput="updatePriceDisplay()">
+        <div style="display:flex;justify-content:space-between;font-size:.73rem;color:var(--dim);margin:.3rem 0 .7rem">
+          <span>0 €</span><span id="priceDisplay" style="color:var(--text);font-weight:600">2000 €</span>
         </div>
-        <div class="price-ranges" id="priceRanges">
-          <button class="price-range-btn" onclick="setPriceRange(0,20)">Moins de 20 €</button>
-          <button class="price-range-btn" onclick="setPriceRange(20,50)">20 € – 50 €</button>
-          <button class="price-range-btn" onclick="setPriceRange(50,100)">50 € – 100 €</button>
-          <button class="price-range-btn" onclick="setPriceRange(100,99999)">Plus de 100 €</button>
-        </div>
+        <button class="price-range-btn" onclick="setPriceRange(50)">Moins de 50 €</button>
+        <button class="price-range-btn" onclick="setPriceRange(100)">Moins de 100 €</button>
+        <button class="price-range-btn" onclick="setPriceRange(500)">Moins de 500 €</button>
         <button class="filter-apply" onclick="applyFilters()">Appliquer</button>
       </div>
-
-      <!-- LIVRAISON -->
-      <div class="filter-section">
-        <div class="filter-label">Livraison</div>
-        <label class="filter-check"><input type="checkbox" id="filterFreeShipping"> Gratuite</label>
-        <label class="filter-check"><input type="checkbox" id="filterFast"> Rapide (2-5j)</label>
-      </div>
     </aside>
-
-    <div class="results-col">
+    <div>
       <div class="results-top">
-        <div class="results-count" id="resultsCount"><strong>0</strong> produits trouvés</div>
-        <div style="display:flex;align-items:center;gap:.5rem;">
-          <span style="font-size:.78rem;color:var(--sub);">Trier :</span>
-          <select class="sort-select" id="sortSelect" onchange="sortResults()">
-            <option value="relevance">Pertinence</option>
-            <option value="price_asc">Prix croissant</option>
-            <option value="price_desc">Prix décroissant</option>
-          </select>
-        </div>
+        <div class="results-count" id="resultsCount"><strong>0</strong> produits</div>
+        <select class="sort-select" id="sortSelect" onchange="sortResults()">
+          <option value="relevance">Pertinence</option>
+          <option value="price_asc">Prix croissant</option>
+          <option value="price_desc">Prix décroissant</option>
+          <option value="offers">Plus d'offres</option>
+        </select>
       </div>
       <div id="resultsContainer">
-        <div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Lancez une recherche</div><div class="empty-sub">Entrez un terme pour comparer les prix de milliers de produits.</div></div>
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-title">Lancez une recherche</div>
+          <div class="empty-sub">Entrez un terme pour comparer les prix</div>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══════ PRODUCT DETAIL ══════ -->
+<!-- ══════════════ DETAIL ══════════════ -->
 <div id="page-detail" class="page">
   <div class="detail-page">
-    <div class="detail-back" onclick="currentResults.length>0?showPage('search'):showPage('home')">← Retour aux résultats</div>
+    <div class="breadcrumb" id="detailBreadcrumb">
+      <span onclick="showPage('home')">Accueil</span>
+      <span class="breadcrumb-sep">›</span>
+      <span id="breadcat" onclick="goBack()">Retour</span>
+      <span class="breadcrumb-sep">›</span>
+      <span id="breadname" style="color:var(--sub)">Produit</span>
+    </div>
     <div id="detailContent"></div>
   </div>
 </div>
 
-<!-- ══════ ABOUT ══════ -->
-<div id="page-about" class="page">
-  <div class="about-hero">
-    <div class="hero-orb hero-orb1"></div>
-    <h1 class="fade-up">À propos de <span class="ac">HiFind</span></h1>
-    <p class="fade-up" style="animation-delay:.1s;color:var(--sub);">Notre mission : rendre le meilleur prix accessible à tous, en un seul endroit.</p>
-  </div>
-  <div class="about-section">
-    <div class="about-mission">
-      <h2>Notre mission</h2>
-      <p>HiFind est né d'un constat simple : trouver le meilleur prix en ligne est une perte de temps. Nous avons créé le comparateur qui agrège 40+ sources en temps réel pour que vous puissiez économiser sans effort — sur tous vos achats du quotidien.</p>
-    </div>
-    <div class="about-stats">
-      <div class="about-stat-card"><div class="about-stat-val">12M+</div><div class="about-stat-lbl">Annonces indexées</div></div>
-      <div class="about-stat-card"><div class="about-stat-val">40+</div><div class="about-stat-lbl">Marchands partenaires</div></div>
-      <div class="about-stat-card"><div class="about-stat-val">-31%</div><div class="about-stat-lbl">Économie moyenne</div></div>
-      <div class="about-stat-card"><div class="about-stat-val">2s</div><div class="about-stat-lbl">Temps de recherche</div></div>
-    </div>
-    <div class="about-grid">
-      <div class="about-card"><div class="about-card-icon">🔍</div><h3>Comparaison universelle</h3><p>HiFind agrège Amazon, Fnac, Darty, Cdiscount, Leboncoin, Vinted et bien d'autres en une seule recherche. Fini les 10 onglets ouverts.</p></div>
-      <div class="about-card"><div class="about-card-icon">📊</div><h3>Historique des prix</h3><p>Consultez l'évolution du prix sur 30, 90 ou 365 jours. Achetez au meilleur moment et ne vous faites plus jamais avoir par une fausse promo.</p></div>
-      
-      <div class="about-card"><div class="about-card-icon">🔒</div><h3>100% indépendant</h3><p>HiFind ne favorise aucun marchand. Notre algorithme trie uniquement par prix réel, sans placement payant ni influence commerciale.</p></div>
-      <div class="about-card"><div class="about-card-icon">🆓</div><h3>Gratuit pour toujours</h3><p>HiFind est et restera gratuit pour les utilisateurs. Notre modèle repose sur l'affiliation — nous touchons une commission uniquement si vous achetez.</p></div>
-      <div class="about-card"><div class="about-card-icon">📱</div><h3>App mobile bientôt</h3><p>Une application iOS et Android est en cours de développement. Inscrivez-vous pour être notifié en avant-première dès le lancement.</p></div>
-    </div>
-    <div class="about-team">
-      <h2>L'équipe</h2>
-      <p>Une équipe passionnée par la tech et l'e-commerce</p>
-      <div class="team-grid">
-        <div class="team-card"><div class="team-avatar">👨‍💻</div><div class="team-name">Fondateur</div><div class="team-role">CEO & Développeur</div></div>
-        <div class="team-card"><div class="team-avatar">🎨</div><div class="team-name">Design</div><div class="team-role">UI/UX Designer</div></div>
-        <div class="team-card"><div class="team-avatar">📊</div><div class="team-name">Data</div><div class="team-role">Data Engineer</div></div>
-        <div class="team-card"><div class="team-avatar">📢</div><div class="team-name">Growth</div><div class="team-role">Marketing & SEO</div></div>
+<!-- ══════════════ FAVORITES ══════════════ -->
+<div id="page-favorites" class="page">
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="page-header-back" onclick="showPage('home')">←</div>
+      <div>
+        <div class="page-header-title barlow">Mes Favoris</div>
+        <div class="page-header-sub" id="favCount">0 produit</div>
       </div>
     </div>
   </div>
-  <footer>
-    <div class="footer-inner">
-      <div><div class="footer-brand">HiFind</div><p class="footer-desc">Le comparateur de prix qui vous fait vraiment économiser.</p></div>
-      <div class="footer-col"><h4>Catégories</h4><a onclick="searchFor('iphone')">Smartphones</a><a onclick="searchFor('tv')">TV & Audio</a><a onclick="searchFor('macbook')">Ordinateurs</a></div>
-      <div class="footer-col"><h4>HiFind</h4><a onclick="showPage('about')">À propos</a><a onclick="showPage('mentions')">Mentions légales</a><a onclick="showPage('cgu')">CGU</a><a onclick="showPage('privacy')">Confidentialité</a></div>
-    </div>
-    <div class="footer-bottom">© 2025 HiFind · Certains liens sont des liens d'affiliation</div>
-  </footer>
-</div>
-
-<!-- ══════ FAVORITES ══════ -->
-<div id="page-favorites" class="page">
-  <div class="page-hdr"><div class="page-hdr-inner"><button class="page-hdr-back" onclick="showPage('home')">←</button><div class="page-hdr-icon">❤️</div><div><div class="page-hdr-title outfit">Mes Favoris</div><div class="page-hdr-sub" id="favCount">0 produit</div></div></div></div>
-  <div style="max-width:1280px;margin:0 auto;padding:2rem 1.5rem;"><div id="favsContainer"></div></div>
-</div>
-
-  <div style="max-width:860px;margin:0 auto;padding:2rem 1.5rem;">
-    <div class="alert-form"><h2>Créer une alerte prix</h2><div class="alert-row"><input class="alert-in" type="text" id="alertQuery" placeholder="Produit (ex: iPhone 15 Pro)"><input class="alert-in alert-price-in" type="number" id="alertPrice" placeholder="Prix cible €"><button class="alert-submit" onclick="createAlert()">➕ Créer</button></div></div>
-    <div id="alertsContainer"></div>
+  <div style="max-width:1400px;margin:0 auto;padding:2rem 1.5rem">
+    <div id="favsContainer"></div>
   </div>
 </div>
 
-<!-- ══════ LOGIN / REGISTER ══════ -->
-<div id="page-login" class="page">
-  <div style="min-height:80vh;display:flex;align-items:center;justify-content:center;padding:2rem;">
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2.5rem;width:100%;max-width:420px;">
-      <h1 class="outfit" style="font-size:1.6rem;font-weight:700;text-align:center;margin-bottom:2rem;">Connexion</h1>
-      <div style="margin-bottom:1rem;"><label style="display:block;font-size:.8rem;font-weight:600;color:var(--sub);margin-bottom:.45rem;">Email</label><input style="width:100%;height:44px;padding:0 1rem;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.88rem;outline:none;" placeholder="votre@email.com" type="email"></div>
-      <div style="margin-bottom:1.5rem;"><label style="display:block;font-size:.8rem;font-weight:600;color:var(--sub);margin-bottom:.45rem;">Mot de passe</label><input style="width:100%;height:44px;padding:0 1rem;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.88rem;outline:none;" placeholder="••••••••" type="password"></div>
-      <button style="width:100%;height:44px;background:var(--coral);border:none;border-radius:10px;color:#fff;font-weight:700;font-size:.92rem;" onclick="alert('Bientôt disponible !')">Se connecter</button>
-      <p style="text-align:center;margin-top:1.2rem;font-size:.83rem;color:var(--sub);">Pas encore de compte ? <a style="color:var(--coral);font-weight:600;cursor:pointer;" onclick="showPage('register')">S'inscrire</a></p>
+<!-- ══ FOOTER GLOBAL ══ -->
+<footer id="global-footer">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand"><span class="hi">Hi</span><span class="find">Find</span></div>
+      <p class="footer-desc">Le comparateur de prix qui vous fait vraiment économiser.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Catégories</h4>
+      <a onclick="goCategory('beaute-bienetre')">Beauté & Santé</a>
+      <a onclick="goCategory('high-tech')">High-Tech</a>
+      <a onclick="goCategory('auto-moto')">Auto & Moto</a>
+      <a onclick="goCategory('sport-outdoor')">Sport</a>
+    </div>
+    <div class="footer-col">
+      <h4>HiFind</h4>
+      <a onclick="showPage('home')">Accueil</a>
+      <a href="https://hiflight.fr" target="_blank">HiFlight ✈</a>
+    </div>
+    <div class="footer-col">
+      <h4>Légal</h4>
+      <a>Mentions légales</a>
+      <a>CGU</a>
+      <a>Confidentialité</a>
     </div>
   </div>
-</div>
-<div id="page-register" class="page">
-  <div style="min-height:80vh;display:flex;align-items:center;justify-content:center;padding:2rem;">
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2.5rem;width:100%;max-width:420px;">
-      <h1 class="outfit" style="font-size:1.6rem;font-weight:700;text-align:center;margin-bottom:2rem;">Créer un compte</h1>
-      <div style="margin-bottom:1rem;"><label style="display:block;font-size:.8rem;font-weight:600;color:var(--sub);margin-bottom:.45rem;">Nom</label><input style="width:100%;height:44px;padding:0 1rem;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.88rem;outline:none;" placeholder="Votre nom" type="text"></div>
-      <div style="margin-bottom:1rem;"><label style="display:block;font-size:.8rem;font-weight:600;color:var(--sub);margin-bottom:.45rem;">Email</label><input style="width:100%;height:44px;padding:0 1rem;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.88rem;outline:none;" placeholder="votre@email.com" type="email"></div>
-      <div style="margin-bottom:1.5rem;"><label style="display:block;font-size:.8rem;font-weight:600;color:var(--sub);margin-bottom:.45rem;">Mot de passe</label><input style="width:100%;height:44px;padding:0 1rem;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.88rem;outline:none;" placeholder="••••••••" type="password"></div>
-      <button style="width:100%;height:44px;background:var(--coral);border:none;border-radius:10px;color:#fff;font-weight:700;font-size:.92rem;" onclick="alert('Bientôt disponible !')">Créer mon compte</button>
-      <p style="text-align:center;margin-top:1.2rem;font-size:.83rem;color:var(--sub);">Déjà un compte ? <a style="color:var(--coral);font-weight:600;cursor:pointer;" onclick="showPage('login')">Se connecter</a></p>
-    </div>
+  <div class="footer-bottom">
+    © 2025 HiFind · Certains liens sont des <a>liens d'affiliation</a> · <a>Mentions légales</a>
   </div>
-</div>
+</footer>
 
-<!-- ══════ MENTIONS LÉGALES ══════ -->
-<div id="page-mentions" class="page">
-  <div class="page-hdr"><div class="page-hdr-inner"><button class="page-hdr-back" onclick="showPage('home')">←</button><div class="page-hdr-icon">📄</div><div><div class="page-hdr-title outfit">Mentions légales</div></div></div></div>
-  <div style="max-width:860px;margin:0 auto;padding:2rem 1.5rem;">
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2rem;line-height:1.8;font-size:.9rem;color:var(--sub);">
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:1rem;">Éditeur du site</h2>
-      <p>Le site <strong style="color:var(--text);">HiFind.fr</strong> est édité par :<br>
-      Mohamed — Fondateur HiFind<br>
-      Site web : hifind.fr<br>
-      Contact : <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fd9e9293899c9e89bd95949b949399d39b8f">[email&#160;protected]</a></p>
-
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">Hébergement</h2>
-      <p>Le site est hébergé par :<br>
-      <strong style="color:var(--text);">Netlify, Inc.</strong><br>
-      512 2nd Street, Suite 200, San Francisco, CA 94107, USA<br>
-      netlify.com</p>
-
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">Activité</h2>
-      <p>HiFind.fr est un comparateur de prix en ligne. Le site agrège et compare les offres de marchands partenaires afin d'aider les utilisateurs à trouver le meilleur prix pour leurs achats.</p>
-
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">Liens d'affiliation</h2>
-      <p>Certains liens présents sur HiFind.fr sont des liens d'affiliation. Lorsqu'un utilisateur clique sur ces liens et effectue un achat, HiFind.fr peut percevoir une commission de la part du marchand. Cela n'engendre aucun coût supplémentaire pour l'utilisateur et ne biaise pas le classement des offres présentées.</p>
-      <p>HiFind.fr est notamment membre du programme Amazon Partenaires (tag affilié : hifind05-21), un programme d'affiliation conçu pour permettre à des sites de percevoir des commissions en faisant la promotion de produits Amazon.</p>
-
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">Propriété intellectuelle</h2>
-      <p>L'ensemble du contenu du site (textes, images, logos, structure) est la propriété de HiFind.fr ou de ses partenaires. Toute reproduction, même partielle, est interdite sans autorisation préalable.</p>
-
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">Responsabilité</h2>
-      <p>HiFind.fr s'efforce de proposer des informations à jour et exactes. Cependant, les prix et disponibilités affichés sont fournis à titre indicatif et peuvent varier. HiFind.fr ne peut être tenu responsable des erreurs ou omissions dans les informations fournies.</p>
-    </div>
-  </div>
-</div>
-
-<!-- ══════ CGU ══════ -->
-<div id="page-cgu" class="page">
-  <div class="page-hdr"><div class="page-hdr-inner"><button class="page-hdr-back" onclick="showPage('home')">←</button><div class="page-hdr-icon">📋</div><div><div class="page-hdr-title outfit">Conditions Générales d'Utilisation</div></div></div></div>
-  <div style="max-width:860px;margin:0 auto;padding:2rem 1.5rem;">
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2rem;line-height:1.8;font-size:.9rem;color:var(--sub);">
-      <p style="margin-bottom:1rem;"><em>Dernière mise à jour : janvier 2025</em></p>
-
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:1rem;">1. Objet</h2>
-      <p>Les présentes CGU régissent l'utilisation du site HiFind.fr, comparateur de prix en ligne accessible à l'adresse hifind.fr. En utilisant le site, vous acceptez sans réserve les présentes conditions.</p>
-
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">2. Description du service</h2>
-      <p>HiFind.fr est un service gratuit de comparaison de prix. Il permet aux utilisateurs de comparer les offres de différents marchands partenaires. HiFind.fr n'est pas lui-même un marchand et ne vend aucun produit directement.</p>
-
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">3. Gratuité du service</h2>
-      <p>L'utilisation de HiFind.fr est entièrement gratuite pour les utilisateurs. Le service est financé par des commissions d'affiliation versées par les marchands partenaires lorsqu'un achat est réalisé via un lien présent sur le site.</p>
-
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">4. Exactitude des informations</h2>
-      <p>HiFind.fr s'efforce de maintenir des informations à jour. Cependant, les prix, disponibilités et caractéristiques des produits sont susceptibles de changer sans préavis. L'utilisateur est invité à vérifier les informations directement sur le site du marchand avant tout achat.</p>
-
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">5. Liens externes</h2>
-      <p>Le site contient des liens vers des sites tiers. HiFind.fr n'est pas responsable du contenu de ces sites ni des transactions effectuées sur ceux-ci. L'utilisateur accède aux sites tiers sous sa propre responsabilité.</p>
-
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">6. Droit applicable</h2>
-      <p>Les présentes CGU sont soumises au droit français. Tout litige relatif à leur interprétation ou à leur exécution relève de la compétence des tribunaux français.</p>
-    </div>
-  </div>
-</div>
-
-<!-- ══════ CONFIDENTIALITÉ ══════ -->
-<div id="page-privacy" class="page">
-  <div class="page-hdr"><div class="page-hdr-inner"><button class="page-hdr-back" onclick="showPage('home')">←</button><div class="page-hdr-icon">🔒</div><div><div class="page-hdr-title outfit">Politique de confidentialité</div></div></div></div>
-  <div style="max-width:860px;margin:0 auto;padding:2rem 1.5rem;">
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2rem;line-height:1.8;font-size:.9rem;color:var(--sub);">
-      <p style="margin-bottom:1rem;"><em>Dernière mise à jour : janvier 2025</em></p>
-
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:1rem;">1. Données collectées</h2>
-      <p>HiFind.fr collecte uniquement les données strictement nécessaires au fonctionnement du service :</p>
-      <p>• <strong style="color:var(--text);">Données de navigation</strong> : pages visitées, termes de recherche (anonymisés)<br>
-      • <strong style="color:var(--text);">Favoris et alertes</strong> : stockés localement dans votre navigateur (localStorage), non transmis à nos serveurs<br>
-      • <strong style="color:var(--text);">Cookies</strong> : uniquement pour mémoriser vos préférences (thème clair/sombre)</p>
-
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">2. Données non collectées</h2>
-      <p>HiFind.fr ne collecte pas votre nom, adresse email, numéro de téléphone ou toute autre donnée personnelle identifiable, sauf si vous créez un compte volontairement.</p>
-
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">3. Cookies tiers</h2>
-      <p>Lorsque vous cliquez sur un lien affilié (Amazon, Fnac, etc.), ces sites déposent leurs propres cookies conformément à leurs politiques de confidentialité respectives. HiFind.fr n'a pas de contrôle sur ces cookies.</p>
-
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">4. Vos droits (RGPD)</h2>
-      <p>Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez d'un droit d'accès, de rectification et de suppression de vos données. Pour exercer ces droits, contactez-nous à : <strong style="color:var(--coral);"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2a4945445e4b495e6a42434c43444e044c58">[email&#160;protected]</a></strong></p>
-
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">5. Sécurité</h2>
-      <p>HiFind.fr utilise le protocole HTTPS pour sécuriser toutes les communications entre votre navigateur et notre serveur. Vos données de navigation ne sont pas partagées avec des tiers à des fins commerciales.</p>
-
-      <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin:1.5rem 0 1rem;">6. Contact</h2>
-      <p>Pour toute question relative à notre politique de confidentialité : <strong style="color:var(--coral);"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="beddd1d0cadfddcafed6d7d8d7d0da90d8cc">[email&#160;protected]</a></strong></p>
-    </div>
-  </div>
-</div>
-
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ══ THEME ══
-let theme = localStorage.getItem('hf_theme')||'dark';
+var theme = localStorage.getItem('hf_theme') || 'dark';
 applyTheme(theme);
-function applyTheme(t){theme=t;document.documentElement.setAttribute('data-theme',t);const moon=document.getElementById('iconMoon');const sun=document.getElementById('iconSun');if(moon&&sun){if(t==='dark'){moon.classList.remove('hidden');sun.classList.add('hidden');}else{moon.classList.add('hidden');sun.classList.remove('hidden');}}localStorage.setItem('hf_theme',t);}
-function toggleTheme(){applyTheme(theme==='dark'?'light':'dark');}
-
-// ══ DATA ══
-// ════════════════════════════════════════════
-// AFFILAE — seule source de produits
-// ════════════════════════════════════════════
-const AFFILAE_PROFILE_ID = '69c1bc52b682a8edf3205672';
-const AFFILAE_FN         = '/api/products';
-let   _affilaeCache      = {};
-
-async function affilaeCall(action, query, limit) {
-  try {
-    let url = AFFILAE_FN + '?action=' + action;
-    if (query) url += '&q=' + encodeURIComponent(query);
-    if (limit) url += '&limit=' + limit;
-    console.log('affilaeCall →', url);
-    const res = await fetch(url);
-    console.log('affilaeCall status:', res.status);
-    if (!res.ok) return null;
-    const data = await res.json();
-    console.log('affilaeCall data:', data);
-    return data;
-  } catch(e) {
-    console.error('affilaeCall error:', e.message);
-    return null;
-  }
+function applyTheme(t) {
+  theme = t;
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('themeBtn').textContent = t === 'dark' ? '🌙' : '☀️';
+  localStorage.setItem('hf_theme', t);
 }
-
-async function fetchAffilaeProducts(query) {
-  var key = query.toLowerCase().trim();
-  if (_affilaeCache[key]) return _affilaeCache[key];
-
-  var raw;
-  // 1. Cherche par titre dans Supabase
-  if (key) {
-    raw = await affilaeCall('search', key, 50);
-  }
-
-  // 2. Si résultats → filtre côté client pour plus de précision
-  if (raw && raw.data && raw.data.length > 0) {
-    var filtered = raw.data.filter(function(p) {
-      var title = (p.title || '').toLowerCase();
-      var desc  = (p.description || '').toLowerCase();
-      var prog  = ((p.programs && p.programs.title) || '').toLowerCase();
-      return title.includes(key) || desc.includes(key) || prog.includes(key);
-    });
-    var result = filtered.length > 0 ? filtered : raw.data;
-    _affilaeCache[key] = result;
-    console.log('fetchAffilaeProducts "'+key+'" → '+result.length+' produits (search)');
-    return result;
-  }
-
-  // 3. Fallback : charge plus de produits et filtre strictement
-  var allRaw = await affilaeCall('list', '', 100);
-  if (!allRaw || !allRaw.data) return null;
-
-  var allFiltered = allRaw.data.filter(function(p) {
-    var title = (p.title || '').toLowerCase();
-    var desc  = (p.description || '').toLowerCase();
-    var prog  = ((p.programs && p.programs.title) || '').toLowerCase();
-    var cat   = (p.category || '').toLowerCase();
-    return title.includes(key) || desc.includes(key) || prog.includes(key) || cat.includes(key);
-  });
-
-  // Ne retourne que les produits pertinents — pas tous si rien trouvé
-  if (allFiltered.length === 0) {
-    _affilaeCache[key] = [];
-    return [];
-  }
-
-  _affilaeCache[key] = allFiltered;
-  console.log('fetchAffilaeProducts "'+key+'" → '+allFiltered.length+' produits (fallback)');
-  return allFiltered;
-}
-
-function buildAffilaeLink(item) {
-  // Utilise le lien de tracking pré-calculé par l'API si disponible
-  if (item.tracking_url) return item.tracking_url;
-  var directUrl = item.url || '#';
-  if (directUrl === '#') return '#';
-  var sep = directUrl.includes('?') ? '&' : '?';
-  return directUrl + sep + 'ae=' + AFFILAE_PROFILE_ID;
-}
-
-function decodeHtml(str) {
-  if (!str) return str;
-  return str
-    .replace(/&eacute;/g, 'é').replace(/&egrave;/g, 'è').replace(/&ecirc;/g, 'ê')
-    .replace(/&agrave;/g, 'à').replace(/&acirc;/g, 'â').replace(/&ocirc;/g, 'ô')
-    .replace(/&ugrave;/g, 'ù').replace(/&ucirc;/g, 'û').replace(/&ccedil;/g, 'ç')
-    .replace(/&iuml;/g, 'ï').replace(/&icirc;/g, 'î').replace(/&euml;/g, 'ë')
-    .replace(/&oelig;/g, 'œ').replace(/&aelig;/g, 'æ').replace(/&ntilde;/g, 'ñ')
-    .replace(/&Eacute;/g, 'É').replace(/&Agrave;/g, 'À').replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ').replace(/&laquo;/g, '«')
-    .replace(/&raquo;/g, '»').replace(/&deg;/g, '°').replace(/&copy;/g, '©')
-    .replace(/&reg;/g, '®');
-}
-
-function proxyImage(url) {
-  if (!url) return null;
-  // Extrait l'URL réelle depuis les redirects Effinity/Rakuten
-  if (url.includes('track.effiliation.com') || url.includes('effi.redir')) {
-    var match = url.match(/[?&]url=([^&]+)/);
-    if (match) url = decodeURIComponent(match[1]);
-  }
-  // Ces domaines servent directement sans proxy
-  var directDomains = [
-    'medias-norauto.fr', 'vertbaudet.fr', 'blancheporte.fr',
-    'lunii.fr', 'monpiedceheros.fr', 'rakuten.com', 'pmcdn.priceminister.com',
-    'shopping.rakuten.com', 'fr.shopping', 'static.affilae.com'
-  ];
-  for (var i = 0; i < directDomains.length; i++) {
-    if (url.includes(directDomains[i])) return url;
-  }
-  return '/api/img?url=' + encodeURIComponent(url);
-}
-
-function fixEncoding(str) {
-  if (!str) return '';
-  // Corrige l'encodage ISO-8859-1 mal interprété en UTF-8
-  try {
-    return decodeURIComponent(escape(str));
-  } catch(e) {
-    return str;
-  }
-}
-
-function mapAffilaeProduct(item) {
-  // Compatible Supabase (programs join) ET Affilae direct
-  var programTitle = (item.programs && item.programs.title)
-    || (item.program && item.program.title)
-    || 'Partenaire';
-  var price      = parseFloat(item.price) || 0;
-  if (price > 1000 && !item.program_id) price = price / 100;
-  var img        = proxyImage(item.image_url || (item.images && item.images[0] && item.images[0].url) || null);
-  var rawDesc    = (item.description || '').replace(/<[^>]*>/g, '').trim();
-  var desc       = fixEncoding(rawDesc);
-  var shortDesc  = desc.length > 150 ? desc.slice(0, 150).trim() + '...' : desc;
-  var name       = decodeHtml(fixEncoding(item.title || item.name || ''));
-  var trackId    = item.tracking_id || item.trackingId || '';
-  var progId     = item.program_id || (item.program && item.program.id) || '';
-  var trackingUrl = buildAffilaeLink({ program_id: progId, tracking_id: trackId, url: item.url });
-  console.log('mapAffilaeProduct:', item.title, '| progId:', progId, '| trackId:', trackId, '| url:', trackingUrl);
-
-  return {
-    id:        item.id || ('af_' + Math.random().toString(36).slice(2)),
-    name:      name,
-    brand:     programTitle,
-    cat:       item.category || 'Général',
-    img:       img,
-    desc:      shortDesc,
-    basePrice: price,
-    rating:    4.5, reviews: 0,
-    offers: [{
-      merchant: programTitle, emoji: '🏷️', isAmazon: false,
-      price: price, shipping: 0, total: price, stock: 'En stock',
-      url: trackingUrl
-    }],
-    get bestPrice()    { return this.offers[0].price; },
-    get bestMerchant() { return this.offers[0].merchant; },
-    get numOffers()    { return this.offers.length; },
-    get minPrice()     { return this.offers[0].price; },
-    get maxPrice()     { return this.offers[0].price; }
-  };
-}
-
-const SUGGESTIONS = [
-  'shampoing', 'soin visage', 'parfum', 'CBD', 'jardin', 'complément alimentaire',
-  'bébé', 'sport', 'cuisine', 'bien-être', 'bio', 'cosmétique',
-  'chanvre', 'potager', 'huile essentielle', 'crème', 'sérum'
-];
+function toggleTheme() { applyTheme(theme === 'dark' ? 'light' : 'dark'); }
 
 // ══ STATE ══
-let currentResults=[];
-let lastQuery='';
-let currentProduct=null;
-let priceChart=null;
-let favorites=JSON.parse(localStorage.getItem('hf_favs')||'[]');
-let alerts=JSON.parse(localStorage.getItem('hf_alerts')||'[]');
-let homeProductsCache={}; // Cache des produits de la home
+var currentResults = [];
+var currentProduct = null;
+var favorites = JSON.parse(localStorage.getItem('hf_favs') || '[]');
+var lastQuery = '';
+var lastCat = '';
+var homeProductsCache = {};
 
-function r(a,b){return a+Math.random()*(b-a);}
-
-function buildPriceHistory(basePrice,days=30){
-  const labels=[];const data=[];
-  const now=new Date();
-  for(let i=days;i>=0;i--){
-    const d=new Date(now);d.setDate(d.getDate()-i);
-    labels.push(d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'}));
-    const variation=r(-0.12,0.08);
-    data.push(Math.round(basePrice*(1+variation)*100)/100);
-  }
-  data[data.length-1]=Math.round(basePrice*100)/100;
-  return {labels,data};
-}
-
-// ══ SUGGESTIONS ══
-function showSuggestions(id, val){
-  const el=document.getElementById(id);
-  if(!val||val.length<2){el.classList.add('hidden');return;}
-  const matches=SUGGESTIONS.filter(s=>s.toLowerCase().includes(val.toLowerCase())).slice(0,6);
-  if(!matches.length){el.classList.add('hidden');return;}
-  el.innerHTML=matches.map(s=>{
-    const idx=s.toLowerCase().indexOf(val.toLowerCase());
-    const hl = idx>=0 ? s.slice(0,idx)+'<strong>'+s.slice(idx,idx+val.length)+'</strong>'+s.slice(idx+val.length) : s;
-    return `<div class="suggestion-item" onclick="searchFor('${s}')"><span class="suggestion-icon">🔍</span><span class="suggestion-text">${hl}</span></div>`;
-  }).join('');
-  el.classList.remove('hidden');
-}
-function hideSugg(id){const el=document.getElementById(id);if(el)el.classList.add('hidden');}
-
-// ══ ROUTER ══
-function showPage(p){
-  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
-  document.getElementById('page-'+p).classList.add('active');
-  window.scrollTo(0,0);
-  // Masque la section vols sauf sur la home
-  var vols = document.getElementById('section-vols');
-  if (vols) vols.style.display = (p === 'home') ? '' : 'none';
-  // Masque le footer sur la page detail
+// ══ PAGES ══
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
+  window.scrollTo(0, 0);
   var footer = document.getElementById('global-footer');
   if (footer) footer.style.display = (p === 'detail') ? 'none' : '';
-  if(p==='favorites')renderFavorites();
+  if (p === 'favorites') renderFavorites();
+}
+
+function setActiveNavCat(el) {
+  document.querySelectorAll('.nav-cat').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+function goCategory(cat, el) {
+  setActiveNavCat(el || null);
+  lastCat = cat;
+  lastQuery = '';
+  showPage('search');
+  document.getElementById('spInput').value = '';
+  loadCategory(cat);
+}
+
+function goBack() {
+  if (currentResults.length > 0) showPage('search');
+  else showPage('home');
+}
+
+// ══ API ══
+async function apiFetch(params) {
+  try {
+    var url = '/api/products?' + params;
+    var res = await fetch(url);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch(e) { return null; }
 }
 
 // ══ SEARCH ══
-function searchFor(q){
-  document.getElementById('spInput').value=q;
-  document.getElementById('spClear').style.display=q?'block':'none';
+function doHeroSearch() {
+  var q = document.getElementById('heroInput').value.trim();
+  if (q) searchFor(q);
+}
+function doNavSearch() {
+  var q = document.getElementById('navInput').value.trim();
+  if (q) searchFor(q);
+}
+function doSpSearch() {
+  var q = document.getElementById('spInput').value.trim();
+  if (q) searchFor(q);
+}
+function clearSearch() {
+  document.getElementById('spInput').value = '';
+  document.getElementById('spClear').style.display = 'none';
+  document.getElementById('spInput').focus();
+}
+
+function searchFor(q) {
+  document.getElementById('spInput').value = q;
+  document.getElementById('spClear').style.display = 'block';
+  document.getElementById('navInput').value = q;
+  lastQuery = q; lastCat = '';
   showPage('search');
-  if(q) runSearch(q);
+  runSearch(q);
+}
+
+async function runSearch(q) {
+  showSpinner('resultsContainer');
+  var data = await apiFetch('action=search&q=' + encodeURIComponent(q) + '&limit=40');
+  if (data && data.data && data.data.length > 0) {
+    currentResults = data.data;
+    renderResults(currentResults);
+    updateCount(currentResults.length, q);
+  } else {
+    document.getElementById('resultsContainer').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun résultat</div><div class="empty-sub">Essayez avec d\'autres mots clés</div></div>';
+  }
 }
 
 async function loadCategory(cat) {
-  showPage('search');
-  activeCategory = cat;
-  var container = document.getElementById('resultsContainer');
-  container.innerHTML = '<div class="spinner"><div class="spin"></div><p class="spin-lbl">Chargement...</p></div>';
-  document.getElementById('spInput').value = '';
-  document.getElementById('spClear').style.display = 'none';
-  document.querySelectorAll('.fcat').forEach(function(b){ b.classList.remove('active'); });
-  var catBtns = document.querySelectorAll('.fcat');
-  catBtns.forEach(function(b){ if(b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+cat+"'")) b.classList.add('active'); });
-
-  try {
-    var apiUrl = cat 
-      ? '/api/products?action=category&cat='+encodeURIComponent(cat)+'&limit=60'
-      : '/api/products?action=list&limit=60';
-    var res = await fetch(apiUrl);
-    var data = await res.json();
-    var items = data.data || [];
-    if (items.length > 0) {
-      currentResults = items.map(mapAffilaeProduct);
-      updateSliderMax(currentResults);
-      sortResults();
-    } else {
-      container.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">Aucun produit dans cette catégorie</div></div>';
-    }
-  } catch(e) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Erreur de chargement</div></div>';
-  }
-}
-function doHeroSearch(){const q=document.getElementById('heroInput').value.trim();if(q)searchFor(q);}
-function doSpSearch(){const q=document.getElementById('spInput').value.trim();if(q)runSearch(q);}
-
-async function runSearch(q) {
-  lastQuery = q;
-  activeCategory = '';
-  document.querySelectorAll('.fcat').forEach(function(b,i){b.classList.toggle('active',i===0);});
-  var container = document.getElementById('resultsContainer');
-  container.innerHTML = '<div class="spinner"><div class="spin"></div><p class="spin-lbl">Recherche en cours...</p></div>';
-  var items = await fetchAffilaeProducts(q);
-  console.log('Affilae items for "'+q+'":', items);
-  if (items && items.length > 0) {
-    currentResults = items.map(mapAffilaeProduct);
+  showSpinner('resultsContainer');
+  document.querySelectorAll('.fcat').forEach(b => {
+    b.classList.toggle('active', (!cat && b.textContent === 'Tout') || (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + cat + "'")));
+  });
+  var action = cat ? 'action=category&cat=' + encodeURIComponent(cat) : 'action=list';
+  var data = await apiFetch(action + '&limit=40');
+  if (data && data.data && data.data.length > 0) {
+    currentResults = data.data;
     updateSliderMax(currentResults);
+    renderResults(currentResults);
+    updateCount(currentResults.length, cat || 'tous les produits');
   } else {
-    currentResults = [];
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun produit trouvé</div><div class="empty-sub">Essayez avec d\'autres termes : soin, shampoing, CBD, jardin...</div></div>';
-    return;
+    document.getElementById('resultsContainer').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">Aucun produit</div><div class="empty-sub">Aucun produit dans cette catégorie pour l\'instant</div></div>';
   }
-  sortResults();
 }
 
-function sortResults(){
-  const s=document.getElementById('sortSelect').value;
-  if(s==='price_asc')currentResults.sort((a,b)=>a.bestPrice-b.bestPrice);
-  if(s==='price_desc')currentResults.sort((a,b)=>b.bestPrice-a.bestPrice);
-  if(s==='offers')currentResults.sort((a,b)=>b.numOffers-a.numOffers);
-  renderResults(currentResults);
-  const el=document.getElementById('resultsCount');
-  var label = lastQuery && lastQuery !== activeCategory ? ' pour "<strong>'+lastQuery+'</strong>"' : '';
-  if(el)el.innerHTML='<strong>'+currentResults.length+'</strong> produit'+(currentResults.length>1?'s':'')+' trouvé'+(currentResults.length>1?'s':'')+label;
+function showSpinner(id) {
+  document.getElementById(id).innerHTML = '<div class="spinner"><div class="spin"></div><p class="spin-lbl">Chargement...</p></div>';
+}
+
+function updateCount(n, q) {
+  var el = document.getElementById('resultsCount');
+  if (el) el.innerHTML = '<strong>' + n + '</strong> produit' + (n > 1 ? 's' : '') + (q ? ' pour "' + q + '"' : '');
 }
 
 // ══ FILTRES ══
-var activeCategory = '';
-var activePartners = [];
-
-function filterByCategory(cat, btn) {
-  activeCategory = cat;
+function filterCat(cat, btn) {
+  lastCat = cat;
   document.querySelectorAll('.fcat').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  // Toujours charger depuis l'API pour avoir tous les produits de la catégorie
   if (cat) {
     loadCategory(cat);
   } else {
-    // "Tout" → recharge sans filtre
     loadCategory('');
   }
 }
 
-function setPriceRange(min, max) {
-  var slMax = document.getElementById('priceSliderMax');
-  if (slMax) { slMax.max = slMax.max; slMax.value = max >= 99999 ? slMax.max : max; }
-  var valEl = document.getElementById('priceSliderVal');
-  if (valEl) valEl.textContent = (max >= 99999 ? slMax.max : max) + ' €';
+function setPriceRange(max) {
+  document.getElementById('priceSlider').value = max;
+  document.getElementById('priceDisplay').textContent = max + ' €';
   document.querySelectorAll('.price-range-btn').forEach(b => b.classList.remove('active'));
   event.target.classList.add('active');
   applyFilters();
 }
 
-function updatePriceSlider() {
-  var slMax = document.getElementById('priceSliderMax');
-  var valEl = document.getElementById('priceSliderVal');
-  if (slMax && valEl) valEl.textContent = slMax.value + ' €';
-  applyFilters();
+function updatePriceDisplay() {
+  var v = document.getElementById('priceSlider').value;
+  document.getElementById('priceDisplay').textContent = v + ' €';
 }
 
 function updateSliderMax(results) {
-  if (!results || results.length === 0) return;
-  var maxPrice = Math.ceil(Math.max(...results.map(p => p.bestPrice || 0)));
-  var slMax = document.getElementById('priceSliderMax');
-  if (slMax) { slMax.max = maxPrice; slMax.value = maxPrice; }
-  var valEl = document.getElementById('priceSliderVal');
-  if (valEl) valEl.textContent = maxPrice + ' €';
-}
-
-function loadPartnerFilters(results) {
-  // Supprimé — section partenaires retirée
+  if (!results || !results.length) return;
+  var max = Math.ceil(Math.max(...results.map(p => parseFloat(p.price) || 0)));
+  var slider = document.getElementById('priceSlider');
+  if (slider) { slider.max = max; slider.value = max; }
+  document.getElementById('priceDisplay').textContent = max + ' €';
 }
 
 function applyFilters() {
-  var slMax = document.getElementById('priceSliderMax');
-  var max = slMax ? parseFloat(slMax.value) : Infinity;
-
-  var filtered = currentResults.filter(function(p) {
-    if (p.bestPrice > max) return false;
-    if (activeCategory && p.cat !== activeCategory) return false;
-    return true;
-  });
+  var maxPrice = parseFloat(document.getElementById('priceSlider').value) || Infinity;
+  var filtered = currentResults.filter(p => (parseFloat(p.price) || 0) <= maxPrice);
   renderResults(filtered);
-  var el = document.getElementById('resultsCount');
-  if (el) el.innerHTML = '<strong>'+filtered.length+'</strong> produit'+(filtered.length>1?'s':'')+' trouvé'+(filtered.length>1?'s':'');
+  updateCount(filtered.length, '');
 }
 
 function clearFilters() {
-  activeCategory = '';
-  document.querySelectorAll('.fcat').forEach(function(b,i){b.classList.toggle('active',i===0);});
-  document.querySelectorAll('.price-range-btn').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.fcat').forEach((b, i) => b.classList.toggle('active', i === 0));
+  document.querySelectorAll('.price-range-btn').forEach(b => b.classList.remove('active'));
   updateSliderMax(currentResults);
   renderResults(currentResults);
 }
-function renderResults(list){
-  document.getElementById('resultsContainer').innerHTML=list.length
-    ?list.map(p=>pcardHTML(p)).join('')
-    :'<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun produit trouvé</div><div class="empty-sub">Essayez avec d\'autres termes de recherche.</div></div>';
+
+function sortResults() {
+  var s = document.getElementById('sortSelect').value;
+  var sorted = [...currentResults];
+  if (s === 'price_asc') sorted.sort((a, b) => (parseFloat(a.price)||0) - (parseFloat(b.price)||0));
+  if (s === 'price_desc') sorted.sort((a, b) => (parseFloat(b.price)||0) - (parseFloat(a.price)||0));
+  if (s === 'offers') sorted.sort((a, b) => (b.offers_count||1) - (a.offers_count||1));
+  renderResults(sorted);
 }
 
-// ══ PRODUCT CARD — IDEALO STYLE ══
-function pcardHTML(p) {
-  var isFav = favorites.some(function(f){ return f.id===p.id; });
-  var offer  = p.offers[0];
-  var imgHtml = p.img
-    ? '<img src="'+p.img+'" alt="'+p.name.replace(/"/g,'&quot;')+'" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' +
-      '<div style="display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;font-size:2rem;color:var(--dim)">🏷️<span style="font-size:.65rem;margin-top:.3rem;color:var(--dim)">'+p.brand+'</span></div>'
-    : '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;font-size:2rem;color:var(--dim)">🏷️<span style="font-size:.65rem;margin-top:.3rem;color:var(--dim)">'+p.brand+'</span></div>';
-  var amazonUrl = 'https://www.amazon.fr/s?k='+encodeURIComponent(p.name)+'&tag=hifind05-21';
-  var safeId = p.id.replace(/'/g,"\\'");
-  var safeName = p.name.replace(/'/g,"&#39;").replace(/"/g,'&quot;');
-
-  return (
-    '<div class="pcard fade-up" id="pc-'+p.id+'" style="cursor:pointer" onclick="openDetail(\''+safeId+'\')">' +
-      '<div class="pcard-img-col">' +
-        imgHtml +
-        '<button class="pcard-fav'+(isFav?' on':'')+'" onclick="event.stopPropagation();toggleFav(\''+safeId+'\')" title="Sauvegarder">'+(isFav?'❤️':'🤍')+'</button>' +
-      '</div>' +
-      '<div class="pcard-body">' +
-        '<div class="pcard-merchant">'+p.brand+'</div>' +
-        '<div class="pcard-name">'+p.name+'</div>' +
-        (p.desc ? '<div class="pcard-desc">'+p.desc+'</div>' : '') +
-        '<div class="pcard-bottom">' +
-          '<div class="pcard-price-block">' +
-            '<span class="pcard-price-from">à partir de</span>' +
-            '<div class="pcard-price">'+p.bestPrice.toLocaleString('fr-FR')+' €</div>' +
-          '</div>' +
-          '<div class="pcard-actions">' +
-            '<button class="pcard-btn-primary" onclick="event.stopPropagation();openDetail(\''+safeId+'\')">Comparer ↗</button>' +
-            '<a href="'+amazonUrl+'" target="_blank" rel="noopener sponsored" title="Chercher sur Amazon" onclick="event.stopPropagation()">' +
-              '<button class="pcard-btn-amazon" title="Amazon">🛒</button>' +
-            '</a>' +
-            '<button class="pcard-btn-fav" onclick="event.stopPropagation();openDetail(\''+safeId+'\')" title="Historique prix">📊</button>' +
-          '</div>' +
-        '</div>' +
-      '</div>' +
-    '</div>'
-  );
-}
-
-// ══ PRODUCT DETAIL ══
-async function openDetail(id){
-  var p = currentResults.find(x=>x.id===id)
-       || favorites.find(x=>x.id===id)
-       || homeProductsCache[id];
-  if (p) {
-    // Charge les offres EAN depuis l'API si pas encore chargées
-    if (!p.ean_offers && p.ean_offers !== false) {
-      try {
-        var r = await fetch('/api/products?action=product&id=' + encodeURIComponent(id));
-        var d = await r.json();
-        if (d.data && d.data.length > 0) {
-          p.ean_offers = d.data[0].ean_offers || false;
-        }
-      } catch(e) {}
-    }
-    currentProduct = p;
-    showPage('detail');
-    renderDetail(p);
+// ══ RENDER RESULTS ══
+function renderResults(list) {
+  if (!list || !list.length) {
+    document.getElementById('resultsContainer').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun résultat</div></div>';
     return;
   }
-  // Charge depuis l'API
-  try {
-    var res = await fetch('/api/products?action=product&id=' + encodeURIComponent(id));
-    var data = await res.json();
-    var items = data.data || [];
-    if (items.length > 0) {
-      p = mapAffilaeProduct(items[0]);
-      p.ean_offers = items[0].ean_offers || null;
-      homeProductsCache[id] = p;
-      currentProduct = p;
-      showPage('detail');
-      renderDetail(p);
-    }
-  } catch(e) {
-    console.error('openDetail error:', e);
-  }
+  document.getElementById('resultsContainer').innerHTML = list.map(p => pcardHTML(p)).join('');
 }
 
-function renderDetail(p){
-  var footer = document.getElementById('global-footer');
-  if (footer) footer.style.display = 'none';
+function getImageUrl(p) {
+  var url = p.image_url;
+  if (!url) return null;
+  if (url.includes('track.effiliation.com') || url.includes('effi.redir')) {
+    var m = url.match(/[?&]url=([^&]+)/);
+    if (m) url = decodeURIComponent(m[1]);
+  }
+  return url;
+}
 
-  // ── Construit les offres ──
+function getFavicon(name) {
+  if (!name) return '';
+  var n = name.toLowerCase();
+  var map = {
+    'news parfums': 'news-parfums.com', 'beauty success': 'beautysuccess.fr',
+    'norauto': 'norauto.fr', 'pièces et pneus': 'piecesetpneus.com',
+    'pieces et pneus': 'piecesetpneus.com', 'made in sport': 'madeinsport.com',
+    'pc portable': 'pc-portable.net', 'vertbaudet': 'vertbaudet.fr',
+    'mon pied': 'monpiedceheros.fr', 'cabesto': 'cabesto.com',
+    'electro': 'electrodepot.fr', 'dim': 'dim.fr', 'daxon': 'daxon.fr',
+    'rakuten': 'rakuten.com', 'darty': 'darty.com',
+  };
+  for (var k in map) { if (n.includes(k)) return 'https://www.google.com/s2/favicons?sz=32&domain=' + map[k]; }
+  return '';
+}
+
+function pcardHTML(p) {
+  var img = getImageUrl(p);
+  var price = parseFloat(p.price) || 0;
+  var brand = p.program_title || p.brand || 'Partenaire';
+  var safeId = p.id.replace(/'/g, "\\'");
+  var isFav = favorites.some(f => f.id === p.id);
+  var offers = p.offers_count || 1;
+  var savePct = '';
+  if (p.ean_offers && p.ean_offers.length > 1) {
+    var prices = p.ean_offers.map(o => parseFloat(o.price)).filter(x => x > 0).sort((a,b)=>a-b);
+    if (prices.length > 1 && prices[0] > 0) {
+      var pct = Math.round((1 - prices[0]/prices[prices.length-1]) * 100);
+      if (pct > 0) savePct = '-' + pct + '%';
+    }
+  }
+  return '<div class="pcard" onclick="openDetail(\'' + safeId + '\')">'
+    + '<div class="pcard-img-col">'
+      + (img ? '<img src="' + img + '" alt="' + p.title.replace(/"/g,'&quot;') + '" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem;color:#ccc">📦</div>')
+      + (savePct ? '<div class="prod-card-badge" style="position:absolute;top:.5rem;left:.5rem">' + savePct + '</div>' : '')
+      + '<button class="pcard-btn-fav" onclick="event.stopPropagation();toggleFav(\'' + safeId + '\',this)">' + (isFav ? '❤️' : '🤍') + '</button>'
+    + '</div>'
+    + '<div class="pcard-body">'
+      + '<div class="pcard-brand">' + brand + '</div>'
+      + '<div class="pcard-name">' + p.title + '</div>'
+      + (offers > 1 ? '<div class="pcard-offers-badge">✓ ' + offers + ' offres comparées</div>' : '')
+      + '<div class="pcard-bottom">'
+        + '<div class="pcard-price-block">'
+          + '<div class="pcard-price-from">Dès</div>'
+          + '<div class="pcard-price">' + price.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €</div>'
+        + '</div>'
+        + '<div class="pcard-actions">'
+          + '<button class="pcard-btn" onclick="event.stopPropagation();openDetail(\'' + safeId + '\')">Comparer →</button>'
+        + '</div>'
+      + '</div>'
+    + '</div>'
+  + '</div>';
+}
+
+// ══ DETAIL ══
+async function openDetail(id) {
+  var p = currentResults.find(x => x.id === id)
+       || favorites.find(x => x.id === id)
+       || homeProductsCache[id];
+
+  showPage('detail');
+  document.getElementById('detailContent').innerHTML = '<div class="spinner"><div class="spin"></div><p class="spin-lbl">Chargement...</p></div>';
+
+  if (!p || !p.ean_offers) {
+    try {
+      var data = await apiFetch('action=product&id=' + encodeURIComponent(id));
+      if (data && data.data && data.data.length > 0) {
+        p = data.data[0];
+        homeProductsCache[id] = p;
+      }
+    } catch(e) {}
+  }
+
+  if (!p) {
+    document.getElementById('detailContent').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Produit introuvable</div></div>';
+    return;
+  }
+
+  currentProduct = p;
+  document.getElementById('breadcat').textContent = p.category || 'Produits';
+  document.getElementById('breadname').textContent = p.title ? p.title.slice(0, 50) + (p.title.length > 50 ? '...' : '') : '';
+
   var offers = [];
   if (p.ean_offers && p.ean_offers.length > 0) {
     p.ean_offers.forEach(function(o) {
-      var m = (o.programs && o.programs.title) || o.program_title || 'Partenaire';
-      offers.push({ merchant:m, price:parseFloat(o.price)||0, url:o.tracking_url||o.url, condition:'Neuf' });
+      offers.push({
+        merchant: o.program_title || (o.programs && o.programs.title) || 'Partenaire',
+        price: parseFloat(o.price) || 0,
+        url: o.tracking_url || o.url,
+      });
     });
-  } else if (p.offers && p.offers[0]) {
-    offers.push({ merchant:p.brand||'Partenaire', price:parseFloat(p.bestPrice)||0, url:p.offers[0].url, condition:'Neuf' });
+  } else {
+    offers.push({
+      merchant: p.program_title || p.brand || 'Partenaire',
+      price: parseFloat(p.price) || 0,
+      url: p.tracking_url || p.url,
+    });
   }
   offers.sort(function(a,b){ return a.price - b.price; });
 
-  function getFavicon(name) {
-    if (!name) return '';
-    var n = name.toLowerCase();
-    var map = {'norauto':'norauto.fr','beauty success':'beautysuccess.fr','vertbaudet':'vertbaudet.fr',
-      'rakuten':'rakuten.com','news parfums':'news-parfums.com','electro dépôt':'electrodepot.fr',
-      'electro depot':'electrodepot.fr','made in sport':'madeinsport.com','pc portable':'pc-portable.net',
-      'pièces et pneus':'piecesetpneus.com','pieces et pneus':'piecesetpneus.com','cabesto':'cabesto.com',
-      'dim':'dim.fr','daxon':'daxon.fr','my beauty factory':'mybeautyfactory.fr','darty':'darty.com',
-      'mon pied':'monpiedceheros.fr','pied':'monpiedceheros.fr','amazon':'amazon.fr'};
-    for (var k in map) { if (n.includes(k)) return 'https://www.google.com/s2/favicons?sz=32&domain='+map[k]; }
-    return '';
-  }
+  var img = getImageUrl(p);
+  var price = offers.length > 0 ? offers[0].price : parseFloat(p.price) || 0;
+  var isFav = favorites.some(f => f.id === p.id);
 
-  var offersRows = offers.map(function(o,i) {
+  var offerRows = offers.map(function(o, i) {
     var fav = getFavicon(o.merchant);
-    var bg = i===0 ? 'rgba(34,197,94,.04)' : 'var(--bg2)';
-    var priceColor = i===0 ? '#22c55e' : 'var(--text)';
-    var btnBg = i===0 ? '#22c55e' : 'var(--bg3)';
-    var btnColor = i===0 ? '#fff' : 'var(--text)';
-    var btnBorder = i===0 ? '#22c55e' : 'var(--border)';
-    var bestBadge = i===0 ? '<span style="background:#22c55e;color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .38rem;border-radius:3px;margin-right:.3rem">Meilleur prix</span>' : '';
-    var logoEl = fav ? '<img src="'+fav+'" width="20" height="20" style="border-radius:3px;margin-right:.5rem;vertical-align:middle">' : '<span style="display:inline-block;width:20px;height:20px;background:var(--coral);border-radius:3px;color:#fff;font-size:.55rem;font-weight:700;text-align:center;line-height:20px;margin-right:.5rem">'+o.merchant.slice(0,2).toUpperCase()+'</span>';
-    var row = document.createElement('div');
-    row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto;gap:1rem;align-items:center;padding:.85rem 1.1rem;background:'+bg+';border-bottom:1px solid var(--border);transition:background .15s;cursor:default';
-    row.onmouseover = function(){ this.style.background='var(--bg3)'; };
-    row.onmouseout  = function(){ this.style.background=bg; };
-    row.innerHTML =
-      '<div style="display:flex;align-items:center;min-width:0">'+logoEl+'<div><div style="font-weight:700;font-size:.88rem">'+o.merchant+'</div><div style="margin-top:.1rem">'+bestBadge+'<span style="font-size:.72rem;color:#22c55e">● En stock</span><span style="font-size:.72rem;color:var(--dim)"> · Gratuit</span></div></div></div>'
-      +'<div style="text-align:right;min-width:85px"><div style="font-family:Outfit,sans-serif;font-size:1.15rem;font-weight:900;color:'+priceColor+'">'+o.price.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €</div><div style="font-size:.62rem;color:var(--dim)">livraison incluse</div></div>'
-      +'<div><a href="'+o.url+'" target="_blank" rel="noopener sponsored" style="text-decoration:none"><button style="padding:.45rem .85rem;background:'+btnBg+';color:'+btnColor+';border:1px solid '+btnBorder+';border-radius:7px;font-weight:700;font-size:.77rem;cursor:pointer;white-space:nowrap">Voir l&#39;offre →</button></a></div>';
-    return row.outerHTML;
+    var logoEl = fav
+      ? '<img src="' + fav + '" class="offer-logo" onerror="this.style.display=\'none\'">'
+      : '<div class="offer-logo-placeholder">' + o.merchant.slice(0,2).toUpperCase() + '</div>';
+    var isBest = i === 0;
+    return '<div class="offer-row' + (isBest ? ' best' : '') + '">'
+      + '<div class="offer-merchant">' + logoEl
+        + '<div><div class="offer-name">' + o.merchant + '</div>'
+          + '<div class="offer-badges">'
+            + (isBest ? '<span class="offer-badge best">Meilleur prix</span>' : '')
+            + '<span class="offer-badge stock">En stock</span>'
+          + '</div>'
+        + '</div>'
+      + '</div>'
+      + '<div class="offer-ship">Gratuite</div>'
+      + '<div class="offer-price-col">'
+        + '<div class="offer-price' + (isBest ? ' best-price' : '') + '">' + o.price.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €</div>'
+        + '<div class="offer-price-ship">livraison incluse</div>'
+      + '</div>'
+      + '<div class="offer-btn-col">'
+        + '<a href="' + o.url + '" target="_blank" rel="noopener sponsored" style="text-decoration:none">'
+          + '<button class="offer-btn ' + (isBest ? 'primary' : 'secondary') + '">Voir l&#39;offre →</button>'
+        + '</a>'
+      + '</div>'
+    + '</div>';
   }).join('');
 
-  var bestPrice = offers.length > 0 ? offers[0].price.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €' : '—';
-
   document.getElementById('detailContent').innerHTML =
-    '<div style="font-size:.73rem;color:var(--dim);margin-bottom:1rem">'
-      +'<span style="cursor:pointer" onclick="showPage('home')">Accueil</span>'
-      +' › <span style="cursor:pointer" onclick="loadCategory(''+p.cat+'')">'+p.cat+'</span>'
-      +' › <span style="color:var(--text)">'+p.name.slice(0,50)+(p.name.length>50?'...':'')+'</span>'
-    +'</div>'
-
-    +'<div style="display:grid;grid-template-columns:260px 1fr;gap:2rem;align-items:start">'
-
-      // Image col
-      +'<div>'
-        +'<div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:1.5rem;height:250px;display:flex;align-items:center;justify-content:center;margin-bottom:1rem">'
-          +(p.img
-            ? '<img src="'+p.img+'" alt="'+p.name+'" style="max-width:210px;max-height:210px;object-fit:contain" onerror="this.style.display='none'">'
-            : '<div style="font-size:4rem;color:#94a3b8">📦</div>')
-        +'</div>'
-        +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">'
-          +'<div style="padding:.6rem 1rem;background:var(--bg3);font-size:.72rem;font-weight:700;color:var(--dim);text-transform:uppercase">Résumé</div>'
-          +'<div style="padding:.5rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;font-size:.82rem"><span style="color:var(--sub)">Marchand</span><span style="font-weight:600">'+p.brand+'</span></div>'
-          +'<div style="padding:.5rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;font-size:.82rem"><span style="color:var(--sub)">État</span><span style="font-weight:600">Neuf</span></div>'
-          +'<div style="padding:.5rem 1rem;display:flex;justify-content:space-between;font-size:.82rem"><span style="color:var(--sub)">Livraison</span><span style="font-weight:600;color:#22c55e">Gratuite</span></div>'
-        +'</div>'
-      +'</div>'
-
-      // Right col
-      +'<div>'
-        +'<div style="font-size:.73rem;color:var(--coral);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem">'+p.brand+'</div>'
-        +'<h1 style="font-family:Outfit,sans-serif;font-size:1.45rem;font-weight:800;line-height:1.25;margin-bottom:1rem;color:var(--text)">'+p.name+'</h1>'
-
-        // Prix box
-        +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem">'
-          +'<div>'
-            +'<div style="font-size:.72rem;color:var(--sub);margin-bottom:.2rem">Meilleur prix</div>'
-            +'<div style="font-family:Outfit,sans-serif;font-size:2rem;font-weight:900;color:var(--coral);line-height:1">'+bestPrice+'</div>'
-            +'<div style="font-size:.72rem;color:#22c55e;margin-top:.2rem">✓ Livraison gratuite incluse</div>'
-          +'</div>'
-          +'<button onclick="toggleFav(''+p.id+'');this.innerHTML=favorites.some(f=>f.id===''+p.id+'')?'❤️ Sauvegardé':'🤍 Sauvegarder'" style="padding:.5rem 1rem;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-weight:600;font-size:.8rem;color:var(--text);cursor:pointer">'
-            +(favorites.some(function(f){return f.id===p.id;})?'❤️ Sauvegardé':'🤍 Sauvegarder')
-          +'</button>'
-        +'</div>'
-
-        // Offers table
-        +'<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden">'
-          +'<div style="display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.1rem;background:var(--bg3);border-bottom:1px solid var(--border)">'
-            +'<span style="font-weight:700;font-size:.88rem">Comparer les offres</span>'
-            +'<span style="font-size:.75rem;color:var(--sub)">'+offers.length+' vendeur'+(offers.length>1?'s':'')+'</span>'
-          +'</div>'
-          +'<div style="display:grid;grid-template-columns:1fr auto auto;gap:1rem;padding:.5rem 1.1rem;background:var(--bg3);border-bottom:1px solid var(--border);font-size:.68rem;font-weight:700;color:var(--dim);text-transform:uppercase">'
-            +'<span>Marchand & livraison</span><span style="text-align:right">Prix</span><span></span>'
-          +'</div>'
-          +offersRows
-        +'</div>'
-      +'</div>'
-    +'</div>';
-}
-
-function renderChart(hist){
-  if(priceChart)priceChart.destroy();
-  const ctx=document.getElementById('priceChart');
-  if(!ctx)return;
-  const isDark=theme==='dark';
-  priceChart=new Chart(ctx,{
-    type:'line',
-    data:{
-      labels:hist.labels,
-      datasets:[{
-        label:'Prix (€)',data:hist.data,
-        borderColor:'#FF6B6B',backgroundColor:'rgba(255,107,107,0.08)',
-        borderWidth:2,pointRadius:0,pointHoverRadius:5,
-        pointHoverBackgroundColor:'#FF6B6B',tension:.4,fill:true
-      }]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.raw.toLocaleString('fr-FR')+' €';}},backgroundColor:isDark?'#1e293b':'#fff',titleColor:isDark?'#f1f5f9':'#0f172a',bodyColor:isDark?'#94a3b8':'#64748b',borderColor:'rgba(255,107,107,.3)',borderWidth:1}},
-      scales:{
-        x:{grid:{color:isDark?'rgba(255,255,255,.04)':'rgba(0,0,0,.04)'},ticks:{color:isDark?'#64748b':'#94a3b8',font:{size:10},maxTicksLimit:8}},
-        y:{grid:{color:isDark?'rgba(255,255,255,.04)':'rgba(0,0,0,.04)'},ticks:{color:isDark?'#64748b':'#94a3b8',font:{size:10},callback:v=>v.toLocaleString('fr-FR')+' €'}}
-      }
-    }
-  });
-}
-
-function switchChart(btn,days,id){
-  document.querySelectorAll('.chart-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  if(currentProduct){
-    const hist=buildPriceHistory(currentProduct.basePrice,days);
-    renderChart(hist);
-  }
+    '<div class="detail-grid">'
+      + '<div>'
+          + '<div class="detail-img-box">'
+            + (img ? '<img src="' + img + '" alt="' + p.title + '" onerror="this.style.display=\'none\'">' : '<div style="font-size:4rem;color:#ccc">📦</div>')
+          + '</div>'
+        + '</div>'
+      + '<div class="detail-info">'
+          + '<div class="detail-brand">' + (p.program_title || p.brand || '') + '</div>'
+          + '<h1 class="detail-name barlow">' + p.title + '</h1>'
+          + '<div class="detail-price-box">'
+            + '<div>'
+              + '<div class="detail-price-label">Meilleur prix</div>'
+              + '<div class="detail-price-val">' + price.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €</div>'
+              + '<div class="detail-price-ship">✓ Livraison gratuite incluse</div>'
+            + '</div>'
+            + '<button class="detail-fav-btn" id="detailFavBtn" onclick="toggleFav(\'' + p.id + '\',this)">' + (isFav ? '❤️ Sauvegardé' : '🤍 Sauvegarder') + '</button>'
+          + '</div>'
+          + '<div class="offers-table">'
+            + '<div class="offers-table-head">'
+              + '<span class="offers-table-title">Comparer les offres</span>'
+              + '<span class="offers-table-count">' + offers.length + ' vendeur' + (offers.length > 1 ? 's' : '') + '</span>'
+            + '</div>'
+            + '<div class="offers-table-cols"><span>Marchand</span><span>Livraison</span><span style="text-align:right">Prix</span><span></span></div>'
+            + offerRows
+          + '</div>'
+      + '</div>'
+    + '</div>';
 }
 
 // ══ FAVORITES ══
-function toggleFav(id){
-  const idx=favorites.findIndex(f=>f.id===id);
-  if(idx>=0)favorites.splice(idx,1);
-  else{const p=currentResults.find(x=>x.id===id)||[currentProduct].find(x=>x&&x.id===id);if(p)favorites.push(p);}
-  localStorage.setItem('hf_favs',JSON.stringify(favorites));
-  const el2=document.getElementById('pc-'+id);const btn=el2?el2.querySelector('.pcard-fav'):null;
-  const on=favorites.some(f=>f.id===id);
-  if(btn){btn.className='pcard-fav'+(on?' on':'');btn.textContent=on?'❤️':'🤍';}
+function toggleFav(id, btn) {
+  var idx = favorites.findIndex(f => f.id === id);
+  if (idx >= 0) {
+    favorites.splice(idx, 1);
+    if (btn) btn.textContent = btn.classList.contains('detail-fav-btn') ? '🤍 Sauvegarder' : '🤍';
+  } else {
+    var p = currentResults.find(x => x.id === id) || currentProduct || homeProductsCache[id];
+    if (p) favorites.push(p);
+    if (btn) btn.textContent = btn.classList.contains('detail-fav-btn') ? '❤️ Sauvegardé' : '❤️';
+  }
+  localStorage.setItem('hf_favs', JSON.stringify(favorites));
 }
 
-function renderFavorites(){
-  const c=document.getElementById('favsContainer');
-  const cnt=document.getElementById('favCount');
-  cnt.textContent=favorites.length+' produit'+(favorites.length!==1?'s':'')+' sauvegardé'+(favorites.length!==1?'s':'');
-  if(!favorites.length){
-    c.innerHTML='<div class="empty-state"><div class="empty-icon">❤️</div><div class="empty-title">Aucun favori pour le moment</div><div class="empty-sub">Cliquez sur le cœur d\'un produit pour le sauvegarder ici.</div><button class="empty-cta" onclick="searchFor(\'iphone\')">Découvrir des produits</button></div>';
+function renderFavorites() {
+  var c = document.getElementById('favsContainer');
+  var cnt = document.getElementById('favCount');
+  cnt.textContent = favorites.length + ' produit' + (favorites.length !== 1 ? 's' : '');
+  if (!favorites.length) {
+    c.innerHTML = '<div class="empty-state"><div class="empty-icon">❤️</div><div class="empty-title">Aucun favori</div><div class="empty-sub">Cliquez sur ❤️ pour sauvegarder des produits</div><button class="empty-btn" onclick="showPage(\'home\')">Découvrir</button></div>';
     return;
   }
-  const saved=currentResults;
-  currentResults=favorites;
-  c.innerHTML=favorites.map(p=>pcardHTML(p)).join('');
-  currentResults=saved;
-}
-
-// ══ ALERTS ══
-function createAlert(){
-  const q=document.getElementById('alertQuery').value.trim();
-  const price=document.getElementById('alertPrice').value;
-  if(!q)return;
-  alerts.push({id:'a'+Date.now(),query:q,price:price?parseFloat(price):null,date:new Date().toLocaleDateString('fr-FR')});
-  localStorage.setItem('hf_alerts',JSON.stringify(alerts));
-  document.getElementById('alertQuery').value='';
-  document.getElementById('alertPrice').value='';
-  renderAlerts();
-}
-function deleteAlert(id){alerts=alerts.filter(a=>a.id!==id);localStorage.setItem('hf_alerts',JSON.stringify(alerts));renderAlerts();}
-function renderAlerts(){
-  const c=document.getElementById('alertsContainer');
-  const cnt=document.getElementById('alertCount');
-  cnt.textContent=alerts.length+' alerte'+(alerts.length!==1?'s':'')+' active'+(alerts.length!==1?'s':'');
-  if(!alerts.length){c.innerHTML='<div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-title">Aucune alerte</div><div class="empty-sub">Créez une alerte pour être notifié quand un prix baisse.</div></div>';return;}
-  c.innerHTML=alerts.map(function(a){
-    return '<div class="alert-item"><div><div class="alert-item-q">'+a.query+'</div><div class="alert-item-p">'+(a.price?'Prix cible : '+a.price.toLocaleString('fr-FR')+' €':'Toute baisse de prix')+' · '+a.date+'</div></div><button class="alert-del" onclick="deleteAlert(\''+a.id+'\')">🗑️</button></div>';
-  }).join('');
+  var prev = currentResults;
+  currentResults = favorites;
+  c.innerHTML = favorites.map(p => pcardHTML(p)).join('');
+  currentResults = prev;
 }
 
 // ══ HOME GRIDS ══
-function miniCard(p, rank, deal) {
-  var im = p.img ? '<img src="'+p.img+'" alt="'+p.name.replace(/"/g,'&quot;')+'" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem">🏷️</div>';
-  var badge = rank ? '<span class="prod-mini-rank">N°'+rank+'</span>' : (deal ? '<span class="prod-mini-deal">Bon plan</span>' : '');
+function prodCardSmall(p, showBadge) {
+  var img = getImageUrl(p);
+  var price = parseFloat(p.price) || 0;
+  var brand = p.program_title || p.brand || '';
+  var offers = p.offers_count || 1;
   var safeId = p.id.replace(/'/g, "\\'");
-  return '<div class="prod-mini" onclick="openDetail(\''+safeId+'\')">'+
-    '<div class="prod-mini-img">'+im+badge+'</div>'+
-    '<div class="prod-mini-body">'+
-      '<div class="prod-mini-name">'+p.name+'</div>'+
-      '<div class="prod-mini-from">à partir de</div>'+
-      '<div class="prod-mini-price">'+p.bestPrice.toLocaleString('fr-FR')+' €</div>'+
-    '</div>'+
-  '</div>';
-}
-
-async function loadModeTab(cat, btn) {
-  if (btn) {
-    document.querySelectorAll('.mode-tab').forEach(function(b){b.classList.remove('active');});
-    btn.classList.add('active');
-  }
-  var grid = document.getElementById('modeGrid');
-  if (!grid) return;
-  grid.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:.85rem;padding:1rem">Chargement...</div>';
-
-  var raw = await affilaeCall('category', '', 12);
-  // Si pas de catégorie spécifique, charge depuis Supabase par catégorie
-  var url = '/api/products?action=category&cat='+encodeURIComponent(cat)+'&limit=12';
-  try {
-    var res = await fetch(url);
-    var data = await res.json();
-    var items = data.data || [];
-    if (!items.length) {
-      // Fallback : charge tous et filtre
-      var allRaw = await affilaeCall('list','',50);
-      items = (allRaw && allRaw.data || []).filter(function(p){
-        return (p.category||'').includes(cat.split('-')[0]);
-      }).slice(0,12);
+  var savePct = '';
+  if (showBadge && p.ean_offers && p.ean_offers.length > 1) {
+    var prices = p.ean_offers.map(o => parseFloat(o.price)).filter(x => x > 0).sort((a,b)=>a-b);
+    if (prices.length > 1 && prices[0] > 0) {
+      var pct = Math.round((1 - prices[0]/prices[prices.length-1]) * 100);
+      if (pct > 0) savePct = pct;
     }
-    grid.innerHTML = items.map(function(p){
-      var img = p.image_url ? '/api/img?url='+encodeURIComponent(p.image_url) : '';
-      var price = parseFloat(p.price)||0;
-      var safeId = p.id.replace(/'/g,"\\'");
-      // Cache pour openDetail
-      if (!homeProductsCache[p.id]) homeProductsCache[p.id] = mapAffilaeProduct(p);
-      return '<div class="mode-card" onclick="openDetail(\''+safeId+'\')">' +
-        '<div class="mode-card-img">'+(img?'<img src="'+img+'" alt="'+p.title+'">':'<div style="font-size:3rem">🏷️</div>')+'</div>' +
-        '<div class="mode-card-body">' +
-          '<div class="mode-card-name">'+p.title+'</div>' +
-          '<div class="mode-card-price">'+price.toLocaleString('fr-FR')+' €</div>' +
-        '</div>' +
-      '</div>';
-    }).join('') || '<div style="color:rgba(255,255,255,.5);padding:1rem">Aucun produit dans cette catégorie</div>';
-  } catch(e) {
-    grid.innerHTML = '<div style="color:rgba(255,255,255,.5);padding:1rem">Chargement impossible</div>';
   }
+  return '<div class="prod-card" onclick="openDetail(\'' + safeId + '\')">'
+    + '<div class="prod-card-img">'
+      + (img ? '<img src="' + img + '" alt="' + p.title.replace(/"/g,'') + '" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem;color:#ccc">📦</div>')
+      + (savePct ? '<div class="prod-card-badge">-' + savePct + '%</div>' : '')
+    + '</div>'
+    + '<div class="prod-card-body">'
+      + '<div class="prod-card-brand">' + brand + '</div>'
+      + '<div class="prod-card-name">' + p.title + '</div>'
+      + '<div class="prod-card-stars"><span class="stars">★★★★</span>★ <span>4.5</span></div>'
+      + '<div class="prod-card-price">'
+        + '<span class="prod-card-from">Dès</span>'
+        + '<span class="prod-card-amount">' + price.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €</span>'
+      + '</div>'
+      + '<div class="prod-card-offers"><span>' + offers + ' offre' + (offers > 1 ? 's' : '') + '</span> comparée' + (offers > 1 ? 's' : '') + '</div>'
+    + '</div>'
+  + '</div>';
 }
 
 async function initHome() {
-  loadModeTab('beaute-bienetre', document.querySelector('.mode-tab'));
+  try {
+    var data = await apiFetch('action=list&limit=30');
+    var products = data && data.data ? data.data : [];
 
-  var categories = ['beaute-bienetre', 'sante-nutrition', 'mode-vetements', 'enfants-bebes', 'auto-moto'];
-  var allProducts = [];
+    products.forEach(p => { homeProductsCache[p.id] = p; });
 
-  for (var i = 0; i < categories.length; i++) {
-    try {
-      var res = await fetch('/api/products?action=category&cat=' + encodeURIComponent(categories[i]) + '&limit=3');
-      var data = await res.json();
-      if (data.data && data.data.length) {
-        allProducts = allProducts.concat(data.data.slice(0, 3));
-      }
-    } catch(e) {}
+    var tg = document.getElementById('trendingGrid');
+    if (tg) tg.innerHTML = products.slice(0, 8).map(p => prodCardSmall(p, false)).join('') || '<p style="color:var(--sub);padding:1rem">Aucun produit</p>';
+
+    // Bons plans : ceux avec le plus grand écart de prix
+    var deals = products.filter(p => p.ean_offers && p.ean_offers.length > 1).map(p => {
+      var prices = p.ean_offers.map(o => parseFloat(o.price)).filter(x => x > 0).sort((a,b)=>a-b);
+      var saving = prices.length > 1 ? Math.round((1 - prices[0]/prices[prices.length-1]) * 100) : 0;
+      return { ...p, saving };
+    }).sort((a,b) => b.saving - a.saving);
+
+    var dg = document.getElementById('dealsGrid');
+    if (dg) dg.innerHTML = deals.slice(0, 8).map(p => prodCardSmall(p, true)).join('') || '<p style="color:var(--sub);padding:1rem">Aucun bon plan</p>';
+
+    // Update hero float
+    if (products.length > 0) {
+      var first = products[0];
+      var fp = document.getElementById('hero-float-price');
+      var fo = document.getElementById('hero-float-offers');
+      if (fp) fp.textContent = parseFloat(first.price).toLocaleString('fr-FR', {minimumFractionDigits:2}) + ' €';
+      if (fo) fo.textContent = (first.offers_count || 1) + ' offres comparées';
+    }
+  } catch(e) {
+    console.error('initHome error:', e);
   }
-
-  // Complète si pas assez
-  if (allProducts.length < 12) {
-    try {
-      var res2 = await fetch('/api/products?action=list&limit=12');
-      var data2 = await res2.json();
-      var extra = data2.data || [];
-      var ids = new Set(allProducts.map(function(p){return p.id;}));
-      allProducts = allProducts.concat(extra.filter(function(p){return !ids.has(p.id);}));
-    } catch(e) {}
-  }
-
-  var seen = new Set();
-  var unique = allProducts.filter(function(p) {
-    if (seen.has(p.id)) return false;
-    seen.add(p.id);
-    return true;
-  });
-
-  var mapped = unique.slice(0, 12).map(mapAffilaeProduct);
-  // Stocke dans le cache pour openDetail
-  mapped.forEach(function(p){ homeProductsCache[p.id] = p; });
-
-  var fg = document.getElementById('featuredGrid');
-  if (fg) fg.innerHTML = mapped.slice(0, 6).map(function(p){ return miniCard(p, 0, false); }).join('') ||
-    '<p style="color:var(--sub);font-size:.85rem;padding:.5rem">Chargement des produits…</p>';
-
-  var tg = document.getElementById('trendingGrid');
-  if (tg) tg.innerHTML = mapped.slice(6, 12).map(function(p, i){ return miniCard(p, i+1, false); }).join('') ||
-    '<p style="color:var(--sub);font-size:.85rem;padding:.5rem">Chargement des produits...</p>';
-
-  // Bons plans : produits avec les prix les plus bas
-  var dealsRaw = await fetch('/api/products?action=list&limit=30');
-  var dealsData = await dealsRaw.json();
-  var deals = (dealsData.data||[]).map(mapAffilaeProduct).sort(function(a,b){return a.bestPrice-b.bestPrice;}).slice(0,6);
-  var bg = document.getElementById('bonsPlansGrid');
-  if (bg) bg.innerHTML = deals.map(function(p){ return miniCard(p, 0, true); }).join('') ||
-    '<p style="color:var(--sub);font-size:.85rem;padding:.5rem">Chargement des produits...</p>';
 }
-initHome();
-</script>
 
-<script>
+initHome();
+
+// ══ FLIGHTS ══
 document.addEventListener('DOMContentLoaded', function() {
-  var depart = new Date();
-  depart.setDate(depart.getDate() + 42);
-  var retour = new Date(depart);
-  retour.setDate(retour.getDate() + 7);
-  function fmt(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-  document.querySelectorAll('a[href*="hiflight.fr/?origin="]').forEach(function(a) {
-    a.href = a.href + '&depart_date=' + fmt(depart) + '&return_date=' + fmt(retour);
-  });
-  fetch('/api/flights').then(function(r){ return r.json(); }).then(function(json) {
+  fetch('/api/flights').then(r => r.json()).then(json => {
     if (!json.data) return;
-    json.data.forEach(function(route) {
+    json.data.forEach(route => {
       var el = document.getElementById('fp-' + route.origin + '-' + route.destination);
-      if (!el || !route.price) return;
-      el.innerHTML = '<span style="font-size:.65rem;font-weight:400;color:var(--dim)">dès </span>' + route.price.toLocaleString('fr-FR') + ' €';
+      if (el && route.price) el.innerHTML = '<span style="font-size:.65rem;font-weight:400;color:var(--dim)">dès </span>' + route.price.toLocaleString('fr-FR') + ' €';
     });
-  }).catch(function(){});
+  }).catch(() => {});
 });
 </script>
-
-
-<!-- ══ FOOTER GLOBAL ══ -->
-<footer id="global-footer">
-  <div class="footer-inner">
-    <div><div class="footer-brand">HiFind</div><p class="footer-desc">Le comparateur de prix qui vous fait vraiment économiser.</p></div>
-    <div class="footer-col"><h4>Catégories</h4><a onclick="searchFor('iphone')">Smartphones</a><a onclick="searchFor('tv')">TV & Audio</a><a onclick="searchFor('macbook')">Ordinateurs</a><a onclick="searchFor('ps5')">Jeux vidéo</a></div>
-    <div class="footer-col"><h4>HiFind</h4><a onclick="showPage('about')">À propos</a><a onclick="showPage('mentions')">Mentions légales</a><a onclick="showPage('cgu')">CGU</a><a onclick="showPage('privacy')">Confidentialité</a></div>
-    <div class="footer-col"><h4>Suivez-nous</h4><a>Twitter</a><a>Facebook</a><a>Instagram</a></div>
-  </div>
-  <div class="footer-bottom">© 2025 HiFind · Certains liens sont des <a onclick="showPage('mentions')" style="color:var(--coral);cursor:pointer;">liens d'affiliation</a> · <a onclick="showPage('mentions')" style="color:var(--coral);cursor:pointer;">Mentions légales</a> · <a onclick="showPage('cgu')" style="color:var(--coral);cursor:pointer;">CGU</a> · <a onclick="showPage('privacy')" style="color:var(--coral);cursor:pointer;">Confidentialité</a></div>
-</footer>
 </body>
 </html>
