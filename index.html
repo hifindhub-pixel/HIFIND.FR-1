@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HiFind — Comparateur de Prix N°1 en France</title>
 <meta name="description" content="Comparez les prix de milliers de produits sur tous les grands marchands français. Économisez jusqu'à 40% sur vos achats.">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23FF3B30'/%3E%3Ctext x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='14' fill='white'%3EHi%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FF6B6B'/%3E%3Ctext x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='17' fill='white'%3EHi%3C/text%3E%3C/svg%3E">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,10 +15,10 @@
    VARIABLES & RESET
 ═══════════════════════════════════════ */
 :root {
-  --bg: #0a0a0f;
-  --bg2: #111116;
-  --bg3: #1a1a22;
-  --bg4: #222230;
+  --bg: #0f172a;
+  --bg2: #1e293b;
+  --bg3: #243148;
+  --bg4: #2d3e58;
   --coral: #FF6B6B;
   --coral-h: #FF5252;
   --green: #22c55e;
@@ -727,8 +727,7 @@ nav {
       <li class="nav-cat" onclick="goCategory('auto-moto',this)">Auto & Moto</li>
     </ul>
     <div class="nav-actions">
-      <button class="nav-icon-btn" onclick="showPage('favorites')" title="Favoris">❤️</button>
-      <button class="nav-icon-btn" onclick="toggleTheme()" id="themeBtn" title="Thème">🌙</button>
+      <button onclick="toggleTheme()" id="themeBtn" title="Thème" style="width:34px;height:34px;border-radius:6px;background:transparent;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:.9rem;cursor:pointer;color:var(--sub);transition:all .2s">🌙</button>
     </div>
   </div>
 </nav>
@@ -740,14 +739,14 @@ nav {
   <div class="hero">
     <div class="hero-inner">
       <div class="hero-left">
-        <div class="hero-badge">🏆 Comparateur N°1 en France</div>
-        <h1 class="barlow">Le <span class="accent">meilleur prix</span>,<br>à chaque fois.</h1>
+        <div class="hero-badge">✨ La plateforme qui vous fait économiser</div>
+        <h1 class="barlow">Les <span class="accent">meilleurs prix</span>,<br>un seul endroit.</h1>
         <p class="hero-sub">Comparez en temps réel des milliers d'offres chez vos marchands préférés. Économisez jusqu'à 40% sur vos produits.</p>
         <div class="hero-search">
           <input type="text" id="heroInput" placeholder="Que cherchez-vous au meilleur prix ?"
             onkeydown="if(event.key==='Enter') doHeroSearch()"
             autocomplete="off">
-          <button onclick="doHeroSearch()">Comparer</button>
+          <button onclick="doHeroSearch()">Rechercher</button>
         </div>
         <div class="hero-popular">
           <span class="hero-popular-label">Populaire :</span>
@@ -758,13 +757,17 @@ nav {
         </div>
       </div>
       <div class="hero-visual">
-        <div class="hero-img-wrap">
-          <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80" alt="Shopping">
-          <div class="hero-badge-float">ÉCONOMIE -40%</div>
-          <div class="hero-price-float">
-            <div class="from">À PARTIR DE</div>
-            <div class="price" id="hero-float-price">—</div>
-            <div class="offers" id="hero-float-offers">Chargement...</div>
+        <div class="hero-img-wrap" style="aspect-ratio:auto;height:380px">
+          <div id="heroCarousel" style="position:relative;width:100%;height:100%;border-radius:16px;overflow:hidden;background:var(--bg2)">
+            <div id="heroSlides" style="display:flex;transition:transform .5s ease;height:100%">
+              <!-- Slides générés dynamiquement -->
+              <div class="hero-slide" style="min-width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg3)">
+                <div class="spin" style="border-top-color:var(--coral)"></div>
+              </div>
+            </div>
+            <button onclick="prevSlide()" style="position:absolute;left:.7rem;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;background:rgba(15,23,42,.8);border:1px solid var(--border2);color:#fff;font-size:1rem;cursor:pointer;z-index:10">‹</button>
+            <button onclick="nextSlide()" style="position:absolute;right:.7rem;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;background:rgba(15,23,42,.8);border:1px solid var(--border2);color:#fff;font-size:1rem;cursor:pointer;z-index:10">›</button>
+            <div id="heroDots" style="position:absolute;bottom:.7rem;left:50%;transform:translateX(-50%);display:flex;gap:.4rem"></div>
           </div>
         </div>
       </div>
@@ -864,14 +867,14 @@ nav {
         </div>
       </div>
       <div class="cat-card medium" onclick="window.open('https://hiflight.fr','_blank')" style="background:#0f172a;border:1px solid rgba(99,179,237,.2);overflow:hidden;position:relative">
-        <img class="cat-img" src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&q=80" alt="Voyager" style="opacity:.5">
-        <div class="cat-overlay"></div>
-        <div class="cat-content">
-          <div style="font-family:'Outfit',sans-serif;font-weight:900;font-size:1.1rem;margin-bottom:.3rem">
+        <img class="cat-img" src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&q=80" alt="Voyager" style="opacity:.6;object-position:bottom">
+        <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(15,23,42,.7) 0%,rgba(15,23,42,.1) 60%)"></div>
+        <div style="position:absolute;top:0;left:0;right:0;padding:1.2rem">
+          <div style="font-family:'Outfit',sans-serif;font-weight:900;font-size:1.15rem;margin-bottom:.25rem">
             <span style="color:#FF6B6B">Hi</span><span style="color:#63b3ed">Flight</span>
           </div>
-          <div class="cat-name" style="font-size:1rem;color:#fff">Voyagez moins cher avec HiFlight</div>
-          <div class="cat-link" style="color:#63b3ed;margin-top:.3rem">Comparer les vols →</div>
+          <div style="font-size:.9rem;font-weight:700;color:#fff;line-height:1.3">Voyagez moins cher avec HiFlight</div>
+          <div style="font-size:.72rem;color:#63b3ed;margin-top:.3rem;font-weight:600">Comparer les vols →</div>
         </div>
       </div>
     </div>
@@ -1054,14 +1057,32 @@ var lastCat = '';
 var homeProductsCache = {};
 
 // ══ PAGES ══
-function showPage(p) {
+function showPage(p, pushState) {
   document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
   document.getElementById('page-' + p).classList.add('active');
   window.scrollTo(0, 0);
   var footer = document.getElementById('global-footer');
   if (footer) footer.style.display = (p === 'detail') ? 'none' : '';
   if (p === 'favorites') renderFavorites();
+  if (pushState !== false) {
+    history.pushState({ page: p, query: lastQuery, cat: lastCat, productId: currentProduct ? currentProduct.id : null }, '', '#' + p);
+  }
 }
+window.addEventListener('popstate', function(e) {
+  if (e.state && e.state.page) {
+    showPage(e.state.page, false);
+    if (e.state.page === 'search' && e.state.query) {
+      document.getElementById('spInput').value = e.state.query;
+      runSearch(e.state.query);
+    } else if (e.state.page === 'search' && e.state.cat) {
+      loadCategory(e.state.cat);
+    } else if (e.state.page === 'detail' && e.state.productId) {
+      openDetail(e.state.productId);
+    }
+  } else {
+    showPage('home', false);
+  }
+});
 
 function setActiveNavCat(el) {
   document.querySelectorAll('.nav-cat').forEach(c => c.classList.remove('active'));
@@ -1232,6 +1253,8 @@ function sortResults() {
 
 // ══ RENDER RESULTS ══
 function renderResults(list) {
+  // Filtre Darty Pro (prix HT non pertinents)
+  list = list.filter(function(p){ return !(p.program_id||'').includes('darty'); });
   if (!list || !list.length) {
     document.getElementById('resultsContainer').innerHTML =
       '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun résultat</div></div>';
@@ -1541,20 +1564,67 @@ async function initHome() {
     var dg = document.getElementById('dealsGrid');
     if (dg) dg.innerHTML = deals.slice(0, 8).map(p => prodCardSmall(p, true)).join('') || '<p style="color:var(--sub);padding:1rem">Aucun bon plan</p>';
 
-    // Update hero float
-    if (products.length > 0) {
-      var first = products[0];
-      var fp = document.getElementById('hero-float-price');
-      var fo = document.getElementById('hero-float-offers');
-      if (fp) fp.textContent = parseFloat(first.price).toLocaleString('fr-FR', {minimumFractionDigits:2}) + ' €';
-      if (fo) fo.textContent = (first.offers_count || 1) + ' offres comparées';
+    // Carousel hero
+    var heroProducts = products.filter(function(p){ return p.image_url; }).slice(0, 5);
+    if (heroProducts.length > 0) {
+      var slides = document.getElementById('heroSlides');
+      var dots = document.getElementById('heroDots');
+      if (slides) {
+        slides.innerHTML = heroProducts.map(function(p, i) {
+          var img = p.image_url || '';
+          var price = parseFloat(p.price).toLocaleString('fr-FR', {minimumFractionDigits:2});
+          var brand = p.program_title || p.brand || '';
+          var safeSlideId = p.id; return '<div class="hero-slide" data-id="' + safeSlideId + '" style="min-width:100%;height:100%;position:relative;background:#fff;cursor:pointer">'
+            + '<img src="' + img + '" style="width:100%;height:100%;object-fit:contain;padding:1.5rem">'
+            + '<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(15,23,42,.95));padding:1.2rem">'
+              + '<div style="font-size:.65rem;color:#94a3b8;font-weight:700;text-transform:uppercase;margin-bottom:.2rem">' + brand + '</div>'
+              + '<div style="font-size:.88rem;font-weight:700;color:#fff;margin-bottom:.3rem;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">' + p.title + '</div>'
+              + '<div style="font-size:.65rem;color:#94a3b8;margin-bottom:.1rem">À partir de</div>'
+              + '<div style="font-family:Barlow Condensed,sans-serif;font-size:1.5rem;font-weight:900;color:#FF6B6B">' + price + ' €</div>'
+            + '</div>'
+          + '</div>';
+        }).join('');
+        if (dots) {
+          dots.innerHTML = heroProducts.map(function(_, i) {
+            return '<div onclick="goToSlide(' + i + ')" style="width:' + (i===0?'18':'7') + 'px;height:7px;border-radius:4px;background:' + (i===0?'#FF6B6B':'rgba(255,255,255,.4)') + ';cursor:pointer;transition:all .3s" id="dot-' + i + '"></div>';
+          }).join('');
+        }
+        heroProducts.forEach(function(p) { homeProductsCache[p.id] = p; });
+      }
     }
   } catch(e) {
     console.error('initHome error:', e);
   }
 }
 
-initHome();
+// ── CAROUSEL ──
+var carouselIdx = 0;
+var carouselTotal = 0;
+var carouselTimer = null;
+function goToSlide(n) {
+  var slides = document.getElementById('heroSlides');
+  var children = slides ? slides.children : [];
+  carouselTotal = children.length;
+  if (!carouselTotal) return;
+  carouselIdx = (n + carouselTotal) % carouselTotal;
+  slides.style.transform = 'translateX(-' + (carouselIdx * 100) + '%)';
+  document.querySelectorAll('[id^="dot-"]').forEach(function(d, i) {
+    d.style.width = i === carouselIdx ? '18px' : '7px';
+    d.style.background = i === carouselIdx ? '#FF6B6B' : 'rgba(255,255,255,.4)';
+  });
+}
+function nextSlide() { goToSlide(carouselIdx + 1); }
+function prevSlide() { goToSlide(carouselIdx - 1); }
+document.addEventListener('click', function(e) {
+  var slide = e.target.closest('.hero-slide[data-id]');
+  if (slide) openDetail(slide.getAttribute('data-id'));
+});
+function startCarousel() {
+  if (carouselTimer) clearInterval(carouselTimer);
+  carouselTimer = setInterval(function() { nextSlide(); }, 4000);
+}
+
+initHome().then(function(){ startCarousel(); });
 
 // ══ FLIGHTS ══
 document.addEventListener('DOMContentLoaded', function() {
