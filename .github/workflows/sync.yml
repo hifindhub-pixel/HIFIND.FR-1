@@ -31,3 +31,4 @@ jobs:
           EFFINITY_FEEDS: ${{ secrets.EFFINITY_FEEDS }}
           AWIN_FEEDS:     ${{ secrets.AWIN_FEEDS }}
           AWIN_API_KEY:   ${{ secrets.AWIN_API_KEY }}
+          AFFILAE_FEEDS:  ${{ secrets.AFFILAE_FEEDS }}
