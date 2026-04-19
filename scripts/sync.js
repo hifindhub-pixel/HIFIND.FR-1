@@ -566,20 +566,24 @@ async function syncAffilaeFeeds() {
           result.push(field);
           return result;
         }
-        const lines = text.split('\n').filter(l => l.trim());
-        const headers = parseCSVLine(lines[0], sep).map(h => h.trim().toLowerCase().replace(/\s+/g,'_'));
+        const cleanText = text.replace(/^\uFEFF/, '');
+        const lines = cleanText.split('\n').filter(l => l.trim());
+        const rawHdrs = parseCSVLine(lines[0], sep);
+        const headers = rawHdrs.map(h => h.trim().replace(/^"|"$/g,'').toLowerCase().replace(/[\s\-\/]+/g,'_'));
+        console.log('  CSV headers:', headers.slice(0,8).join(', '), '| sep:', JSON.stringify(sep), '| cols:', headers.length);
         for (const line of lines.slice(1)) {
           if (!line.trim()) continue;
           const vals = parseCSVLine(line, sep);
-          const obj = {}; headers.forEach((h,i) => obj[h] = (vals[i]||'').trim());
+          const obj = {}; headers.forEach((h,i) => obj[h] = (vals[i]||'').replace(/^"|"$/g,'').trim());
+          const rawPrice = obj.price||obj.prix||obj.search_price||obj.sale_price||obj.regular_price||obj.product_price||obj.prix_ttc||obj.montant||'0';
           const p = {
-            title: cleanTitle(obj.title||obj.name||obj.product_name||''),
-            price: parseFloat((obj.price||obj.search_price||obj.sale_price||'0').replace(/[^\d.,]/g,'').replace(',','.')),
-            url: obj.link||obj.url||obj.aw_deep_link||obj.product_url||'',
-            image_url: obj.image_link||obj.image||obj.aw_image_url||obj.merchant_image_url||'',
-            ean: extractEAN(obj.gtin||obj.ean||obj.barcode||obj.product_gtin||''),
-            brand: obj.brand||obj.brand_name||'',
-            product_id: obj.id||obj.item_id||obj.aw_product_id||'',
+            title: cleanTitle(obj.title||obj.name||obj.product_name||obj.nom||obj.designation||obj.libelle||''),
+            price: parseFloat(rawPrice.replace(/[^\d.,]/g,'').replace(',','.')||'0'),
+            url: obj.link||obj.url||obj.lien||obj.product_url||obj.aw_deep_link||obj.affiliate_link||obj.deeplink||obj.product_link||'',
+            image_url: obj.image_link||obj.image||obj.image_url||obj.photo||obj.visuel||obj.aw_image_url||obj.merchant_image_url||'',
+            ean: extractEAN(obj.gtin||obj.ean||obj.ean13||obj.barcode||obj.code_barre||obj.product_gtin||obj.mpn||''),
+            brand: obj.brand||obj.brand_name||obj.marque||obj.fabricant||'',
+            product_id: obj.id||obj.product_id||obj.item_id||obj.reference||obj.ref||obj.aw_product_id||'',
           };
           if (!p.title || !p.url || p.price <= 0) continue;
           const key = p.product_id || (p.title.toLowerCase()+'_'+p.price);
