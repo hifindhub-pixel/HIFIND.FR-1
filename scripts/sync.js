@@ -500,6 +500,133 @@ async function syncRakuten() {
   console.log('🎉 Rakuten done:', totalInserted, 'produits');
 }
 
+async function syncAffilaeFeeds() {
+  console.log('🔄 Affilae Feeds sync...');
+  const AFFILAE_FEEDS_JSON = process.env.AFFILAE_FEEDS;
+  if (!AFFILAE_FEEDS_JSON) { console.log('⚠️ AFFILAE_FEEDS missing'); return; }
+
+  let feeds;
+  try { feeds = JSON.parse(AFFILAE_FEEDS_JSON); } catch(e) { console.log('❌ AFFILAE_FEEDS JSON invalide'); return; }
+
+  for (const feed of feeds) {
+    try {
+      const feedLimit = feed.limit || 2000;
+      console.log('  →', feed.name, '(limit:', feedLimit, ')');
+
+      const res = await fetch(feed.url);
+      console.log('  HTTP status:', res.status, 'for', feed.name);
+      if (!res.ok) { console.log('  ❌', feed.name, res.status); continue; }
+
+      const buffer = await res.arrayBuffer();
+      let text;
+      try { text = new TextDecoder('utf-8', { fatal: true }).decode(buffer); }
+      catch(e) { text = new TextDecoder('iso-8859-1').decode(buffer); }
+
+      console.log('  Feed size:', text.length, 'chars');
+
+      const products = [];
+      const seen = new Set();
+
+      if (feed.format === 'xml' || text.trim().startsWith('<')) {
+        // XML parser (réutilise la même logique qu'Effinity)
+        const tagMatch = text.match(/<(item|product|offer|Product|entry)[\s>]/i);
+        const xmlTag = tagMatch ? tagMatch[1] : 'item';
+        const regex = new RegExp('<' + xmlTag + '[^>]*>([\\s\\S]*?)<\\/' + xmlTag + '>', 'gi');
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+          const item = match[0];
+          const get = tag => { const m = item.match(new RegExp('<'+tag+'[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</'+tag+'>','i')); return m?(m[1]||'').trim():''; };
+          const p = {
+            title: cleanTitle(get('title')||get('name')||get('g:title')||''),
+            price: parseFloat((get('price')||get('g:price')||get('sale_price')||'0').replace(/[^\d.,]/g,'').replace(',','.')),
+            url: get('link')||get('g:link')||get('url')||'',
+            image_url: get('image_link')||get('g:image_link')||get('image')||'',
+            ean: extractEAN(get('gtin')||get('g:gtin')||get('ean')||''),
+            brand: get('brand')||get('g:brand')||'',
+            product_id: get('id')||get('g:id')||get('item_id')||'',
+          };
+          if (!p.title || !p.url || p.price <= 0) continue;
+          const key = p.product_id || (p.title.toLowerCase()+'_'+p.price);
+          if (seen.has(key)) continue;
+          seen.add(key);
+          products.push(p);
+          if (products.length >= feedLimit) break;
+        }
+      } else {
+        // CSV parser RFC-4180
+        const sep = feed.separator && feed.separator !== 'none' ? feed.separator : (text.includes('|') ? '|' : ',');
+        function parseCSVLine(line, s) {
+          const result = []; let field = ''; let inQuotes = false;
+          for (let i = 0; i < line.length; i++) {
+            const c = line[i];
+            if (c === '"') { if (inQuotes && line[i+1] === '"') { field += '"'; i++; } else inQuotes = !inQuotes; }
+            else if (c === s && !inQuotes) { result.push(field); field = ''; }
+            else field += c;
+          }
+          result.push(field);
+          return result;
+        }
+        const lines = text.split('\n').filter(l => l.trim());
+        const headers = parseCSVLine(lines[0], sep).map(h => h.trim().toLowerCase().replace(/\s+/g,'_'));
+        for (const line of lines.slice(1)) {
+          if (!line.trim()) continue;
+          const vals = parseCSVLine(line, sep);
+          const obj = {}; headers.forEach((h,i) => obj[h] = (vals[i]||'').trim());
+          const p = {
+            title: cleanTitle(obj.title||obj.name||obj.product_name||''),
+            price: parseFloat((obj.price||obj.search_price||obj.sale_price||'0').replace(/[^\d.,]/g,'').replace(',','.')),
+            url: obj.link||obj.url||obj.aw_deep_link||obj.product_url||'',
+            image_url: obj.image_link||obj.image||obj.aw_image_url||obj.merchant_image_url||'',
+            ean: extractEAN(obj.gtin||obj.ean||obj.barcode||obj.product_gtin||''),
+            brand: obj.brand||obj.brand_name||'',
+            product_id: obj.id||obj.item_id||obj.aw_product_id||'',
+          };
+          if (!p.title || !p.url || p.price <= 0) continue;
+          const key = p.product_id || (p.title.toLowerCase()+'_'+p.price);
+          if (seen.has(key)) continue;
+          seen.add(key);
+          products.push(p);
+          if (products.length >= feedLimit) break;
+        }
+      }
+
+      console.log('  Sample URL:', products[0]?.url);
+      console.log('  📦', feed.name, ':', products.length, 'produits');
+
+      const programId = 'affilae_feed_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
+      await supabaseUpsert('programs', [{ id:programId, title:feed.name, categories:[], countries:['FR'], updated_at:new Date().toISOString() }]);
+
+      // Dédup par EAN
+      const eanSeen = new Map();
+      const deduped = [];
+      for (const p of products) {
+        if (p.ean) {
+          if (!eanSeen.has(p.ean) || p.price < eanSeen.get(p.ean).price) eanSeen.set(p.ean, p);
+        } else deduped.push(p);
+      }
+      deduped.push(...eanSeen.values());
+
+      const mapped = deduped.map((p,i) => {
+        const rawId = p.product_id ? programId+'_'+p.product_id : programId+'_'+i;
+        return {
+          id: rawId.replace(/[^a-z0-9_\-]/gi,'_').slice(0,100),
+          affilae_id: rawId.slice(0,100), program_id: programId,
+          title: p.title, description: null, price: p.price, currency: 'EUR',
+          url: p.url, tracking_id: null, image_url: p.image_url||null,
+          brand: p.brand||null, ean: p.ean||null,
+          category: feed.category || detectCategory({ title:p.title, description:'', program:{title:feed.name} }),
+          lang: 'fr', status: 'enabled', updated_at: new Date().toISOString()
+        };
+      });
+
+      for (let i = 0; i < mapped.length; i += 50) await supabaseUpsert('products', mapped.slice(i,i+50));
+      console.log('  ✅', feed.name, ':', mapped.length, 'insérés');
+
+    } catch(e) { console.log('  ⚠️', feed.name, ':', e.message); }
+  }
+  console.log('🎉 Affilae Feeds done');
+}
+
 async function syncAwin() {
   console.log('🔄 Awin sync...');
   const AWIN_FEEDS_JSON = process.env.AWIN_FEEDS;
@@ -623,6 +750,7 @@ async function main() {
     await syncEffinity();
     await syncBCDJeux();
     await syncRakuten();
+    await syncAffilaeFeeds();
     await syncAwin();
     if (_neonClient) await _neonClient.end();
     console.log('🎉 All done!');
