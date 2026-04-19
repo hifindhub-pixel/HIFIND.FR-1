@@ -529,8 +529,9 @@ async function syncAffilaeFeeds() {
 
       if (feed.format === 'xml' || text.trim().startsWith('<')) {
         // XML parser (réutilise la même logique qu'Effinity)
-        const tagMatch = text.match(/<(item|product|offer|Product|entry)[\s>]/i);
+        const tagMatch = text.match(/<(item|product|offer|Product|entry|Article|ARTICLE|g:item)[\s>]/i);
         const xmlTag = tagMatch ? tagMatch[1] : 'item';
+        console.log('  XML tag detected:', xmlTag);
         const regex = new RegExp('<' + xmlTag + '[^>]*>([\\s\\S]*?)<\\/' + xmlTag + '>', 'gi');
         let match;
         while ((match = regex.exec(text)) !== null) {
@@ -570,18 +571,24 @@ async function syncAffilaeFeeds() {
         const lines = cleanText.split('\n').filter(l => l.trim());
         const rawHdrs = parseCSVLine(lines[0], sep);
         const headers = rawHdrs.map(h => h.trim().replace(/^"|"$/g,'').toLowerCase().replace(/[\s\-\/]+/g,'_'));
-        console.log('  CSV headers:', headers.slice(0,8).join(', '), '| sep:', JSON.stringify(sep), '| cols:', headers.length);
+        console.log('  CSV headers:', headers.join(', '), '| sep:', JSON.stringify(sep), '| cols:', headers.length);
         for (const line of lines.slice(1)) {
           if (!line.trim()) continue;
           const vals = parseCSVLine(line, sep);
           const obj = {}; headers.forEach((h,i) => obj[h] = (vals[i]||'').replace(/^"|"$/g,'').trim());
-          const rawPrice = obj.price||obj.prix||obj.search_price||obj.sale_price||obj.regular_price||obj.product_price||obj.prix_ttc||obj.montant||'0';
+          const rawPrice = obj.price||obj.prix||obj.search_price||obj.sale_price||obj.regular_price||obj.product_price||obj.prix_ttc||obj.montant||obj.prix_ttc_remise||obj.prix_public||'0';
+          // Colonnes spécifiques 1001 Pneus
+          const pneuTitle = obj.marque && obj.profil ? (obj.marque+' '+obj.profil+' '+obj.largeur+'/'+obj.hauteur+'R'+obj.diametre) : '';
+          const pneuUrl = obj.url_produit||obj.lien_produit||obj.affiliate||obj.url_affiliation||obj.lien||'';
+          const pneuPrice = obj.prix_ttc||obj.prix_public||obj.tarif||'';
+          const pneuImg = obj.image||obj.image_principale||obj.photo_produit||'';
+          const pneuEan = obj.ean||obj.ean13||obj.code_barre||obj.gtin||'';
           const p = {
-            title: cleanTitle(obj.title||obj.name||obj.product_name||obj.nom||obj.designation||obj.libelle||''),
-            price: parseFloat(rawPrice.replace(/[^\d.,]/g,'').replace(',','.')||'0'),
-            url: obj.link||obj.url||obj.lien||obj.product_url||obj.aw_deep_link||obj.affiliate_link||obj.deeplink||obj.product_link||'',
-            image_url: obj.image_link||obj.image||obj.image_url||obj.photo||obj.visuel||obj.aw_image_url||obj.merchant_image_url||'',
-            ean: extractEAN(obj.gtin||obj.ean||obj.ean13||obj.barcode||obj.code_barre||obj.product_gtin||obj.mpn||''),
+            title: cleanTitle(pneuTitle||obj.title||obj.name||obj.product_name||obj.nom||obj.designation||obj.libelle||''),
+            price: parseFloat((pneuPrice||rawPrice).replace(/[^\d.,]/g,'').replace(',','.')||'0'),
+            url: obj.link||pneuUrl||obj.url||obj.lien||obj.product_url||obj.aw_deep_link||obj.affiliate_link||obj.deeplink||obj.product_link||'',
+            image_url: obj.image_link||pneuImg||obj.image||obj.image_url||obj.photo||obj.visuel||obj.aw_image_url||obj.merchant_image_url||'',
+            ean: extractEAN(pneuEan||obj.gtin||obj.ean||obj.ean13||obj.barcode||obj.code_barre||obj.product_gtin||obj.mpn||''),
             brand: obj.brand||obj.brand_name||obj.marque||obj.fabricant||'',
             product_id: obj.id||obj.product_id||obj.item_id||obj.reference||obj.ref||obj.aw_product_id||'',
           };
