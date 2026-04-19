@@ -47,27 +47,34 @@ const MULTI_VENDOR_WHERE = `
 
 async function getEanOffers(client, ean) {
   const r = await client.query(`
-    SELECT p.*, pr.title as program_title
+    SELECT DISTINCT ON (p.program_id) p.*, pr.title as program_title
     FROM products p
     LEFT JOIN programs pr ON p.program_id = pr.id
     WHERE p.ean = $1 AND p.status = 'enabled'
     AND p.program_id NOT LIKE '%darty%'
-    ORDER BY p.price ASC
+    ORDER BY p.program_id, p.price ASC
   `, [ean]);
-  return r.rows.map(formatRow);
+  // Re-sort by price after dedup
+  const rows = r.rows.map(formatRow);
+  rows.sort((a,b) => (parseFloat(a.price)||0) - (parseFloat(b.price)||0));
+  return rows;
 }
 
 async function groupWithOffers(client, products) {
   const eanMap = new Map();
   for (const p of products) {
-    if (!eanMap.has(p.ean)) {
+    const key = p.ean || p.id;
+    if (!eanMap.has(key)) {
       const offers = await getEanOffers(client, p.ean);
+      // Filtre uniquement les offres avec 2+ vendeurs distincts
+      const distinctVendors = [...new Set(offers.map(o => o.program_id))];
+      if (distinctVendors.length < 2) continue;
       const best = offers[0];
-      eanMap.set(p.ean, {
+      eanMap.set(key, {
         ...formatRow(best),
         price: best.price,
         ean_offers: offers,
-        offers_count: offers.length
+        offers_count: distinctVendors.length
       });
     }
   }
