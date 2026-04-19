@@ -214,7 +214,15 @@ async function syncEffinity() {
         let match;
         while ((match = regex.exec(text)) !== null) {
           const item = match[0];
-          const get = tag => { const m = item.match(new RegExp('<'+tag+'[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</'+tag+'>','i')); return m?(m[1]||'').trim():''; };
+          // get() cherche un tag XML de façon insensible à la casse ET aux underscores/espaces
+          const get = tag => {
+            const variants = [tag, tag.toLowerCase(), tag.replace(/_/g,'-'), tag.replace(/-/g,'_')];
+            for (const t of variants) {
+              const m = item.match(new RegExp('<'+t+'[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</'+t+'>','i'));
+              if (m) return (m[1]||'').trim();
+            }
+            return '';
+          };
           const p = {
             title:       cleanTitle(get('title')||get('name')||get('nomproduit')||get('designation')),
             description: fixEncoding(get('description')||get('custom_label_0')||get('descriptif')||''),
@@ -536,7 +544,15 @@ async function syncAffilaeFeeds() {
         let match;
         while ((match = regex.exec(text)) !== null) {
           const item = match[0];
-          const get = tag => { const m = item.match(new RegExp('<'+tag+'[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</'+tag+'>','i')); return m?(m[1]||'').trim():''; };
+          // get() cherche un tag XML de façon insensible à la casse ET aux underscores/espaces
+          const get = tag => {
+            const variants = [tag, tag.toLowerCase(), tag.replace(/_/g,'-'), tag.replace(/-/g,'_')];
+            for (const t of variants) {
+              const m = item.match(new RegExp('<'+t+'[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</'+t+'>','i'));
+              if (m) return (m[1]||'').trim();
+            }
+            return '';
+          };
           const p = {
             title: cleanTitle(get('title')||get('name')||get('g:title')||''),
             price: parseFloat((get('price')||get('g:price')||get('sale_price')||'0').replace(/[^\d.,]/g,'').replace(',','.')),
