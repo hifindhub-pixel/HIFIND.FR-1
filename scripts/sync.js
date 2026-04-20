@@ -771,6 +771,68 @@ async function syncAwin() {
   console.log('🎉 Awin done');
 }
 
+async function syncAliExpress() {
+  console.log('🔄 AliExpress sync...');
+  const APP_KEY = process.env.ALIEXPRESS_APP_KEY || '532344';
+  const APP_SECRET = process.env.ALIEXPRESS_APP_SECRET;
+  if (!APP_SECRET) { console.log('⚠️ ALIEXPRESS_APP_SECRET missing'); return; }
+
+  // AliExpress Portals API - categories pertinentes
+  const queries = [
+    { q: 'parfum femme', cat: 'beaute-bienetre' },
+    { q: 'casque bluetooth', cat: 'high-tech' },
+    { q: 'montre connectée', cat: 'high-tech' },
+    { q: 'pneu voiture', cat: 'auto-moto' },
+    { q: 'chaussures sport', cat: 'sport-outdoor' },
+  ];
+
+  let total = 0;
+  const programId = 'aliexpress';
+  await supabaseUpsert('programs', [{ id:programId, title:'AliExpress', categories:[], countries:['FR'], updated_at:new Date().toISOString() }]);
+
+  for (const { q, cat } of queries) {
+    try {
+      // AliExpress Affiliate API
+      const params = new URLSearchParams({
+        app_key: APP_KEY,
+        method: 'aliexpress.affiliate.product.query',
+        keywords: q,
+        target_currency: 'EUR',
+        target_language: 'FR',
+        page_no: '1',
+        page_size: '50',
+        tracking_id: 'hifind',
+      });
+      const url = 'https://api-sg.aliexpress.com/sync?' + params.toString();
+      const res = await fetch(url);
+      const data = await res.json();
+      const items = data?.aliexpress_affiliate_product_query_response?.resp_result?.result?.products?.product || [];
+      if (!items.length) { console.log('  ⚠️ AliExpress', q, ': 0 résultats'); continue; }
+
+      const products = items.map((p, i) => ({
+        id: programId + '_' + (p.product_id || i),
+        affilae_id: programId + '_' + (p.product_id || i),
+        program_id: programId,
+        title: cleanTitle(p.product_title || ''),
+        price: parseFloat(p.target_sale_price || p.target_original_price || 0),
+        currency: 'EUR',
+        url: p.promotion_link || p.product_detail_url || '',
+        image_url: p.product_main_image_url || '',
+        brand: null,
+        ean: null,
+        category: cat,
+        lang: 'fr', status: 'enabled',
+        updated_at: new Date().toISOString()
+      })).filter(p => p.title && p.url && p.price > 0);
+
+      await supabaseUpsert('products', products);
+      total += products.length;
+      console.log('  ✅ AliExpress "' + q + '" :', products.length, 'produits');
+    } catch(e) { console.log('  ⚠️ AliExpress', q, ':', e.message); }
+  }
+  console.log('🎉 AliExpress done:', total, 'produits');
+}
+
 async function main() {
   try {
     await syncAffilae();
@@ -779,6 +841,7 @@ async function main() {
     await syncRakuten();
     await syncAffilaeFeeds();
     await syncAwin();
+    await syncAliExpress();
     if (_neonClient) await _neonClient.end();
     console.log('🎉 All done!');
   } catch(e) {
