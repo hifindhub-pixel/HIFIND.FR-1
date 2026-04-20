@@ -215,14 +215,11 @@ async function syncEffinity() {
         let match;
         while ((match = regex.exec(text)) !== null) {
           const item = match[0];
-          // get() cherche un tag XML de façon insensible à la casse ET aux underscores/espaces
+          // get() cherche un tag XML insensible à la casse
           const get = tag => {
-            const variants = [tag, tag.toLowerCase(), tag.replace(/_/g,'-'), tag.replace(/-/g,'_')];
-            for (const t of variants) {
-              const m = item.match(new RegExp('<'+t+'[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</'+t+'>','i'));
-              if (m) return (m[1]||'').trim();
-            }
-            return '';
+            const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const m = item.match(new RegExp('<' + escaped + '[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/' + escaped + '>', 'i'));
+            return m ? (m[1]||'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').trim() : '';
           };
           const p = {
             title:       cleanTitle(get('title')||get('name')||get('nomproduit')||get('designation')),
@@ -546,14 +543,11 @@ async function syncAffilaeFeeds() {
         let match;
         while ((match = regex.exec(text)) !== null) {
           const item = match[0];
-          // get() cherche un tag XML de façon insensible à la casse ET aux underscores/espaces
+          // get() cherche un tag XML insensible à la casse
           const get = tag => {
-            const variants = [tag, tag.toLowerCase(), tag.replace(/_/g,'-'), tag.replace(/-/g,'_')];
-            for (const t of variants) {
-              const m = item.match(new RegExp('<'+t+'[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</'+t+'>','i'));
-              if (m) return (m[1]||'').trim();
-            }
-            return '';
+            const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const m = item.match(new RegExp('<' + escaped + '[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/' + escaped + '>', 'i'));
+            return m ? (m[1]||'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').trim() : '';
           };
           const p = {
             title: cleanTitle(get('title')||get('name')||get('g:title')||''),
@@ -850,7 +844,7 @@ async function main() {
     await syncRakuten();
     await syncAffilaeFeeds();
     await syncAwin();
-    await syncAliExpress();
+    // await syncAliExpress(); // API signature requise
     if (_neonClient) await _neonClient.end();
     console.log('🎉 All done!');
   } catch(e) {
