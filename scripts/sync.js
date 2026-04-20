@@ -210,7 +210,8 @@ async function syncEffinity() {
         const tagMatch = text.match(/<(item|product|offer|Product|Offer|annonce|Article|PRODUCT|ITEM|produit|Produit)[\s>]/i);
         const xmlTag = tagMatch ? tagMatch[1] : 'item';
         console.log('  XML tag detected:', xmlTag);
-        const regex = new RegExp('<' + xmlTag + '[^>]*>([\\s\\S]*?)<\\/' + xmlTag + '>', 'gi');
+        const safeTag = xmlTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp('<' + safeTag + '[^>]*>([\\s\\S]*?)<\\/' + safeTag + '>', 'gi');
         let match;
         while ((match = regex.exec(text)) !== null) {
           const item = match[0];
@@ -540,7 +541,8 @@ async function syncAffilaeFeeds() {
         const tagMatch = text.match(/<(item|product|offer|Product|entry|Article|ARTICLE|g:item)[\s>]/i);
         const xmlTag = tagMatch ? tagMatch[1] : 'item';
         console.log('  XML tag detected:', xmlTag);
-        const regex = new RegExp('<' + xmlTag + '[^>]*>([\\s\\S]*?)<\\/' + xmlTag + '>', 'gi');
+        const safeTag = xmlTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp('<' + safeTag + '[^>]*>([\\s\\S]*?)<\\/' + safeTag + '>', 'gi');
         let match;
         while ((match = regex.exec(text)) !== null) {
           const item = match[0];
@@ -672,20 +674,27 @@ async function syncAwin() {
       if (!res.ok) { console.log('  ❌', feed.name, res.status); continue; }
 
       // Décompresse gzip si nécessaire
-      const buffer = await res.arrayBuffer();
+      // Stream gzip décompression pour éviter crash mémoire sur gros fichiers
+      const chunks = [];
+      const reader = res.body.getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+      }
+      const buffer = Buffer.concat(chunks.map(c => Buffer.from(c)));
       let text;
-      const bytes = new Uint8Array(buffer);
-      // Détecte gzip magic bytes (1f 8b)
+      const bytes = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
       if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
         const zlib = await import('zlib');
         const decompressed = await new Promise((resolve, reject) => {
-          zlib.gunzip(Buffer.from(buffer), (err, result) => {
+          zlib.gunzip(buffer, (err, result) => {
             if (err) reject(err); else resolve(result);
           });
         });
         text = decompressed.toString('utf-8');
       } else {
-        text = new TextDecoder('utf-8').decode(buffer);
+        text = buffer.toString('utf-8');
       }
 
       console.log('  Feed size:', text.length, 'chars');
