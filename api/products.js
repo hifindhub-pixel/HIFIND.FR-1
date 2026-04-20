@@ -66,14 +66,22 @@ async function groupWithOffers(client, products) {
     const key = p.ean || p.id;
     if (!eanMap.has(key)) {
       const offers = await getEanOffers(client, p.ean);
-      // Filtre uniquement les offres avec 2+ vendeurs distincts
-      const distinctVendors = [...new Set(offers.map(o => o.program_id))];
+      // Filtre les offres cross-catégorie aberrantes (ex: moto vs beauté)
+      const mainCat = p.category || '';
+      const INCOMPATIBLE = {
+        'auto-moto': ['beaute-bienetre','mode-vetements','enfants-bebes','alimentation-bio'],
+        'beaute-bienetre': ['auto-moto','sport-outdoor'],
+        'high-tech': ['auto-moto','beaute-bienetre','alimentation-bio'],
+      };
+      const excluded = INCOMPATIBLE[mainCat] || [];
+      const filtered = offers.filter(o => !excluded.includes(o.category));
+      const distinctVendors = [...new Set(filtered.map(o => o.program_id))];
       if (distinctVendors.length < 2) continue;
-      const best = offers[0];
+      const best = filtered[0];
       eanMap.set(key, {
         ...formatRow(best),
         price: best.price,
-        ean_offers: offers,
+        ean_offers: filtered,
         offers_count: distinctVendors.length
       });
     }
