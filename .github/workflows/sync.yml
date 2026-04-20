@@ -32,3 +32,4 @@ jobs:
           AWIN_FEEDS:     ${{ secrets.AWIN_FEEDS }}
           AWIN_API_KEY:   ${{ secrets.AWIN_API_KEY }}
           AFFILAE_FEEDS:  ${{ secrets.AFFILAE_FEEDS }}
+          ALIEXPRESS_APP_SECRET: ${{ secrets.ALIEXPRESS_APP_SECRET }}
