@@ -1275,6 +1275,7 @@ function normalizeMerchant(name) {
   if (!name) return name;
   if (name.match(/^Rakuten FR\d/)) return 'Rakuten';
   if (name.match(/^awin_rakuten/i)) return 'Rakuten';
+  if (name.match(/^Rue du Commerce [A-Z]/)) return 'Rue du Commerce';
   return name;
 }
 function getImageUrl(p) {
