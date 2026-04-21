@@ -213,8 +213,10 @@ async function syncEffinity() {
         const safeTag = xmlTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regex = new RegExp('<' + safeTag + '[^>]*>([\\s\\S]*?)<\\/' + safeTag + '>', 'gi');
         let match;
-        while ((match = regex.exec(text)) !== null) {
+        let debugDone = false;
+        while ((match = regex.exec(xmlNorm)) !== null) {
           const item = match[0];
+          if (!debugDone) { console.log('  First item sample:', item.slice(0,300)); debugDone=true; }
           // get() cherche un tag XML insensible à la casse
           const get = tag => {
             const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -541,8 +543,10 @@ async function syncAffilaeFeeds() {
         const safeTag = xmlTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regex = new RegExp('<' + safeTag + '[^>]*>([\\s\\S]*?)<\\/' + safeTag + '>', 'gi');
         let match;
-        while ((match = regex.exec(text)) !== null) {
+        let debugDone = false;
+        while ((match = regex.exec(xmlNorm)) !== null) {
           const item = match[0];
+          if (!debugDone) { console.log('  First item sample:', item.slice(0,300)); debugDone=true; }
           // get() cherche un tag XML insensible à la casse
           const get = tag => {
             const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -737,7 +741,11 @@ async function syncAwin() {
       console.log('  Sample URL:', products[0]?.url);
       console.log('  📦', feed.name, ':', products.length, 'produits');
 
-      const programId = 'awin_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      // Normalise les noms de vendeurs splittés
+      let feedDisplayName = feed.name;
+      if (feed.name.match(/^Rue du Commerce [A-Z]/)) feedDisplayName = 'Rue du Commerce';
+      if (feed.name.match(/^Rakuten FR\d/)) feedDisplayName = 'Rakuten';
+      const programId = 'awin_' + feedDisplayName.toLowerCase().replace(/[^a-z0-9]/g, '_');
       await supabaseUpsert('programs', [{ id:programId, title:feed.name, categories:[], countries:['FR'], updated_at:new Date().toISOString() }]);
 
       // Dédup par EAN
@@ -776,53 +784,80 @@ async function syncAwin() {
 
 async function syncAliExpress() {
   console.log('🔄 AliExpress sync...');
-  const APP_KEY = process.env.ALIEXPRESS_APP_KEY || '532344';
+  const APP_KEY = '532344';
   const APP_SECRET = process.env.ALIEXPRESS_APP_SECRET;
   if (!APP_SECRET) { console.log('⚠️ ALIEXPRESS_APP_SECRET missing'); return; }
 
-  // AliExpress Portals API - categories pertinentes
-  const queries = [
-    { q: 'parfum femme', cat: 'beaute-bienetre' },
-    { q: 'casque bluetooth', cat: 'high-tech' },
-    { q: 'montre connectée', cat: 'high-tech' },
-    { q: 'pneu voiture', cat: 'auto-moto' },
-    { q: 'chaussures sport', cat: 'sport-outdoor' },
+  const crypto = await import('crypto');
+
+  function sign(params, secret) {
+    const sorted = Object.keys(params).sort().map(k => k + params[k]).join('');
+    return crypto.createHmac('md5', secret).update(sorted).digest('hex').toUpperCase();
+  }
+
+  async function aliCall(method, extraParams) {
+    const params = {
+      method,
+      app_key: APP_KEY,
+      timestamp: new Date().toISOString().replace('T',' ').slice(0,19),
+      sign_method: 'hmac',
+      v: '2.0',
+      format: 'json',
+      ...extraParams
+    };
+    params.sign = sign(params, APP_SECRET);
+    const url = 'https://api-sg.aliexpress.com/sync?' + new URLSearchParams(params).toString();
+    const res = await fetch(url);
+    return await res.json();
+  }
+
+  const categories = [
+    { keywords: 'parfum femme', cat: 'beaute-bienetre' },
+    { keywords: 'casque bluetooth', cat: 'high-tech' },
+    { keywords: 'montre connectee', cat: 'high-tech' },
+    { keywords: 'chaussures sport', cat: 'sport-outdoor' },
+    { keywords: 'soin visage', cat: 'beaute-bienetre' },
+    { keywords: 'pneu voiture', cat: 'auto-moto' },
+    { keywords: 'vetement homme', cat: 'mode-vetements' },
+    { keywords: 'jouet enfant', cat: 'enfants-bebes' },
   ];
 
   let total = 0;
   const programId = 'aliexpress';
   await supabaseUpsert('programs', [{ id:programId, title:'AliExpress', categories:[], countries:['FR'], updated_at:new Date().toISOString() }]);
 
-  for (const { q, cat } of queries) {
+  for (const { keywords, cat } of categories) {
     try {
-      // AliExpress Affiliate API
-      const params = new URLSearchParams({
-        app_key: APP_KEY,
-        method: 'aliexpress.affiliate.product.query',
-        keywords: q,
+      // Try hot products first
+      const data = await aliCall('aliexpress.affiliate.hotproduct.query', {
+        keywords,
         target_currency: 'EUR',
         target_language: 'FR',
         page_no: '1',
         page_size: '50',
         tracking_id: 'hifind',
+        fields: 'product_id,product_title,target_sale_price,target_original_price,product_main_image_url,promotion_link,evaluate_rate,lastest_volume',
       });
-      const url = 'https://api-sg.aliexpress.com/sync?' + params.toString();
-      const res = await fetch(url);
-      const data = await res.json();
-      const items = data?.aliexpress_affiliate_product_query_response?.resp_result?.result?.products?.product || [];
-      if (!items.length) { console.log('  ⚠️ AliExpress', q, ': 0 résultats'); continue; }
+
+      const resp = data?.aliexpress_affiliate_hotproduct_query_response?.resp_result;
+      if (!resp || resp.resp_code !== 200) {
+        console.log('  ⚠️ AliExpress "'+keywords+'" :', resp?.resp_msg || 'erreur');
+        continue;
+      }
+
+      const items = resp.result?.products?.product || [];
+      if (!items.length) { console.log('  ⚠️ AliExpress "'+keywords+'" : 0 résultats'); continue; }
 
       const products = items.map((p, i) => ({
-        id: programId + '_' + (p.product_id || i),
+        id: (programId + '_' + (p.product_id || i)).replace(/[^a-z0-9_]/gi,'_').slice(0,100),
         affilae_id: programId + '_' + (p.product_id || i),
         program_id: programId,
         title: cleanTitle(p.product_title || ''),
         price: parseFloat(p.target_sale_price || p.target_original_price || 0),
         currency: 'EUR',
-        url: p.promotion_link || p.product_detail_url || '',
+        url: p.promotion_link || '',
         image_url: p.product_main_image_url || '',
-        brand: null,
-        ean: null,
+        brand: null, ean: null,
         category: cat,
         lang: 'fr', status: 'enabled',
         updated_at: new Date().toISOString()
@@ -830,11 +865,14 @@ async function syncAliExpress() {
 
       await supabaseUpsert('products', products);
       total += products.length;
-      console.log('  ✅ AliExpress "' + q + '" :', products.length, 'produits');
-    } catch(e) { console.log('  ⚠️ AliExpress', q, ':', e.message); }
+      console.log('  ✅ AliExpress "'+keywords+'" :', products.length, 'produits');
+    } catch(e) {
+      console.log('  ⚠️ AliExpress "'+keywords+'" :', e.message);
+    }
   }
   console.log('🎉 AliExpress done:', total, 'produits');
 }
+
 
 async function main() {
   try {
@@ -844,7 +882,7 @@ async function main() {
     await syncRakuten();
     await syncAffilaeFeeds();
     await syncAwin();
-    // await syncAliExpress(); // API signature requise
+    await syncAliExpress();
     if (_neonClient) await _neonClient.end();
     console.log('🎉 All done!');
   } catch(e) {
