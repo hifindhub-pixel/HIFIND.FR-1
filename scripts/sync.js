@@ -211,9 +211,9 @@ async function syncEffinity() {
         const xmlTag = tagMatch ? tagMatch[1] : 'item';
         console.log('  XML tag detected:', xmlTag);
         const safeTag = xmlTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const xmlNorm = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
         const regex = new RegExp('<' + safeTag + '[^>]*>([\\s\\S]*?)<\\/' + safeTag + '>', 'gi');
         let match;
-        let debugDone = false;
         while ((match = regex.exec(xmlNorm)) !== null) {
           const item = match[0];
           if (!debugDone) { console.log('  First item sample:', item.slice(0,300)); debugDone=true; }
@@ -541,9 +541,9 @@ async function syncAffilaeFeeds() {
         const xmlTag = tagMatch ? tagMatch[1] : 'item';
         console.log('  XML tag detected:', xmlTag);
         const safeTag = xmlTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const xmlNorm = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
         const regex = new RegExp('<' + safeTag + '[^>]*>([\\s\\S]*?)<\\/' + safeTag + '>', 'gi');
         let match;
-        let debugDone = false;
         while ((match = regex.exec(xmlNorm)) !== null) {
           const item = match[0];
           if (!debugDone) { console.log('  First item sample:', item.slice(0,300)); debugDone=true; }
@@ -835,7 +835,7 @@ async function syncAliExpress() {
         target_language: 'FR',
         page_no: '1',
         page_size: '50',
-        tracking_id: 'hifind',
+        tracking_id: 'hifind05',
         fields: 'product_id,product_title,target_sale_price,target_original_price,product_main_image_url,promotion_link,evaluate_rate,lastest_volume',
       });
 
