@@ -1271,6 +1271,12 @@ function renderResults(list) {
   document.getElementById('resultsContainer').innerHTML = list.map(p => pcardHTML(p)).join('');
 }
 
+function normalizeMerchant(name) {
+  if (!name) return name;
+  if (name.match(/^Rakuten FR\d/)) return 'Rakuten';
+  if (name.match(/^awin_rakuten/i)) return 'Rakuten';
+  return name;
+}
 function getImageUrl(p) {
   var url = p.image_url;
   if (!url) return null;
@@ -1367,7 +1373,7 @@ async function openDetail(id) {
   if (p.ean_offers && p.ean_offers.length > 0) {
     p.ean_offers.forEach(function(o) {
       offers.push({
-        merchant: o.program_title || (o.programs && o.programs.title) || 'Partenaire',
+        merchant: normalizeMerchant(o.program_title || (o.programs && o.programs.title) || 'Partenaire'),
         price: parseFloat(o.price) || 0,
         url: o.tracking_url || o.url,
       });
@@ -1475,7 +1481,7 @@ function renderFavorites() {
 function prodCardSmall(p, showBadge) {
   var img = getImageUrl(p);
   var price = parseFloat(p.price) || 0;
-  var brand = p.program_title || p.brand || '';
+  var brand = normalizeMerchant(p.program_title || p.brand || '');
   var offers = p.offers_count || 1;
   var safeId = p.id.replace(/'/g, "\\'");
   var savePct = '';
@@ -1581,7 +1587,7 @@ async function initHome() {
         slides.innerHTML = heroProducts.map(function(p, i) {
           var img = p.image_url || '';
           var price = parseFloat(p.price).toLocaleString('fr-FR', {minimumFractionDigits:2});
-          var brand = p.program_title || p.brand || '';
+          var brand = normalizeMerchant(p.program_title || p.brand || '');
           var safeSlideId = p.id; return '<div class="hero-slide" data-id="' + safeSlideId + '" style="min-width:100%;height:100%;position:relative;background:#fff;cursor:pointer">'
             + '<img src="' + img + '" style="width:100%;height:100%;object-fit:contain;padding:1.5rem">'
             + '<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(15,23,42,.95));padding:1.2rem">'
