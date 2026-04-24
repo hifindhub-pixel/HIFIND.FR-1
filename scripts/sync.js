@@ -216,7 +216,6 @@ async function syncEffinity() {
         let match;
         while ((match = regex.exec(xmlNorm)) !== null) {
           const item = match[0];
-          if (!debugDone) { console.log('  First item sample:', item.slice(0,300)); debugDone=true; }
           // get() cherche un tag XML insensible à la casse
           const get = tag => {
             const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -546,7 +545,6 @@ async function syncAffilaeFeeds() {
         let match;
         while ((match = regex.exec(xmlNorm)) !== null) {
           const item = match[0];
-          if (!debugDone) { console.log('  First item sample:', item.slice(0,300)); debugDone=true; }
           // get() cherche un tag XML insensible à la casse
           const get = tag => {
             const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -695,6 +693,11 @@ async function syncAwin() {
         text = buffer.toString('utf-8');
       }
 
+      // Limite la taille pour éviter crash mémoire
+      if (text.length > 300000000) {
+        console.log('  ⚠️ Feed trop gros (' + Math.round(text.length/1e6) + 'MB), troncature à 300MB');
+        text = text.slice(0, 300000000);
+      }
       console.log('  Feed size:', text.length, 'chars');
 
       // Parse CSV Awin (séparateur virgule par défaut)
@@ -835,7 +838,7 @@ async function syncAliExpress() {
         target_language: 'FR',
         page_no: '1',
         page_size: '50',
-        tracking_id: 'hifind05',
+        tracking_id: 'hifind_fr',
         fields: 'product_id,product_title,target_sale_price,target_original_price,product_main_image_url,promotion_link,evaluate_rate,lastest_volume',
       });
 
