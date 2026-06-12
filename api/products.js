@@ -60,31 +60,60 @@ async function getEanOffers(client, ean) {
   return rows;
 }
 
+const INCOMPATIBLE = {
+  'auto-moto': ['beaute-bienetre','mode-vetements','enfants-bebes','alimentation-bio'],
+  'beaute-bienetre': ['auto-moto','sport-outdoor'],
+  'high-tech': ['auto-moto','beaute-bienetre','alimentation-bio'],
+};
+
+// Récupère toutes les offres pour une liste d'EANs en UNE SEULE requête
+async function getAllOffersForEans(client, eans) {
+  if (!eans.length) return new Map();
+  const r = await client.query(`
+    SELECT DISTINCT ON (p.ean, p.program_id) p.*, pr.title as program_title
+    FROM products p
+    LEFT JOIN programs pr ON p.program_id = pr.id
+    WHERE p.ean = ANY($1) AND p.status = 'enabled'
+    AND p.program_id NOT LIKE '%darty%'
+    ORDER BY p.ean, p.program_id, p.price ASC
+  `, [eans]);
+
+  const byEan = new Map();
+  for (const row of r.rows) {
+    const formatted = formatRow(row);
+    if (!byEan.has(row.ean)) byEan.set(row.ean, []);
+    byEan.get(row.ean).push(formatted);
+  }
+  // Tri par prix dans chaque groupe
+  for (const offers of byEan.values()) {
+    offers.sort((a,b) => (parseFloat(a.price)||0) - (parseFloat(b.price)||0));
+  }
+  return byEan;
+}
+
 async function groupWithOffers(client, products) {
+  const eans = [...new Set(products.map(p => p.ean).filter(Boolean))];
+  const offersByEan = await getAllOffersForEans(client, eans);
+
   const eanMap = new Map();
   for (const p of products) {
     const key = p.ean || p.id;
-    if (!eanMap.has(key)) {
-      const offers = await getEanOffers(client, p.ean);
-      // Filtre les offres cross-catégorie aberrantes (ex: moto vs beauté)
-      const mainCat = p.category || '';
-      const INCOMPATIBLE = {
-        'auto-moto': ['beaute-bienetre','mode-vetements','enfants-bebes','alimentation-bio'],
-        'beaute-bienetre': ['auto-moto','sport-outdoor'],
-        'high-tech': ['auto-moto','beaute-bienetre','alimentation-bio'],
-      };
-      const excluded = INCOMPATIBLE[mainCat] || [];
-      const filtered = offers.filter(o => !excluded.includes(o.category));
-      const distinctVendors = [...new Set(filtered.map(o => o.program_id))];
-      if (distinctVendors.length < 2) continue;
-      const best = filtered[0];
-      eanMap.set(key, {
-        ...formatRow(best),
-        price: best.price,
-        ean_offers: filtered,
-        offers_count: distinctVendors.length
-      });
-    }
+    if (eanMap.has(key)) continue;
+    const offers = offersByEan.get(p.ean) || [];
+
+    const mainCat = p.category || '';
+    const excluded = INCOMPATIBLE[mainCat] || [];
+    const filtered = offers.filter(o => !excluded.includes(o.category));
+    const distinctVendors = [...new Set(filtered.map(o => o.program_id))];
+    if (distinctVendors.length < 2) continue;
+
+    const best = filtered[0];
+    eanMap.set(key, {
+      ...best,
+      price: best.price,
+      ean_offers: filtered,
+      offers_count: distinctVendors.length
+    });
   }
   return Array.from(eanMap.values());
 }
