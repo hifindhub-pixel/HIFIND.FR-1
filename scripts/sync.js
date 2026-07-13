@@ -879,14 +879,29 @@ async function syncAliExpress() {
 
 async function main() {
   try {
-    await syncAffilae();
+    // await syncAffilae(); // Désactivé - marchands sans EAN fiables
     await syncEffinity();
     await syncBCDJeux();
     await syncRakuten();
     await syncAffilaeFeeds();
     await syncAwin();
-    await syncAliExpress();
+    // await syncAliExpress(); // Désactivé - tracking_id invalide
     if (_neonClient) await _neonClient.end();
+    // Nettoyage automatique des mono-vendeurs
+    console.log('🧹 Nettoyage des mono-vendeurs...');
+    const client2 = new Client({ connectionString: process.env.NEON_URL, ssl: { rejectUnauthorized: false } });
+    await client2.connect();
+    const del = await client2.query(`
+      DELETE FROM products 
+      WHERE ean IS NULL
+      OR NOT EXISTS (
+        SELECT 1 FROM products p2 
+        WHERE p2.ean = products.ean 
+        AND p2.program_id != products.program_id
+      )
+    `);
+    console.log('🧹 Supprimés:', del.rowCount, 'produits mono-vendeurs');
+    await client2.end();
     console.log('🎉 All done!');
   } catch(e) {
     console.error('❌ Failed:', e.message);
