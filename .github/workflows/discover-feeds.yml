@@ -1,0 +1,29 @@
+name: Discover Awin Feeds
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Tous les lundis à 6h UTC
+    - cron: '0 6 * * 1'
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Discover feeds
+        env:
+          AWIN_API_KEY: ${{ secrets.AWIN_API_KEY }}
+          AWIN_PUBLISHER_ID: '2855063'
+        run: node scripts/discover-feeds.js
+
+      - name: Upload result
+        uses: actions/upload-artifact@v4
+        with:
+          name: awin-feeds
+          path: awin-feeds.json
