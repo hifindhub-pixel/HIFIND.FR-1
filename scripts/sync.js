@@ -967,14 +967,37 @@ async function syncCJ() {
   console.log('\ud83c\udf89 CJ done');
 }
 
+async function cleanupMonoVendors(label) {
+  try {
+    const client = new Client({ connectionString: process.env.NEON_URL, ssl: { rejectUnauthorized: false } });
+    await client.connect();
+    const del = await client.query(`
+      DELETE FROM products
+      WHERE ean IS NULL
+      OR NOT EXISTS (
+        SELECT 1 FROM products p2
+        WHERE p2.ean = products.ean
+        AND p2.program_id != products.program_id
+      )
+    `);
+    await client.end();
+    console.log('\ud83e\uddf9 [' + label + '] supprimes: ' + del.rowCount);
+  } catch (e) {
+    console.log('\ud83e\uddf9 [' + label + '] erreur nettoyage: ' + e.message);
+  }
+}
+
 async function main() {
   try {
     // await syncAffilae(); // Désactivé - marchands sans EAN fiables
     await syncEffinity();
+    await cleanupMonoVendors('apres Effinity');
     await syncBCDJeux();
     await syncRakuten();
     await syncAffilaeFeeds();
+    await cleanupMonoVendors('apres Affilae Feeds');
     await syncAwin();
+    await cleanupMonoVendors('apres Awin');
     await syncCJ();
     // await syncAliExpress(); // Désactivé - tracking_id invalide
     if (_neonClient) await _neonClient.end();
