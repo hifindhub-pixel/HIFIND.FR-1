@@ -1,38 +1,36 @@
 name: Sync Products
 
 on:
-  schedule:
-    - cron: '0 * * * *'
   workflow_dispatch:
+  schedule:
+    # Tous les jours à 4h UTC (6h Paris)
+    - cron: '0 4 * * *'
 
 jobs:
   sync:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: main
+    timeout-minutes: 120
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install
+        run: npm install pg
 
       - name: Run sync
-        run: node scripts/sync.js
         env:
-          AFFILAE_TOKEN:  ${{ secrets.AFFILAE_TOKEN }}
-          NEON_URL:       ${{ secrets.NEON_URL }}
+          NEON_URL: ${{ secrets.NEON_URL }}
+          AFFILAE_TOKEN: ${{ secrets.AFFILAE_TOKEN }}
+          AFFILAE_FEEDS: ${{ secrets.AFFILAE_FEEDS }}
           EFFINITY_FEEDS: ${{ secrets.EFFINITY_FEEDS }}
-          AWIN_FEEDS:     ${{ secrets.AWIN_FEEDS }}
-          AWIN_API_KEY:   ${{ secrets.AWIN_API_KEY }}
-          AFFILAE_FEEDS:  ${{ secrets.AFFILAE_FEEDS }}
+          AWIN_API_KEY: ${{ secrets.AWIN_API_KEY }}
+          AWIN_FEEDS: ${{ secrets.AWIN_FEEDS }}
           ALIEXPRESS_APP_SECRET: ${{ secrets.ALIEXPRESS_APP_SECRET }}
           CJ_TOKEN: ${{ secrets.CJ_TOKEN }}
           CJ_PUBLISHER_ID: ${{ secrets.CJ_PUBLISHER_ID }}
           CJ_FEEDS: ${{ secrets.CJ_FEEDS }}
+        run: node scripts/sync.js
