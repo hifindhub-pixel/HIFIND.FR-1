@@ -1,9 +1,8 @@
-name: Discover Awin Feeds
+name: Discover Feeds
 
 on:
   workflow_dispatch:
   schedule:
-    # Tous les lundis à 6h UTC
     - cron: '0 6 * * 1'
 
 jobs:
@@ -20,10 +19,15 @@ jobs:
         env:
           AWIN_API_KEY: ${{ secrets.AWIN_API_KEY }}
           AWIN_PUBLISHER_ID: '2855063'
+          EFFINITY_API_KEY: ${{ secrets.EFFINITY_API_KEY }}
+          CJ_TOKEN: ${{ secrets.CJ_TOKEN }}
+          CJ_PUBLISHER_ID: ${{ secrets.CJ_PUBLISHER_ID }}
         run: node scripts/discover-feeds.js
 
       - name: Upload result
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: awin-feeds
           path: awin-feeds.json
+          if-no-files-found: ignore
