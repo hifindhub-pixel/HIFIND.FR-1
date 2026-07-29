@@ -1,156 +1,217 @@
-// discover-feeds.js — Découvre automatiquement tous les flux Awin disponibles
+// discover-feeds.js — Découvre les flux Awin / Effinity / CJ
 // Usage: node scripts/discover-feeds.js
-// Génère le JSON prêt à coller dans le secret AWIN_FEEDS
 
-const AWIN_API_KEY = process.env.AWIN_API_KEY || '9286caa1eff7176a0a48abae76b26893';
-const AWIN_PUBLISHER_ID = process.env.AWIN_PUBLISHER_ID || '2855063';
+const AWIN_API_KEY     = process.env.AWIN_API_KEY || '';
+const AWIN_PUBLISHER_ID= process.env.AWIN_PUBLISHER_ID || '2855063';
+const EFFINITY_API_KEY = process.env.EFFINITY_API_KEY || '';
+const CJ_TOKEN         = process.env.CJ_TOKEN || '';
+const CJ_PUBLISHER_ID  = process.env.CJ_PUBLISHER_ID || '';
 
-// Colonnes minimales (réduit la taille des flux et évite les crashs mémoire)
-const COLUMNS = 'aw_deep_link,product_name,aw_product_id,merchant_image_url,search_price,merchant_name,brand_name,aw_image_url,currency,ean,product_GTIN';
+const AWIN_COLUMNS = 'aw_deep_link,product_name,aw_product_id,merchant_image_url,search_price,merchant_name,brand_name,aw_image_url,currency,ean,product_GTIN';
 
-// Mapping mot-clé → catégorie HiFind
 const CATEGORY_RULES = [
-  { keywords: ['pneu','auto','moto','carter','norauto','piece','garage','oscaro','feu vert','midas'], category: 'auto-moto' },
-  { keywords: ['parfum','beaut','cosmet','maquillage','sephora','nocibe','marionnaud','coiffeur','clarins','perfum'], category: 'beaute-bienetre' },
-  { keywords: ['tech','electro','informatique','pc ','ordinateur','smartphone','xiaomi','acer','asus','samsung','geekbuying','pixmania','ldlc','materiel'], category: 'high-tech' },
-  { keywords: ['sport','foot','running','fitness','decathlon','intersport','snowleader','velo','bike'], category: 'sport-outdoor' },
-  { keywords: ['mode','vetement','chaussure','sneaker','zalando','spartoo','sarenza','redoute','kiabi','celio'], category: 'mode-vetements' },
-  { keywords: ['bebe','enfant','jouet','vertbaudet','oxybul','king jouet','toys'], category: 'enfants-bebes' },
-  { keywords: ['maison','jardin','deco','meuble','conforama','but','ikea','castorama','leroy','electrolux','bosch'], category: 'maison-jardin' },
-  { keywords: ['animal','animalerie','chien','chat','zooplus','croquette'], category: 'animaux' },
-  { keywords: ['bio','alimentation','epicerie','greenweez','naturalia'], category: 'alimentation-bio' },
-  { keywords: ['sante','pharma','nutrition','complement','parapharmacie'], category: 'sante-nutrition' },
+  { k:['pneu','auto','moto','carter','norauto','piece','garage','oscaro','feu vert','midas','speedway','maxxess','axxe'], c:'auto-moto' },
+  { k:['parfum','beaut','cosmet','maquillage','sephora','nocibe','marionnaud','coiffeur','clarins','perfum','yves rocher'], c:'beaute-bienetre' },
+  { k:['tech','electro','informatique','ordinateur','smartphone','xiaomi','acer','asus','samsung','geekbuying','pixmania','ldlc','boulanger','fnac','darty'], c:'high-tech' },
+  { k:['sport','foot','running','fitness','decathlon','intersport','snowleader','velo','bike','gorilla'], c:'sport-outdoor' },
+  { k:['mode','vetement','chaussure','sneaker','zalando','spartoo','sarenza','redoute','kiabi','celio','daxon','dim'], c:'mode-vetements' },
+  { k:['bebe','enfant','jouet','vertbaudet','oxybul','king jouet','toys','aubert'], c:'enfants-bebes' },
+  { k:['maison','jardin','deco','meuble','conforama','ikea','castorama','leroy','electrolux','bosch'], c:'maison-jardin' },
+  { k:['animal','animalerie','chien','chat','zooplus','croquette'], c:'animaux' },
+  { k:['bio','alimentation','epicerie','greenweez','naturalia'], c:'alimentation-bio' },
+  { k:['sante','pharma','nutrition','complement','parapharmacie','biomedi'], c:'sante-nutrition' },
 ];
 
 function guessCategory(name) {
   const n = (name || '').toLowerCase();
-  for (const rule of CATEGORY_RULES) {
-    if (rule.keywords.some(k => n.includes(k))) return rule.category;
-  }
-  return null; // pas de catégorie → sera déduite produit par produit
+  for (const r of CATEGORY_RULES) if (r.k.some(x => n.includes(x))) return r.c;
+  return null;
 }
 
-function buildFeedUrl(fid) {
-  return 'https://productdata.awin.com/datafeed/download/apikey/' + AWIN_API_KEY +
-         '/language/fr/fid/' + fid +
-         '/rid/0/hasEnhancedFeeds/0/columns/' + COLUMNS +
-         '/format/csv/delimiter/%2C/compression/gzip/adultcontent/1/';
-}
-
-// Parse un CSV simple (la feed list Awin est propre)
-function parseCsv(text) {
+function parseCsv(text, sep) {
   const lines = text.split(/\r?\n/).filter(l => l.trim());
   if (!lines.length) return [];
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-  return lines.slice(1).map(line => {
-    // split en respectant les guillemets
-    const cells = [];
-    let cur = '', inQ = false;
+  const split = (line) => {
+    const cells = []; let cur = '', inQ = false;
     for (const ch of line) {
       if (ch === '"') { inQ = !inQ; continue; }
-      if (ch === ',' && !inQ) { cells.push(cur); cur = ''; continue; }
+      if (ch === sep && !inQ) { cells.push(cur); cur = ''; continue; }
       cur += ch;
     }
-    cells.push(cur);
-    const obj = {};
-    headers.forEach((h, i) => { obj[h] = (cells[i] || '').trim(); });
-    return obj;
+    cells.push(cur); return cells;
+  };
+  const headers = split(lines[0]).map(h => h.trim());
+  return lines.slice(1).map(line => {
+    const cells = split(line); const o = {};
+    headers.forEach((h, i) => { o[h] = (cells[i] || '').trim(); });
+    return o;
   });
 }
 
-// Teste si un flux répond correctement (HEAD-like, on lit juste les premiers octets)
-async function testFeed(url, name) {
+async function testFeed(url) {
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000);
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeout);
-    if (!res.ok) return { ok: false, status: res.status };
-    // On annule le téléchargement dès qu'on a confirmé le 200
-    res.body?.cancel?.();
-    return { ok: true, status: 200 };
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 25000);
+    const res = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(to);
+    res.body && res.body.cancel && res.body.cancel();
+    return { ok: res.ok, status: res.status };
   } catch (e) {
     return { ok: false, status: e.name === 'AbortError' ? 'timeout' : e.message };
   }
 }
 
-async function main() {
-  console.log('🔍 Récupération de la liste des flux Awin...\n');
+async function discoverAwin() {
+  console.log('\n' + '='.repeat(70));
+  console.log('AWIN');
+  console.log('='.repeat(70));
+  if (!AWIN_API_KEY) { console.log('AWIN_API_KEY manquant - ignore'); return null; }
 
-  const listUrl = 'https://productdata.awin.com/datafeed/list/apikey/' + AWIN_API_KEY;
-  const res = await fetch(listUrl);
-  if (!res.ok) {
-    console.error('❌ Impossible de récupérer la liste des flux. HTTP', res.status);
-    console.error('   Vérifie AWIN_API_KEY.');
-    process.exit(1);
+  const candidates = [
+    'https://productdata.awin.com/datafeed/list/apikey/' + AWIN_API_KEY + '/',
+    'https://productdata.awin.com/datafeed/list/apikey/' + AWIN_API_KEY,
+    'https://productdata.awin.com/datafeed/list/apikey/' + AWIN_API_KEY + '/format/csv/',
+    'https://ui.awin.com/productdata-darwin-download/publisher/' + AWIN_PUBLISHER_ID + '/' + AWIN_API_KEY + '/1/feedList',
+    'https://ui.awin.com/productdata-darwin-download/publisher/' + AWIN_PUBLISHER_ID + '/' + AWIN_API_KEY + '/1/feeds',
+  ];
+
+  let text = null;
+  for (const url of candidates) {
+    process.stdout.write('  test ' + url.replace(AWIN_API_KEY, '***') + ' ... ');
+    try {
+      const res = await fetch(url);
+      if (!res.ok) { console.log('HTTP ' + res.status); continue; }
+      const body = await res.text();
+      if (body.length < 50) { console.log('reponse vide'); continue; }
+      console.log('OK (' + body.length + ' octets)');
+      text = body; break;
+    } catch (e) { console.log('erreur: ' + e.message); }
   }
 
-  const text = await res.text();
-  const rows = parseCsv(text);
-  console.log('📋 Flux trouvés au total :', rows.length, '\n');
+  if (!text) {
+    console.log('\nAucun endpoint de liste Awin ne repond.');
+    console.log('Recupere la liste manuellement : Awin > Toolbox > Create-a-Feed');
+    return null;
+  }
 
-  // Filtre : uniquement les programmes rejoints, région FR/EUR
+  const rows = parseCsv(text, ',');
+  console.log('\nFlux trouves : ' + rows.length);
+  if (!rows.length) { console.log('Contenu brut :\n' + text.slice(0, 500)); return null; }
+  console.log('Colonnes : ' + Object.keys(rows[0]).join(' | ') + '\n');
+
   const joined = rows.filter(r => {
-    const status = (r['Membership Status'] || r['Membership status'] || '').toLowerCase();
-    const region = (r['Primary Region'] || r['Region'] || '').toUpperCase();
+    const s = (r['Membership Status'] || r['Membership status'] || '').toLowerCase();
+    const reg = (r['Primary Region'] || r['Region'] || '').toUpperCase();
     const lang = (r['Language'] || '').toUpperCase();
-    const isJoined = status.includes('active') || status.includes('joined');
-    const isFr = region.includes('FR') || region.includes('FRANCE') || lang === 'FR' || (!region && !lang);
+    const isJoined = s.includes('active') || s.includes('joined') || !s;
+    const isFr = reg.includes('FR') || reg.includes('FRANCE') || lang === 'FR' || (!reg && !lang);
     return isJoined && isFr;
   });
+  console.log('Programmes actifs FR : ' + joined.length + '\n');
 
-  console.log('✅ Programmes rejoints (FR) :', joined.length, '\n');
-
-  if (!joined.length) {
-    console.log('⚠️ Aucun programme filtré. Colonnes disponibles dans la liste :');
-    console.log('  ', Object.keys(rows[0] || {}).join(' | '));
-    console.log('\n   Exemple de ligne :');
-    console.log('  ', JSON.stringify(rows[0] || {}, null, 2));
-    return;
-  }
-
-  const feeds = [];
-  const skipped = [];
-
+  const feeds = [], skipped = [];
   for (const row of joined) {
     const fid = row['Feed ID'] || row['feedId'] || row['Feed Id'];
     const name = row['Advertiser Name'] || row['advertiserName'] || row['Advertiser'];
-    const productCount = parseInt(row['No of products'] || row['Products'] || '0', 10);
-
+    const count = parseInt(row['No of products'] || row['Products'] || '0', 10);
     if (!fid || !name) continue;
-    if (productCount === 0) { skipped.push(name + ' (0 produits)'); continue; }
+    if (count === 0) { skipped.push(name + ' (vide)'); continue; }
 
-    const url = buildFeedUrl(fid);
-    process.stdout.write('  → ' + name + ' (fid ' + fid + ', ' + productCount + ' produits)... ');
-    const test = await testFeed(url, name);
+    const url = 'https://productdata.awin.com/datafeed/download/apikey/' + AWIN_API_KEY +
+                '/language/fr/fid/' + fid + '/rid/0/hasEnhancedFeeds/0/columns/' + AWIN_COLUMNS +
+                '/format/csv/delimiter/%2C/compression/gzip/adultcontent/1/';
 
-    if (!test.ok) {
-      console.log('❌ HTTP', test.status);
-      skipped.push(name + ' (HTTP ' + test.status + ')');
-      continue;
-    }
-    console.log('✅');
+    process.stdout.write('  ' + name + ' (' + count + ') ... ');
+    const t = await testFeed(url);
+    if (!t.ok) { console.log('KO ' + t.status); skipped.push(name + ' (' + t.status + ')'); continue; }
+    console.log('OK');
 
-    const entry = { name, url, limit: productCount > 20000 ? 3000 : 5000 };
+    const entry = { name: name, url: url, limit: count > 20000 ? 3000 : 5000 };
     const cat = guessCategory(name);
     if (cat) entry.category = cat;
     feeds.push(entry);
   }
 
-  console.log('\n' + '='.repeat(70));
-  console.log('📦 ' + feeds.length + ' flux valides');
-  if (skipped.length) {
-    console.log('⏭️  ' + skipped.length + ' ignorés : ' + skipped.slice(0, 10).join(', ') + (skipped.length > 10 ? '…' : ''));
-  }
-  console.log('='.repeat(70));
-  console.log('\n👉 Copie ce JSON dans le secret GitHub AWIN_FEEDS :\n');
+  console.log('\n' + feeds.length + ' flux Awin valides');
+  if (skipped.length) console.log('Ignores : ' + skipped.join(', '));
+  console.log('\n>>> Secret AWIN_FEEDS :\n');
   console.log(JSON.stringify(feeds));
-  console.log('\n');
-
-  // Sauvegarde aussi dans un fichier pour récupération facile
-  const fs = await import('fs');
-  fs.writeFileSync('awin-feeds.json', JSON.stringify(feeds, null, 2));
-  console.log('💾 Également sauvegardé dans awin-feeds.json');
+  return feeds;
 }
 
-main().catch(e => { console.error('❌ Erreur:', e.message); process.exit(1); });
+async function discoverEffinity() {
+  console.log('\n' + '='.repeat(70));
+  console.log('EFFINITY');
+  console.log('='.repeat(70));
+  if (!EFFINITY_API_KEY) { console.log('EFFINITY_API_KEY manquant - ignore'); return null; }
+
+  const candidates = [
+    'https://products.effinity.fr/product-output/list?apikey=' + EFFINITY_API_KEY,
+    'https://products.effinity.fr/api/product-output?apikey=' + EFFINITY_API_KEY,
+    'https://apiv2.effiliation.com/apiv2/productfeeds.json?key=' + EFFINITY_API_KEY,
+    'https://apiv2.effiliation.com/apiv2/programs.json?key=' + EFFINITY_API_KEY,
+    'https://api.effiliation.com/apis/programs/getlist.json?key=' + EFFINITY_API_KEY,
+  ];
+
+  for (const url of candidates) {
+    process.stdout.write('  test ' + url.split('?')[0] + ' ... ');
+    try {
+      const res = await fetch(url);
+      if (!res.ok) { console.log('HTTP ' + res.status); continue; }
+      const body = await res.text();
+      console.log('OK (' + body.length + ' octets)');
+      console.log('\nApercu :\n' + body.slice(0, 1000));
+      console.log('\n>>> Envoie cet apercu a Claude pour generer EFFINITY_FEEDS');
+      return body;
+    } catch (e) { console.log('erreur: ' + e.message); }
+  }
+  console.log('\nAucun endpoint Effinity ne repond - recuperation manuelle necessaire');
+  return null;
+}
+
+async function discoverCJ() {
+  console.log('\n' + '='.repeat(70));
+  console.log('COMMISSION JUNCTION');
+  console.log('='.repeat(70));
+  if (!CJ_TOKEN) {
+    console.log('CJ_TOKEN manquant.');
+    console.log('  1. Va sur https://developers.cj.com');
+    console.log('  2. Authentication > Create Personal Access Token');
+    console.log('  3. Ajoute les secrets GitHub CJ_TOKEN et CJ_PUBLISHER_ID');
+    return null;
+  }
+
+  const query = '{ productFeeds(companyId: "' + CJ_PUBLISHER_ID + '") { resultList { adId feedName advertiserId advertiserName productCount language sourceCurrency } } }';
+
+  try {
+    const res = await fetch('https://ads.api.cj.com/query', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + CJ_TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: query }),
+    });
+    if (!res.ok) { console.log('HTTP ' + res.status); console.log((await res.text()).slice(0, 400)); return null; }
+    const data = await res.json();
+    const list = (data && data.data && data.data.productFeeds && data.data.productFeeds.resultList) || [];
+    console.log('Flux CJ trouves : ' + list.length);
+    const fr = list.filter(f => (f.language || '').toLowerCase().indexOf('fr') === 0);
+    console.log('Flux FR : ' + fr.length + '\n');
+    for (const f of fr) console.log('  ' + f.advertiserName + ' | adId ' + f.adId + ' | ' + f.productCount + ' produits');
+    console.log('\n>>> Envoie cette liste a Claude pour generer le sync CJ');
+    return fr;
+  } catch (e) { console.log('Erreur: ' + e.message); return null; }
+}
+
+async function main() {
+  console.log('Decouverte multi-reseaux HiFind');
+  const awin = await discoverAwin();
+  await discoverEffinity();
+  await discoverCJ();
+  if (awin) {
+    const fs = await import('fs');
+    fs.writeFileSync('awin-feeds.json', JSON.stringify(awin, null, 2));
+    console.log('\nawin-feeds.json sauvegarde');
+  }
+  console.log('\nTermine');
+}
+
+main().catch(e => { console.error('Erreur fatale: ' + e.message); process.exit(1); });
