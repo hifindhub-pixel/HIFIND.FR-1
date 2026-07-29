@@ -33,3 +33,6 @@ jobs:
           AWIN_API_KEY:   ${{ secrets.AWIN_API_KEY }}
           AFFILAE_FEEDS:  ${{ secrets.AFFILAE_FEEDS }}
           ALIEXPRESS_APP_SECRET: ${{ secrets.ALIEXPRESS_APP_SECRET }}
+          CJ_TOKEN: ${{ secrets.CJ_TOKEN }}
+          CJ_PUBLISHER_ID: ${{ secrets.CJ_PUBLISHER_ID }}
+          CJ_FEEDS: ${{ secrets.CJ_FEEDS }}
