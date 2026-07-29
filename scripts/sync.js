@@ -878,6 +878,95 @@ async function syncAliExpress() {
 }
 
 
+async function syncCJ() {
+  console.log('\ud83d\udd04 CJ sync...');
+  const CJ_TOKEN = process.env.CJ_TOKEN;
+  const CJ_PUBLISHER_ID = process.env.CJ_PUBLISHER_ID;
+  if (!CJ_TOKEN || !CJ_PUBLISHER_ID) { console.log('  CJ_TOKEN/CJ_PUBLISHER_ID manquant'); return; }
+
+  let feeds;
+  try { feeds = JSON.parse(process.env.CJ_FEEDS || '[]'); }
+  catch (e) { console.log('  CJ_FEEDS JSON invalide'); return; }
+  if (!feeds.length) { console.log('  CJ_FEEDS vide'); return; }
+
+  async function cjQuery(query) {
+    const res = await fetch('https://ads.api.cj.com/query', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + CJ_TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: query })
+    });
+    const body = await res.text();
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + body.slice(0, 300));
+    const data = JSON.parse(body);
+    if (data.errors) throw new Error(JSON.stringify(data.errors).slice(0, 400));
+    return data.data;
+  }
+
+  for (const feed of feeds) {
+    const limit = feed.limit || 3000;
+    console.log('  \u2192 ' + feed.name + ' (adId ' + feed.adId + ', limit ' + limit + ')');
+
+    const programId = 'cj_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    await supabaseUpsert('programs', [{
+      id: programId, title: feed.name, categories: [], countries: ['FR'],
+      updated_at: new Date().toISOString()
+    }]);
+
+    const all = [];
+    let offset = 0;
+    const pageSize = 1000;
+
+    try {
+      while (all.length < limit) {
+        const query = '{ products(companyId: "' + CJ_PUBLISHER_ID + '", partnerIds: ["' + feed.adId + '"], limit: ' + pageSize + ', offset: ' + offset + ') { totalCount count resultList { id title description link imageLink price { amount currency } salePrice { amount currency } gtin mpn brand availability } } }';
+        const data = await cjQuery(query);
+        const res = data && data.products;
+        if (!res) break;
+        const items = res.resultList || [];
+        if (offset === 0) console.log('     total dispo: ' + res.totalCount);
+        if (!items.length) break;
+        all.push.apply(all, items);
+        offset += pageSize;
+        if (items.length < pageSize) break;
+      }
+    } catch (e) {
+      console.log('     \u274c ' + e.message);
+      continue;
+    }
+
+    const products = all.slice(0, limit).map(function (p, i) {
+      const priceObj = p.salePrice && p.salePrice.amount ? p.salePrice : p.price;
+      const price = parseFloat((priceObj && priceObj.amount) || 0);
+      return {
+        id: (programId + '_' + (p.id || i)).replace(/[^a-z0-9_]/gi, '_').slice(0, 100),
+        affilae_id: programId + '_' + (p.id || i),
+        program_id: programId,
+        title: cleanTitle(p.title || ''),
+        price: price,
+        currency: (priceObj && priceObj.currency) || 'EUR',
+        url: p.link || '',
+        image_url: p.imageLink || '',
+        brand: p.brand || null,
+        ean: extractEAN(p.gtin || ''),
+        category: feed.category || detectCategory({ title: p.title || '', description: p.description || '', program: { title: feed.name } }),
+        lang: 'fr',
+        status: 'enabled',
+        updated_at: new Date().toISOString()
+      };
+    }).filter(function (p) { return p.title && p.url && p.price > 0; });
+
+    const seen = new Set();
+    const unique = products.filter(function (p) {
+      if (seen.has(p.id)) return false;
+      seen.add(p.id); return true;
+    });
+
+    await supabaseUpsert('products', unique);
+    console.log('     \u2705 ' + unique.length + ' ins\u00e9r\u00e9s');
+  }
+  console.log('\ud83c\udf89 CJ done');
+}
+
 async function main() {
   try {
     // await syncAffilae(); // Désactivé - marchands sans EAN fiables
@@ -886,6 +975,7 @@ async function main() {
     await syncRakuten();
     await syncAffilaeFeeds();
     await syncAwin();
+    await syncCJ();
     // await syncAliExpress(); // Désactivé - tracking_id invalide
     if (_neonClient) await _neonClient.end();
     // Nettoyage automatique des mono-vendeurs
