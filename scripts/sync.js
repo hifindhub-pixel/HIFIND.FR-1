@@ -262,13 +262,32 @@ async function syncEffinity() {
         }
 
         const lines = text.split('\n').filter(l=>l.trim());
+        if (!lines.length) { console.log('  \u26a0\ufe0f flux vide (aucune ligne)'); continue; }
         const sep = lines[0].includes(';') ? ';' : ',';
         const headers = parseCSVLine(lines[0], sep).map(h=>h.trim().toLowerCase());
+        console.log('  Colonnes:', headers.join(', '));
         for (const line of lines.slice(1)) {
           if (!line.trim()) continue;
           const vals = parseCSVLine(line, sep);
           const obj = {}; headers.forEach((h,i)=>obj[h]=(vals[i]||'').trim());
-          const p = { title:cleanTitle(obj.title||obj.name), description:fixEncoding(obj.description||''), price:parseFloat(obj.price||'0'), url:obj.link||obj.url, image_url:obj.image_link||obj.image, feed_cat:obj.category_level2||obj.category_level1||obj.category||'', product_id:obj.id||obj.item_id||'', ean:extractEAN(obj.gtin||obj.ean||obj.barcode), brand:obj.brand||'' };
+          const rawUrl = obj.link || obj.url || obj.product_url || obj.deeplink || obj.tracking_url
+                       || obj.lien || obj.url_produit || obj.producturl || obj.landing_page
+                       || obj.aw_deep_link || obj.affiliate_link || obj.click_url || '';
+          const rawPrice = obj.price || obj.sale_price || obj.prix || obj.prix_ttc
+                         || obj.current_price || obj.price_ttc || obj.montant || '0';
+          const rawImg = obj.image_link || obj.image || obj.image_url || obj.url_image
+                       || obj.picture || obj.photo || obj.main_image || '';
+          const p = {
+            title: cleanTitle(obj.title || obj.name || obj.nom || obj.product_name || obj.designation || obj.libelle || ''),
+            description: fixEncoding(obj.description || obj.short_desc || ''),
+            price: parseFloat(String(rawPrice).replace(/[^\d.,-]/g,'').replace(',','.') || '0'),
+            url: rawUrl,
+            image_url: rawImg,
+            feed_cat: obj.category_level2 || obj.category_level1 || obj.category || obj.categorie || obj.product_type || '',
+            product_id: obj.id || obj.item_id || obj.reference || obj.sku || '',
+            ean: extractEAN(obj.gtin || obj.ean || obj.ean13 || obj.barcode || obj.code_barre || obj.mpn || ''),
+            brand: obj.brand || obj.marque || obj.fabricant || obj.brand_name || ''
+          };
           if (!p.title || !p.url) continue;
           const key = p.product_id || (p.title.toLowerCase().trim()+'_'+p.price);
           if (seen.has(key)) continue;
@@ -902,6 +921,32 @@ async function syncCJ() {
     return data.data;
   }
 
+  // Le champ gtin vit sur le type concret Shopping, pas sur l'interface Product.
+  // On essaie plusieurs jeux de champs, du plus riche au plus minimal.
+  const CJ_FIELD_SETS = [
+    'id title description link imageLink price { amount currency } salePrice { amount currency } brand availability ... on Shopping { gtin mpn }',
+    'id title link imageLink price { amount currency } ... on Shopping { gtin mpn brand availability salePrice { amount currency } }',
+    'id title link imageLink price { amount currency } brand',
+    'id title link imageLink price { amount currency }'
+  ];
+  let CJ_FIELDS = null;
+
+  for (const fs of CJ_FIELD_SETS) {
+    const probe = '{ products(companyId: "' + CJ_PUBLISHER_ID + '", partnerIds: ["' + feeds[0].adId + '"], limit: 1, offset: 0) { totalCount resultList { ' + fs + ' } } }';
+    try { await cjQuery(probe); CJ_FIELDS = fs; console.log('  \u2705 jeu de champs retenu'); break; }
+    catch (e) { console.log('  \u21bb champs refuses: ' + e.message.slice(0, 160)); }
+  }
+
+  if (!CJ_FIELDS) {
+    console.log('\n  \ud83d\udd0d Introspection du schema CJ pour identifier les champs disponibles :');
+    try {
+      const intro = await cjQuery('{ __type(name: "Product") { kind name fields { name } possibleTypes { name fields { name } } } }');
+      console.log(JSON.stringify(intro, null, 2).slice(0, 3000));
+    } catch (e) { console.log('  introspection impossible: ' + e.message.slice(0, 200)); }
+    console.log('\n  >>> Envoie ce bloc a Claude pour corriger la requete.');
+    return;
+  }
+
   for (const feed of feeds) {
     const limit = feed.limit || 3000;
     console.log('  \u2192 ' + feed.name + ' (adId ' + feed.adId + ', limit ' + limit + ')');
@@ -918,7 +963,7 @@ async function syncCJ() {
 
     try {
       while (all.length < limit) {
-        const query = '{ products(companyId: "' + CJ_PUBLISHER_ID + '", partnerIds: ["' + feed.adId + '"], limit: ' + pageSize + ', offset: ' + offset + ') { totalCount count resultList { id title description link imageLink price { amount currency } salePrice { amount currency } gtin mpn brand availability } } }';
+        const query = '{ products(companyId: "' + CJ_PUBLISHER_ID + '", partnerIds: ["' + feed.adId + '"], limit: ' + pageSize + ', offset: ' + offset + ') { totalCount count resultList { ' + CJ_FIELDS + ' } } }';
         const data = await cjQuery(query);
         const res = data && data.products;
         if (!res) break;
@@ -947,7 +992,7 @@ async function syncCJ() {
         url: p.link || '',
         image_url: p.imageLink || '',
         brand: p.brand || null,
-        ean: extractEAN(p.gtin || ''),
+        ean: extractEAN(p.gtin || p.mpn || ''),
         category: feed.category || detectCategory({ title: p.title || '', description: p.description || '', program: { title: feed.name } }),
         lang: 'fr',
         status: 'enabled',
@@ -965,6 +1010,13 @@ async function syncCJ() {
     console.log('     \u2705 ' + unique.length + ' ins\u00e9r\u00e9s');
   }
   console.log('\ud83c\udf89 CJ done');
+}
+
+const FEED_REPORT = { ok: [], empty: [], failed: [] };
+function reportFeed(name, count, err) {
+  if (err) FEED_REPORT.failed.push(name + ' (' + err + ')');
+  else if (!count) FEED_REPORT.empty.push(name);
+  else FEED_REPORT.ok.push(name + ' (' + count + ')');
 }
 
 async function cleanupMonoVendors(label) {
