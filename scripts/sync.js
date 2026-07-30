@@ -32,6 +32,13 @@ const CATEGORY_RULES = [
   { cat: 'auto-moto',       keywords: ['auto','moto','voiture','véhicule','scooter','pièce auto','pneu','huile moteur','gps','tuning'] },
 ];
 
+const FEED_REPORT = { ok: [], empty: [], failed: [] };
+function reportFeed(name, count, err) {
+  if (err) FEED_REPORT.failed.push(name + ' (' + err + ')');
+  else if (!count) FEED_REPORT.empty.push(name);
+  else FEED_REPORT.ok.push(name + ' (' + count + ')');
+}
+
 function detectCategory(product) {
   const text = [product.title||'', product.description||'', (product.program&&product.program.title)||''].join(' ').toLowerCase();
   let bestCat = null, bestScore = 0;
@@ -170,6 +177,31 @@ async function syncAffilae() {
   console.log('🎉 Affilae done:', mapped.length);
 }
 
+// Décodage robuste : Buffer.toString() supporte les gros volumes,
+// contrairement à TextDecoder qui plante au-delà de ~50 Mo.
+const MAX_FEED_BYTES = 250 * 1024 * 1024;
+function decodeFeed(arrayBuffer, label) {
+  let buf = Buffer.from(arrayBuffer);
+  if (buf.length > MAX_FEED_BYTES) {
+    console.log('  \u26a0\ufe0f ' + label + ' tronqu\u00e9 : ' + Math.round(buf.length / 1e6) + ' Mo \u2192 250 Mo');
+    buf = buf.subarray(0, MAX_FEED_BYTES);
+  }
+  const head = buf.subarray(0, 400).toString('latin1');
+  const declaredIso = /iso-8859|windows-1252/i.test(head);
+  try {
+    if (declaredIso) return buf.toString('latin1');
+    const utf8 = buf.toString('utf8');
+    // Trop de caractères de remplacement => ce n'était pas de l'UTF-8
+    const sample = utf8.slice(0, 50000);
+    const bad = (sample.match(/\uFFFD/g) || []).length;
+    if (bad > 20) return buf.toString('latin1');
+    return utf8;
+  } catch (e) {
+    try { return buf.toString('latin1'); }
+    catch (e2) { console.log('  \u274c ' + label + ' : d\u00e9codage impossible (' + e2.message + ')'); return ''; }
+  }
+}
+
 async function syncEffinity() {
   console.log('🔄 Effinity sync...');
   if (!EFFINITY_FEEDS_JSON) { console.log('⚠️ EFFINITY_FEEDS missing'); return; }
@@ -183,23 +215,11 @@ async function syncEffinity() {
 
       const res = await fetch(feed.url);
       console.log('  HTTP status:', res.status, 'for', feed.url);
-      if (!res.ok) { console.log('  ❌', feed.name, res.status); continue; }
+      if (!res.ok) { console.log('  ❌', feed.name, res.status); reportFeed(feed.name, 0, 'HTTP ' + res.status); continue; }
 
       const buffer = await res.arrayBuffer();
-      // Détecte l'encodage depuis le XML header ou force UTF-8 d'abord
-      let text;
-      const rawBytes = new Uint8Array(buffer);
-      const rawStr = String.fromCharCode(...rawBytes.slice(0, 200));
-      const isIso = rawStr.includes('iso-8859') || rawStr.includes('ISO-8859') || rawStr.includes('windows-1252');
-      if (isIso) {
-        text = new TextDecoder('iso-8859-1').decode(buffer);
-      } else {
-        try {
-          text = new TextDecoder('utf-8', { fatal: true }).decode(buffer);
-        } catch(e) {
-          text = new TextDecoder('iso-8859-1').decode(buffer);
-        }
-      }
+      const text = decodeFeed(buffer, feed.name);
+      if (!text) { reportFeed(feed.name, 0, 'decodage'); continue; }
 
 
       const products = [];
@@ -262,10 +282,19 @@ async function syncEffinity() {
         }
 
         const lines = text.split('\n').filter(l=>l.trim());
-        if (!lines.length) { console.log('  \u26a0\ufe0f flux vide (aucune ligne)'); continue; }
+        if (!lines.length) { console.log('  \u26a0\ufe0f flux vide (aucune ligne)'); reportFeed(feed.name, 0); continue; }
         const sep = lines[0].includes(';') ? ';' : ',';
         const headers = parseCSVLine(lines[0], sep).map(h=>h.trim().toLowerCase());
-        console.log('  Colonnes:', headers.join(', '));
+        console.log('  Colonnes:', headers.length, 'colonnes');
+        if (lines.length > 1) {
+          const probe = parseCSVLine(lines[1], sep);
+          const iLink = headers.indexOf('link'), iTitle = headers.indexOf('title'), iPrice = headers.indexOf('price');
+          console.log('  Echantillon -> title=' + JSON.stringify((probe[iTitle]||'').slice(0,50))
+            + ' | link=' + JSON.stringify((probe[iLink]||'').slice(0,60))
+            + ' | price=' + JSON.stringify(probe[iPrice]||''));
+        } else {
+          console.log('  \u26a0\ufe0f en-tete seul, aucune ligne de donnees');
+        }
         for (const line of lines.slice(1)) {
           if (!line.trim()) continue;
           const vals = parseCSVLine(line, sep);
@@ -337,6 +366,7 @@ async function syncEffinity() {
       console.log('  📦 après dédup:', mapped.length, 'produits ('+deduped.length+' uniques)');
       for (let i = 0; i < mapped.length; i += 50) await supabaseUpsert('products', mapped.slice(i,i+50));
       console.log('  ✅', feed.name, ':', mapped.length, 'insérés');
+      reportFeed(feed.name, mapped.length);
 
     } catch(e) { console.log('  ⚠️', feed.name, ':', e.message, '\n  Stack:', e.stack?.split('\n')[1]?.trim()); }
   }
@@ -356,8 +386,7 @@ async function syncBCDJeux() {
     if (!res.ok) { console.log('  ❌ BCD Jeux:', res.status); return; }
     const buffer = await res.arrayBuffer();
     let text;
-    try { text = new TextDecoder('utf-8', { fatal: true }).decode(buffer); }
-    catch(e) { text = new TextDecoder('iso-8859-1').decode(buffer); }
+    text = decodeFeed(buffer, 'flux');
 
     const lines = text.split('\n').filter(l => l.trim());
     // Détecte séparateur
@@ -416,6 +445,7 @@ async function syncBCDJeux() {
 
     for (let i = 0; i < mapped.length; i += 50) await supabaseUpsert('products', mapped.slice(i, i+50));
     console.log('  ✅ BCD Jeux:', mapped.length, 'insérés');
+    reportFeed('BCD Jeux', mapped.length);
 
   } catch(e) {
     console.log('  ⚠️ BCD Jeux:', e.message);
@@ -541,12 +571,11 @@ async function syncAffilaeFeeds() {
 
       const res = await fetch(feed.url);
       console.log('  HTTP status:', res.status, 'for', feed.name);
-      if (!res.ok) { console.log('  ❌', feed.name, res.status); continue; }
+      if (!res.ok) { console.log('  ❌', feed.name, res.status); reportFeed(feed.name, 0, 'HTTP ' + res.status); continue; }
 
       const buffer = await res.arrayBuffer();
       let text;
-      try { text = new TextDecoder('utf-8', { fatal: true }).decode(buffer); }
-      catch(e) { text = new TextDecoder('iso-8859-1').decode(buffer); }
+      text = decodeFeed(buffer, feed.name);
 
       console.log('  Feed size:', text.length, 'chars');
 
@@ -665,6 +694,7 @@ async function syncAffilaeFeeds() {
 
       for (let i = 0; i < mapped.length; i += 50) await supabaseUpsert('products', mapped.slice(i,i+50));
       console.log('  ✅', feed.name, ':', mapped.length, 'insérés');
+      reportFeed(feed.name, mapped.length);
 
     } catch(e) { console.log('  ⚠️', feed.name, ':', e.message); }
   }
@@ -686,7 +716,7 @@ async function syncAwin() {
 
       const res = await fetch(feed.url, { headers: { 'Accept-Encoding': 'gzip' } });
       console.log('  HTTP status:', res.status, 'for', feed.name);
-      if (!res.ok) { console.log('  ❌', feed.name, res.status); continue; }
+      if (!res.ok) { console.log('  ❌', feed.name, res.status); reportFeed(feed.name, 0, 'HTTP ' + res.status); continue; }
 
       // Décompresse gzip si nécessaire
       // Stream gzip décompression pour éviter crash mémoire sur gros fichiers
@@ -799,6 +829,7 @@ async function syncAwin() {
 
       for (let i = 0; i < mapped.length; i += 50) await supabaseUpsert('products', mapped.slice(i, i+50));
       console.log('  ✅', feed.name, ':', mapped.length, 'insérés');
+      reportFeed(feed.name, mapped.length);
 
     } catch(e) { console.log('  ⚠️', feed.name, ':', e.message); }
   }
@@ -1010,13 +1041,6 @@ async function syncCJ() {
     console.log('     \u2705 ' + unique.length + ' ins\u00e9r\u00e9s');
   }
   console.log('\ud83c\udf89 CJ done');
-}
-
-const FEED_REPORT = { ok: [], empty: [], failed: [] };
-function reportFeed(name, count, err) {
-  if (err) FEED_REPORT.failed.push(name + ' (' + err + ')');
-  else if (!count) FEED_REPORT.empty.push(name);
-  else FEED_REPORT.ok.push(name + ' (' + count + ')');
 }
 
 async function cleanupMonoVendors(label) {
