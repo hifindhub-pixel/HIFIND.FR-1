@@ -180,9 +180,18 @@ async function discoverCJ() {
 
     const fr = list.filter(f => (f.language || '').toLowerCase().indexOf('fr') === 0);
     console.log('Flux FR : ' + fr.length + '\n');
+    console.log('  advertiserId | adId     | produits | devise | annonceur');
+    console.log('  ' + '-'.repeat(70));
     for (const f of fr) {
-      console.log('  ' + f.advertiserName + ' | adId ' + f.adId + ' | ' + f.productCount + ' produits | ' + f.currency);
+      console.log('  ' + String(f.advertiserId).padEnd(12) + ' | ' + String(f.adId).padEnd(8)
+        + ' | ' + String(f.productCount).padStart(8) + ' | ' + String(f.currency).padEnd(6)
+        + ' | ' + f.advertiserName);
     }
+    console.log('\n  JSON brut (advertiserId + nom + volume) :');
+    console.log('  ' + JSON.stringify(fr.map(f => ({
+      advertiserId: f.advertiserId, adId: f.adId,
+      name: f.advertiserName, n: f.productCount, cur: f.currency
+    }))));
     if (!fr.length && list.length) {
       console.log('Aucun FR. Toutes langues :');
       for (const f of list.slice(0, 30)) {
