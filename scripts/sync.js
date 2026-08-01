@@ -4,6 +4,7 @@ const NEON_URL            = process.env.NEON_URL;
 const EFFINITY_FEEDS_JSON = process.env.EFFINITY_FEEDS;
 const AFFILAE_BASE        = 'https://rest.affilae.com';
 
+import { streamFeed, parseCSVLine } from './lib/stream-feed.js';
 import pkg from 'pg';
 const { Client } = pkg;
 
@@ -213,121 +214,81 @@ async function syncEffinity() {
       const feedLimit = feed.limit || 200;
       console.log('  →', feed.name, '(limit:', feedLimit, ')');
 
-      const res = await fetch(feed.url);
-      console.log('  HTTP status:', res.status, 'for', feed.url);
-      if (!res.ok) { console.log('  ❌', feed.name, res.status); reportFeed(feed.name, 0, 'HTTP ' + res.status); continue; }
-
-      const buffer = await res.arrayBuffer();
-      const text = decodeFeed(buffer, feed.name);
-      if (!text) { reportFeed(feed.name, 0, 'decodage'); continue; }
-
-
       const products = [];
       const seen = new Set();
 
-      if (text.trim().startsWith('<')) {
-        // Détecte automatiquement la balise produit utilisée
-        const tagMatch = text.match(/<(item|product|offer|Product|Offer|annonce|Article|PRODUCT|ITEM|produit|Produit)[\s>]/i);
-        const xmlTag = tagMatch ? tagMatch[1] : 'item';
-        console.log('  XML tag detected:', xmlTag);
-        const safeTag = xmlTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const xmlNorm = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
-        const regex = new RegExp('<' + safeTag + '[^>]*>([\\s\\S]*?)<\\/' + safeTag + '>', 'gi');
-        let match;
-        while ((match = regex.exec(xmlNorm)) !== null) {
-          const item = match[0];
-          // get() cherche un tag XML insensible à la casse
-          const get = tag => {
-            const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const m = item.match(new RegExp('<' + escaped + '[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/' + escaped + '>', 'i'));
-            return m ? (m[1]||'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').trim() : '';
-          };
-          const p = {
-            title:       cleanTitle(get('title')||get('name')||get('nomproduit')||get('designation')),
-            description: fixEncoding(get('description')||get('custom_label_0')||get('descriptif')||''),
-            price:       parseFloat((get('price')||get('sale_price')||get('prix')||get('prixttc')||'0').replace(',','.')),
-            url:         get('link')||get('url')||get('urlproduit')||get('lien'),
-            image_url:   get('image_link')||get('image')||get('photo')||get('urlimage')||get('image1'),
-            brand:       get('brand')||get('marque')||get('fabricant')||'',
-            feed_cat:    get('category_level2')||get('category_level1')||get('category')||get('rayon')||get('categorie')||'',
-            product_id:  get('id')||get('item_id')||get('idproduit')||get('codebarre')||'',
-            ean:         extractEAN(get('gtin')||get('ean')||get('barcode')||get('codebarre')),
-          };
-          if (!p.title || !p.url) continue;
-          const key = p.product_id || (p.title.toLowerCase().trim()+'_'+p.price);
-          if (seen.has(key)) continue;
-          seen.add(key);
-          products.push(p);
-          if (products.length >= feedLimit) break;
-        }
+      // Mapping XML → produit (inchangé)
+      const mapXmlItem = (item) => {
+        const get = tag => {
+          const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const m = item.match(new RegExp('<' + escaped + '[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/' + escaped + '>', 'i'));
+          return m ? (m[1]||'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').trim() : '';
+        };
+        return {
+          title:       cleanTitle(get('title')||get('name')||get('nomproduit')||get('designation')),
+          description: fixEncoding(get('description')||get('custom_label_0')||get('descriptif')||''),
+          price:       parseFloat((get('price')||get('sale_price')||get('prix')||get('prixttc')||'0').replace(',','.')),
+          url:         get('link')||get('url')||get('urlproduit')||get('lien'),
+          image_url:   get('image_link')||get('image')||get('photo')||get('urlimage')||get('image1'),
+          brand:       get('brand')||get('marque')||get('fabricant')||'',
+          feed_cat:    get('category_level2')||get('category_level1')||get('category')||get('rayon')||get('categorie')||'',
+          product_id:  get('id')||get('item_id')||get('idproduit')||get('codebarre')||'',
+          ean:         extractEAN(get('gtin')||get('ean')||get('barcode')||get('codebarre')),
+        };
+      };
+
+      // Mapping CSV → produit (inchangé)
+      const mapCsvRow = (obj) => {
+        const rawUrl = obj.link || obj.url || obj.product_url || obj.deeplink || obj.tracking_url
+                     || obj.lien || obj.url_produit || obj.producturl || obj.landing_page
+                     || obj.aw_deep_link || obj.affiliate_link || obj.click_url || '';
+        const rawPrice = obj.price || obj.sale_price || obj.prix || obj.prix_ttc
+                       || obj.current_price || obj.price_ttc || obj.montant || '0';
+        const rawImg = obj.image_link || obj.image || obj.image_url || obj.url_image
+                     || obj.picture || obj.photo || obj.main_image || '';
+        return {
+          title: cleanTitle(obj.title || obj.name || obj.nom || obj.product_name || obj.designation || obj.libelle || ''),
+          description: fixEncoding(obj.description || obj.short_desc || ''),
+          price: parseFloat(String(rawPrice).replace(/[^\d.,-]/g,'').replace(',','.') || '0'),
+          url: rawUrl,
+          image_url: rawImg,
+          feed_cat: obj.category_level2 || obj.category_level1 || obj.category || obj.categorie || obj.product_type || '',
+          product_id: obj.id || obj.item_id || obj.reference || obj.sku || '',
+          ean: extractEAN(obj.gtin || obj.ean || obj.ean13 || obj.barcode || obj.code_barre || obj.mpn || ''),
+          brand: obj.brand || obj.marque || obj.fabricant || obj.brand_name || ''
+        };
+      };
+
+      const collect = (p) => {
+        if (!p.title || !p.url) return true;
+        const key = p.product_id || (p.title.toLowerCase().trim()+'_'+p.price);
+        if (seen.has(key)) return true;
+        seen.add(key);
+        products.push(p);
+        return products.length < feedLimit;   // false => coupe la connexion
+      };
+
+      let firstSample = null;
+      const stat = await streamFeed(feed.url, {
+        label: feed.name,
+        onHeaders: (headers) => { console.log('  Colonnes:', headers.length); },
+        onRecord: (rec) => {
+          const p = typeof rec === 'string' ? mapXmlItem(rec) : mapCsvRow(rec);
+          if (!firstSample) firstSample = p;
+          return collect(p);
+        },
+      });
+
+      console.log('  Format:', stat.format, '| encodage:', stat.encoding,
+                  '|', Math.round(stat.bytes/1e6*10)/10, 'Mo lus',
+                  stat.stopped ? '(arret anticipe)' : '');
+      if (firstSample) {
+        console.log('  Echantillon -> title=' + JSON.stringify((firstSample.title||'').slice(0,50))
+          + ' | link=' + JSON.stringify((firstSample.url||'').slice(0,60))
+          + ' | price=' + firstSample.price);
       } else {
-        // Parser CSV RFC-4180 (gère les champs avec guillemets et séparateurs internes)
-        function parseCSVLine(line, sep) {
-          const result = [];
-          let field = '';
-          let inQuotes = false;
-          for (let i = 0; i < line.length; i++) {
-            const c = line[i];
-            if (c === '"') {
-              if (inQuotes && line[i+1] === '"') { field += '"'; i++; }
-              else inQuotes = !inQuotes;
-            } else if (c === sep && !inQuotes) {
-              result.push(field); field = '';
-            } else {
-              field += c;
-            }
-          }
-          result.push(field);
-          return result;
-        }
-
-        const lines = text.split('\n').filter(l=>l.trim());
-        if (!lines.length) { console.log('  \u26a0\ufe0f flux vide (aucune ligne)'); reportFeed(feed.name, 0); continue; }
-        const sep = lines[0].includes(';') ? ';' : ',';
-        const headers = parseCSVLine(lines[0], sep).map(h=>h.trim().toLowerCase());
-        console.log('  Colonnes:', headers.length, 'colonnes');
-        if (lines.length > 1) {
-          const probe = parseCSVLine(lines[1], sep);
-          const iLink = headers.indexOf('link'), iTitle = headers.indexOf('title'), iPrice = headers.indexOf('price');
-          console.log('  Echantillon -> title=' + JSON.stringify((probe[iTitle]||'').slice(0,50))
-            + ' | link=' + JSON.stringify((probe[iLink]||'').slice(0,60))
-            + ' | price=' + JSON.stringify(probe[iPrice]||''));
-        } else {
-          console.log('  \u26a0\ufe0f en-tete seul, aucune ligne de donnees');
-        }
-        for (const line of lines.slice(1)) {
-          if (!line.trim()) continue;
-          const vals = parseCSVLine(line, sep);
-          const obj = {}; headers.forEach((h,i)=>obj[h]=(vals[i]||'').trim());
-          const rawUrl = obj.link || obj.url || obj.product_url || obj.deeplink || obj.tracking_url
-                       || obj.lien || obj.url_produit || obj.producturl || obj.landing_page
-                       || obj.aw_deep_link || obj.affiliate_link || obj.click_url || '';
-          const rawPrice = obj.price || obj.sale_price || obj.prix || obj.prix_ttc
-                         || obj.current_price || obj.price_ttc || obj.montant || '0';
-          const rawImg = obj.image_link || obj.image || obj.image_url || obj.url_image
-                       || obj.picture || obj.photo || obj.main_image || '';
-          const p = {
-            title: cleanTitle(obj.title || obj.name || obj.nom || obj.product_name || obj.designation || obj.libelle || ''),
-            description: fixEncoding(obj.description || obj.short_desc || ''),
-            price: parseFloat(String(rawPrice).replace(/[^\d.,-]/g,'').replace(',','.') || '0'),
-            url: rawUrl,
-            image_url: rawImg,
-            feed_cat: obj.category_level2 || obj.category_level1 || obj.category || obj.categorie || obj.product_type || '',
-            product_id: obj.id || obj.item_id || obj.reference || obj.sku || '',
-            ean: extractEAN(obj.gtin || obj.ean || obj.ean13 || obj.barcode || obj.code_barre || obj.mpn || ''),
-            brand: obj.brand || obj.marque || obj.fabricant || obj.brand_name || ''
-          };
-          if (!p.title || !p.url) continue;
-          const key = p.product_id || (p.title.toLowerCase().trim()+'_'+p.price);
-          if (seen.has(key)) continue;
-          seen.add(key);
-          products.push(p);
-          if (products.length >= feedLimit) break;
-        }
+        console.log('  \u26a0\ufe0f aucune ligne de donnees exploitable');
       }
-
-      console.log('  Feed size:', text.length, 'chars');
-      console.log('  Feed start:', text.slice(0, 300).replace(/\n/g,' '));
       console.log('  Sample URL:', products[0]?.url);
       console.log('  📦', feed.name, ':', products.length, 'produits');
 
@@ -569,99 +530,65 @@ async function syncAffilaeFeeds() {
       const feedLimit = feed.limit || 2000;
       console.log('  →', feed.name, '(limit:', feedLimit, ')');
 
-      const res = await fetch(feed.url);
-      console.log('  HTTP status:', res.status, 'for', feed.name);
-      if (!res.ok) { console.log('  ❌', feed.name, res.status); reportFeed(feed.name, 0, 'HTTP ' + res.status); continue; }
-
-      const buffer = await res.arrayBuffer();
-      let text;
-      text = decodeFeed(buffer, feed.name);
-
-      console.log('  Feed size:', text.length, 'chars');
-
       const products = [];
       const seen = new Set();
 
-      if (feed.format === 'xml' || text.trim().startsWith('<')) {
-        // XML parser (réutilise la même logique qu'Effinity)
-        const tagMatch = text.match(/<(item|product|offer|Product|entry|Article|ARTICLE|g:item)[\s>]/i);
-        const xmlTag = tagMatch ? tagMatch[1] : 'item';
-        console.log('  XML tag detected:', xmlTag);
-        const safeTag = xmlTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const xmlNorm = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
-        const regex = new RegExp('<' + safeTag + '[^>]*>([\\s\\S]*?)<\\/' + safeTag + '>', 'gi');
-        let match;
-        while ((match = regex.exec(xmlNorm)) !== null) {
-          const item = match[0];
-          // get() cherche un tag XML insensible à la casse
-          const get = tag => {
-            const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const m = item.match(new RegExp('<' + escaped + '[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/' + escaped + '>', 'i'));
-            return m ? (m[1]||'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').trim() : '';
-          };
-          const p = {
-            title: cleanTitle(get('title')||get('name')||get('g:title')||''),
-            price: parseFloat((get('price')||get('g:price')||get('sale_price')||'0').replace(/[^\d.,]/g,'').replace(',','.')),
-            url: get('link')||get('g:link')||get('url')||'',
-            image_url: get('image_link')||get('g:image_link')||get('image')||'',
-            ean: extractEAN(get('gtin')||get('g:gtin')||get('ean')||''),
-            brand: get('brand')||get('g:brand')||'',
-            product_id: get('id')||get('g:id')||get('item_id')||'',
-          };
-          if (!p.title || !p.url || p.price <= 0) continue;
-          const key = p.product_id || (p.title.toLowerCase()+'_'+p.price);
-          if (seen.has(key)) continue;
-          seen.add(key);
-          products.push(p);
-          if (products.length >= feedLimit) break;
-        }
-      } else {
-        // CSV parser RFC-4180
-        const sep = feed.separator && feed.separator !== 'none' ? feed.separator : (text.includes('|') ? '|' : ',');
-        function parseCSVLine(line, s) {
-          const result = []; let field = ''; let inQuotes = false;
-          for (let i = 0; i < line.length; i++) {
-            const c = line[i];
-            if (c === '"') { if (inQuotes && line[i+1] === '"') { field += '"'; i++; } else inQuotes = !inQuotes; }
-            else if (c === s && !inQuotes) { result.push(field); field = ''; }
-            else field += c;
-          }
-          result.push(field);
-          return result;
-        }
-        const cleanText = text.replace(/^\uFEFF/, '');
-        const lines = cleanText.split('\n').filter(l => l.trim());
-        const rawHdrs = parseCSVLine(lines[0], sep);
-        const headers = rawHdrs.map(h => h.trim().replace(/^"|"$/g,'').toLowerCase().replace(/[\s\-\/]+/g,'_'));
-        console.log('  CSV headers:', headers.join(', '), '| sep:', JSON.stringify(sep), '| cols:', headers.length);
-        for (const line of lines.slice(1)) {
-          if (!line.trim()) continue;
-          const vals = parseCSVLine(line, sep);
-          const obj = {}; headers.forEach((h,i) => obj[h] = (vals[i]||'').replace(/^"|"$/g,'').trim());
-          const rawPrice = obj.price||obj.prix||obj.search_price||obj.sale_price||obj.regular_price||obj.product_price||obj.prix_ttc||obj.montant||obj.prix_ttc_remise||obj.prix_public||'0';
-          // Colonnes spécifiques 1001 Pneus
-          const pneuTitle = obj.marque && obj.profil ? (obj.marque+' '+obj.profil+' '+obj.largeur+'/'+obj.hauteur+'R'+obj.diametre) : '';
-          const pneuUrl = obj.url_produit||obj.lien_produit||obj.affiliate||obj.url_affiliation||obj.lien||'';
-          const pneuPrice = obj.prix_ttc||obj.prix_public||obj.tarif||'';
-          const pneuImg = obj.image||obj.image_principale||obj.photo_produit||'';
-          const pneuEan = obj.ean||obj.ean13||obj.code_barre||obj.gtin||'';
-          const p = {
-            title: cleanTitle(pneuTitle||obj.title||obj.name||obj.product_name||obj.nom||obj.designation||obj.libelle||''),
-            price: parseFloat((pneuPrice||rawPrice).replace(/[^\d.,]/g,'').replace(',','.')||'0'),
-            url: obj.link||pneuUrl||obj.url||obj.lien||obj.product_url||obj.aw_deep_link||obj.affiliate_link||obj.deeplink||obj.product_link||'',
-            image_url: obj.image_link||pneuImg||obj.image||obj.image_url||obj.photo||obj.visuel||obj.aw_image_url||obj.merchant_image_url||'',
-            ean: extractEAN(pneuEan||obj.gtin||obj.ean||obj.ean13||obj.barcode||obj.code_barre||obj.product_gtin||obj.mpn||''),
-            brand: obj.brand||obj.brand_name||obj.marque||obj.fabricant||'',
-            product_id: obj.id||obj.product_id||obj.item_id||obj.reference||obj.ref||obj.aw_product_id||'',
-          };
-          if (!p.title || !p.url || p.price <= 0) continue;
-          const key = p.product_id || (p.title.toLowerCase()+'_'+p.price);
-          if (seen.has(key)) continue;
-          seen.add(key);
-          products.push(p);
-          if (products.length >= feedLimit) break;
-        }
-      }
+      const mapXml = (item) => {
+        const get = tag => {
+          const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const m = item.match(new RegExp('<' + escaped + '[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/' + escaped + '>', 'i'));
+          return m ? (m[1]||'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').trim() : '';
+        };
+        return {
+          title: cleanTitle(get('title')||get('Titre')||get('name')||get('g:title')||''),
+          price: parseFloat((get('price')||get('n_price')||get('Prix')||get('g:price')||get('sale_price')||'0').replace(/[^\d.,]/g,'').replace(',','.')),
+          url: get('link')||get('Landing_page')||get('g:link')||get('url')||'',
+          image_url: get('image_link')||get('n_image_link')||get('g:image_link')||get('image')||'',
+          ean: extractEAN(get('gtin')||get('ean')||get('EAN')||get('g:gtin')||''),
+          brand: get('brand')||get('Marque')||get('g:brand')||'',
+          product_id: get('id')||get('g:id')||get('item_id')||'',
+        };
+      };
+
+      const mapCsv = (obj) => {
+        const pneuTitle = obj.marque && obj.profil
+          ? (obj.marque+' '+obj.profil+' '+obj.largeur+'/'+obj.hauteur+'R'+obj.diametre) : '';
+        return {
+          title: cleanTitle(pneuTitle||obj.title||obj.titre||obj.nom||obj.name||obj.product_name||''),
+          price: parseFloat(String(obj.prix||obj.price||obj.prix_ttc||obj.sale_price||'0').replace(/[^\d.,]/g,'').replace(',','.')),
+          url: obj.link||obj.url_produit||obj.url||obj.lien||obj.product_url||'',
+          image_url: obj.image_link||obj.url_image||obj.image||obj.img||'',
+          ean: extractEAN(obj.ean||obj.gtin||obj.ean13||obj.code_barre||''),
+          brand: obj.brand||obj.marque||obj.fabricant||'',
+          product_id: obj.id||obj.product_id||obj.reference||'',
+        };
+      };
+
+      const collect = (p) => {
+        if (!p.title || !p.url || !(p.price > 0)) return true;
+        const key = p.product_id || (p.title.toLowerCase()+'_'+p.price);
+        if (seen.has(key)) return true;
+        seen.add(key);
+        products.push(p);
+        return products.length < feedLimit;
+      };
+
+      let firstSample = null;
+      const stat = await streamFeed(feed.url, {
+        label: feed.name,
+        sep: feed.separator,
+        normalizeHeader: h => h.trim().replace(/^"|"$/g,'').toLowerCase().replace(/[\s\-\/]+/g,'_'),
+        onHeaders: (headers, sep) => console.log('  Colonnes:', headers.length, '| sep:', JSON.stringify(sep)),
+        onRecord: (rec) => {
+          const p = typeof rec === 'string' ? mapXml(rec) : mapCsv(rec);
+          if (!firstSample) firstSample = p;
+          return collect(p);
+        },
+      });
+
+      console.log('  Format:', stat.format, '| encodage:', stat.encoding,
+                  '|', Math.round(stat.bytes/1e6*10)/10, 'Mo lus',
+                  stat.stopped ? '(arret anticipe)' : '');
 
       console.log('  Sample URL:', products[0]?.url);
       console.log('  📦', feed.name, ':', products.length, 'produits');
@@ -714,81 +641,37 @@ async function syncAwin() {
       const feedLimit = feed.limit || 2000;
       console.log('  →', feed.name, '(limit:', feedLimit, ')');
 
-      const res = await fetch(feed.url, { headers: { 'Accept-Encoding': 'gzip' } });
-      console.log('  HTTP status:', res.status, 'for', feed.name);
-      if (!res.ok) { console.log('  ❌', feed.name, res.status); reportFeed(feed.name, 0, 'HTTP ' + res.status); continue; }
-
-      // Décompresse gzip si nécessaire
-      // Stream gzip décompression pour éviter crash mémoire sur gros fichiers
-      const chunks = [];
-      const reader = res.body.getReader();
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-      }
-      const buffer = Buffer.concat(chunks.map(c => Buffer.from(c)));
-      let text;
-      const bytes = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-      if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
-        const zlib = await import('zlib');
-        const decompressed = await new Promise((resolve, reject) => {
-          zlib.gunzip(buffer, (err, result) => {
-            if (err) reject(err); else resolve(result);
-          });
-        });
-        text = decompressed.toString('utf-8');
-      } else {
-        text = buffer.toString('utf-8');
-      }
-
-      // Limite la taille pour éviter crash mémoire
-      if (text.length > 300000000) {
-        console.log('  ⚠️ Feed trop gros (' + Math.round(text.length/1e6) + 'MB), troncature à 300MB');
-        text = text.slice(0, 300000000);
-      }
-      console.log('  Feed size:', text.length, 'chars');
-
-      // Parse CSV Awin (séparateur virgule par défaut)
-      function parseCSVLine(line, sep) {
-        const result = []; let field = ''; let inQuotes = false;
-        for (let i = 0; i < line.length; i++) {
-          const c = line[i];
-          if (c === '"') { if (inQuotes && line[i+1] === '"') { field += '"'; i++; } else inQuotes = !inQuotes; }
-          else if (c === sep && !inQuotes) { result.push(field); field = ''; }
-          else field += c;
-        }
-        result.push(field);
-        return result;
-      }
-
-      const lines = text.split('\n').filter(l => l.trim());
-      const sep = lines[0].includes('\t') ? '\t' : (lines[0].split(';').length > lines[0].split(',').length ? ';' : ',');
-      const headers = parseCSVLine(lines[0], sep).map(h => h.trim().toLowerCase().replace(/\s+/g,'_'));
-
       const products = [];
       const seen = new Set();
+      let firstSample = null;
 
-      for (const line of lines.slice(1)) {
-        if (!line.trim()) continue;
-        const vals = parseCSVLine(line, sep);
-        const obj = {}; headers.forEach((h, i) => obj[h] = (vals[i]||'').trim());
+      const stat = await streamFeed(feed.url, {
+        label: feed.name,
+        normalizeHeader: h => h.trim().replace(/^"|"$/g,'').toLowerCase().replace(/\s+/g,'_'),
+        onHeaders: (headers, sep) => console.log('  Colonnes:', headers.length, '| sep:', JSON.stringify(sep)),
+        onRecord: (obj) => {
+          const title = cleanTitle(obj.product_name || obj.name || obj.title || '');
+          const url = obj.aw_deep_link || obj.merchant_deep_link || obj.url || '';
+          const price = parseFloat(obj.search_price || obj.store_price || obj.price || '0');
+          const image = obj.aw_image_url || obj.merchant_image_url || obj.large_image || '';
+          const ean = extractEAN(obj.ean || obj.product_gtin || obj.upc || obj.isbn || '');
+          const brand = obj.brand_name || obj.brand || '';
+          const productId = obj.aw_product_id || obj.merchant_product_id || '';
 
-        const title = cleanTitle(obj.product_name || obj.name || obj.title || '');
-        const url = obj.aw_deep_link || obj.merchant_deep_link || obj.url || '';
-        const price = parseFloat(obj.search_price || obj.store_price || obj.price || '0');
-        const image = obj.aw_image_url || obj.merchant_image_url || obj.large_image || '';
-        const ean = extractEAN(obj.ean || obj.product_gtin || obj.upc || obj.isbn || '');
-        const brand = obj.brand_name || obj.brand || '';
-        const productId = obj.aw_product_id || obj.merchant_product_id || '';
+          if (!title || !url || !(price > 0)) return true;
+          const key = productId || (title.toLowerCase() + '_' + price);
+          if (seen.has(key)) return true;
+          seen.add(key);
+          const p = { title, url, price, image_url: image, ean, brand, product_id: productId };
+          if (!firstSample) firstSample = p;
+          products.push(p);
+          return products.length < feedLimit;
+        },
+      });
 
-        if (!title || !url || price <= 0) continue;
-        const key = productId || (title.toLowerCase() + '_' + price);
-        if (seen.has(key)) continue;
-        seen.add(key);
-        products.push({ title, url, price, image_url:image, ean, brand, product_id:productId });
-        if (products.length >= feedLimit) break;
-      }
+      console.log('  Format:', stat.format, '| encodage:', stat.encoding,
+                  '|', Math.round(stat.bytes/1e6*10)/10, 'Mo lus',
+                  stat.stopped ? '(arret anticipe)' : '');
 
       console.log('  Sample URL:', products[0]?.url);
       console.log('  📦', feed.name, ':', products.length, 'produits');
