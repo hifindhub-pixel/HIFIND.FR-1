@@ -681,6 +681,8 @@ async function syncAwin() {
       if (feed.name.match(/^Rue du Commerce [A-Z]/)) feedDisplayName = 'Rue du Commerce';
       if (feed.name.match(/^Rakuten FR\d/)) feedDisplayName = 'Rakuten';
       if (feed.name.match(/^AliExpress [A-Z]/)) feedDisplayName = 'AliExpress';
+      if (feed.name.match(/^ManoMano [A-Z]/)) feedDisplayName = 'ManoMano';
+      if (feed.name.match(/^Whirlpool [A-Z]/)) feedDisplayName = 'Whirlpool';
       const programId = 'awin_' + feedDisplayName.toLowerCase().replace(/[^a-z0-9]/g, '_');
       await supabaseUpsert('programs', [{ id:programId, title:feed.name, categories:[], countries:['FR'], updated_at:new Date().toISOString() }]);
 
