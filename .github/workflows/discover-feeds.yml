@@ -18,6 +18,7 @@ jobs:
       - name: Discover feeds
         env:
           AWIN_API_KEY: ${{ secrets.AWIN_API_KEY }}
+          AWIN_OAUTH_TOKEN: ${{ secrets.AWIN_OAUTH_TOKEN }}
           AWIN_PUBLISHER_ID: '2855063'
           EFFINITY_API_KEY: ${{ secrets.EFFINITY_API_KEY }}
           CJ_TOKEN: ${{ secrets.CJ_TOKEN }}
