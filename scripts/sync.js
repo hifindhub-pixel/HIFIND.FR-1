@@ -846,7 +846,7 @@ async function syncCJ() {
   let CJ_FIELDS = null;
 
   for (const fs of CJ_FIELD_SETS) {
-    const probe = '{ products(companyId: "' + CJ_PUBLISHER_ID + '", partnerIds: ["' + feeds[0].adId + '"], limit: 1, offset: 0) { totalCount resultList { ' + fs + ' } } }';
+    const probe = '{ products(companyId: "' + CJ_PUBLISHER_ID + '", partnerIds: ["' + (feeds[0].advertiserId || feeds[0].adId) + '"], limit: 1, offset: 0) { totalCount resultList { ' + fs + ' } } }';
     try { await cjQuery(probe); CJ_FIELDS = fs; console.log('  \u2705 jeu de champs retenu'); break; }
     catch (e) { console.log('  \u21bb champs refuses: ' + e.message.slice(0, 160)); }
   }
@@ -863,7 +863,8 @@ async function syncCJ() {
 
   for (const feed of feeds) {
     const limit = feed.limit || 3000;
-    console.log('  \u2192 ' + feed.name + ' (adId ' + feed.adId + ', limit ' + limit + ')');
+    const partnerId = feed.advertiserId || feed.adId;
+    console.log('  \u2192 ' + feed.name + ' (partnerId ' + partnerId + ', limit ' + limit + ')');
 
     const programId = 'cj_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
     await supabaseUpsert('programs', [{
@@ -877,12 +878,17 @@ async function syncCJ() {
 
     try {
       while (all.length < limit) {
-        const query = '{ products(companyId: "' + CJ_PUBLISHER_ID + '", partnerIds: ["' + feed.adId + '"], limit: ' + pageSize + ', offset: ' + offset + ') { totalCount count resultList { ' + CJ_FIELDS + ' } } }';
+        const query = '{ products(companyId: "' + CJ_PUBLISHER_ID + '", partnerIds: ["' + partnerId + '"], limit: ' + pageSize + ', offset: ' + offset + ') { totalCount count resultList { ' + CJ_FIELDS + ' } } }';
         const data = await cjQuery(query);
         const res = data && data.products;
         if (!res) break;
         const items = res.resultList || [];
-        if (offset === 0) console.log('     total dispo: ' + res.totalCount);
+        if (offset === 0) {
+          console.log('     total dispo: ' + res.totalCount);
+          if (!res.totalCount) {
+            console.log('     \u26a0\ufe0f aucun produit \u2014 verifier que partnerId est bien un advertiserId');
+          }
+        }
         if (!items.length) break;
         all.push.apply(all, items);
         offset += pageSize;
@@ -975,6 +981,19 @@ async function main() {
     `);
     console.log('🧹 Supprimés:', del.rowCount, 'produits mono-vendeurs');
     await client2.end();
+    console.log('\n' + '='.repeat(64));
+    console.log('RECAPITULATIF DES FLUX');
+    console.log('='.repeat(64));
+    console.log('\u2705 OK     : ' + FEED_REPORT.ok.length);
+    if (FEED_REPORT.empty.length) {
+      console.log('\u26a0\ufe0f  VIDES  : ' + FEED_REPORT.empty.length + '  \u2014 ' + FEED_REPORT.empty.join(', '));
+    }
+    if (FEED_REPORT.failed.length) {
+      console.log('\u274c ECHECS : ' + FEED_REPORT.failed.length);
+      FEED_REPORT.failed.forEach(f => console.log('     ' + f));
+      console.log('\n   >>> Liens expires : a regenerer sur la plateforme concernee.');
+    }
+    console.log('='.repeat(64));
     console.log('🎉 All done!');
   } catch(e) {
     console.error('❌ Failed:', e.message);
