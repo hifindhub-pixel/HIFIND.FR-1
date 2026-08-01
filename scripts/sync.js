@@ -918,7 +918,12 @@ async function syncCJ() {
         status: 'enabled',
         updated_at: new Date().toISOString()
       };
-    }).filter(function (p) { return p.title && p.url && p.price > 0; });
+    }).filter(function (p) {
+      return p.title && p.url && p.price > 0 && p.currency === 'EUR';
+    });
+
+    const dropped = all.slice(0, limit).length - products.length;
+    if (dropped > 0) console.log('     ' + dropped + ' ecartes (devise != EUR ou champs manquants)');
 
     const seen = new Set();
     const unique = products.filter(function (p) {
