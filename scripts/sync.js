@@ -926,6 +926,14 @@ async function syncCJ() {
       seen.add(p.id); return true;
     });
 
+    const withEan = unique.filter(function (x) { return x.ean; }).length;
+    const pct = unique.length ? Math.round(100 * withEan / unique.length) : 0;
+    console.log('     EAN renseigne : ' + withEan + '/' + unique.length + ' (' + pct + '%)');
+    if (unique.length && pct === 0) {
+      const s = all[0] || {};
+      console.log('     \u26a0\ufe0f aucun EAN \u2014 gtin=' + JSON.stringify(s.gtin)
+                  + ' mpn=' + JSON.stringify(s.mpn));
+    }
     await supabaseUpsert('products', unique);
     console.log('     \u2705 ' + unique.length + ' ins\u00e9r\u00e9s');
   }
