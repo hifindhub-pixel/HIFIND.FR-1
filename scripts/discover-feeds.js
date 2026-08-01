@@ -55,56 +55,82 @@ async function discoverAwin() {
   }
   if (!AWIN_API_KEY) { console.log('AWIN_API_KEY manquant'); return null; }
 
-  const url = 'https://api.awin.com/publishers/' + AWIN_PUBLISHER_ID + '/programmes?relationship=joined';
-  console.log('  GET ' + url);
-
-  let progs;
+  // 1) Programmes rejoints (donne les mid + noms)
+  const progUrl = 'https://api.awin.com/publishers/' + AWIN_PUBLISHER_ID + '/programmes?relationship=joined';
+  console.log('  GET ' + progUrl);
+  const midToName = {};
   try {
-    const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + AWIN_OAUTH_TOKEN } });
+    const res = await fetch(progUrl, { headers: { 'Authorization': 'Bearer ' + AWIN_OAUTH_TOKEN } });
     const body = await res.text();
-    if (!res.ok) {
-      console.log('  HTTP ' + res.status);
-      console.log('  ' + body.slice(0, 300));
-      return null;
-    }
-    progs = JSON.parse(body);
-  } catch (e) {
-    console.log('  Erreur: ' + e.message);
+    if (!res.ok) { console.log('  HTTP ' + res.status + ' ' + body.slice(0, 200)); return null; }
+    const progs = JSON.parse(body);
+    for (const p of progs) midToName[String(p.id)] = p.displayName || p.name;
+    console.log('  Programmes rejoints : ' + progs.length);
+  } catch (e) { console.log('  Erreur: ' + e.message); return null; }
+
+  // 2) Liste des FLUX (fid). Le fid n'est PAS le mid : il faut cet endpoint.
+  console.log('\n  Recuperation de la liste des flux (fid)...');
+  const listCandidates = [
+    'https://productdata.awin.com/datafeed/list/apikey/' + AWIN_API_KEY + '/',
+    'https://api.awin.com/publishers/' + AWIN_PUBLISHER_ID + '/datafeeds',
+    'https://api.awin.com/publishers/' + AWIN_PUBLISHER_ID + '/productdata/feeds',
+  ];
+
+  let feedRows = null;
+  for (const u of listCandidates) {
+    process.stdout.write('  test ' + u.replace(AWIN_API_KEY, '***').replace(AWIN_OAUTH_TOKEN, '***') + ' ... ');
+    try {
+      const headers = u.indexOf('api.awin.com') !== -1
+        ? { 'Authorization': 'Bearer ' + AWIN_OAUTH_TOKEN } : {};
+      const r = await fetch(u, { headers: headers });
+      const b = await r.text();
+      if (!r.ok) { console.log('HTTP ' + r.status); continue; }
+      if (b.length < 50) { console.log('vide'); continue; }
+      console.log('OK (' + b.length + ' octets)');
+      feedRows = b.trim().charAt(0) === '[' || b.trim().charAt(0) === '{'
+        ? JSON.parse(b) : parseCsv(b, ',');
+      break;
+    } catch (e) { console.log('erreur: ' + e.message); }
+  }
+
+  if (!feedRows) {
+    console.log('\n  Impossible de recuperer les fid automatiquement.');
+    console.log('  Le mid ne permet PAS de construire l\'URL de telechargement.');
+    console.log('  Genere les liens sur Awin > Toolbox > Create-a-Feed.\n');
+    console.log('  Programmes rejoints (mid | nom) :');
+    for (const mid of Object.keys(midToName)) console.log('    ' + mid + ' | ' + midToName[mid]);
     return null;
   }
 
-  if (!Array.isArray(progs)) {
-    console.log('  Reponse inattendue :');
-    console.log('  ' + JSON.stringify(progs).slice(0, 500));
-    return null;
-  }
-
-  console.log('  Programmes rejoints : ' + progs.length + '\n');
-  if (progs.length) {
-    console.log('  Champs disponibles : ' + Object.keys(progs[0]).join(', ') + '\n');
-  }
+  console.log('  Flux listes : ' + feedRows.length);
+  if (feedRows.length) console.log('  Champs : ' + Object.keys(feedRows[0]).join(', ') + '\n');
 
   const feeds = [], skipped = [];
-  for (const p of progs) {
-    const name = p.displayName || p.name;
-    const mid = p.id;
-    if (!name || !mid) continue;
+  for (const row of feedRows) {
+    const fid   = row['Feed ID'] || row.feedId || row['Feed Id'] || row.id;
+    const name  = row['Advertiser Name'] || row.advertiserName || row['Advertiser'] || midToName[String(row['Advertiser ID'] || row.advertiserId)];
+    const count = parseInt(row['No of products'] || row.productCount || row['Products'] || '0', 10);
+    const lang  = (row['Language'] || row.language || '').toUpperCase();
+    if (!fid || !name) continue;
+    if (lang && lang !== 'FR') { continue; }
+    if (count === 0) { skipped.push(name + ' (vide)'); continue; }
 
     const feedUrl = 'https://productdata.awin.com/datafeed/download/apikey/' + AWIN_API_KEY +
-                    '/language/fr/mid/' + mid + '/rid/0/hasEnhancedFeeds/0/columns/' + AWIN_COLUMNS +
+                    '/language/fr/fid/' + fid + '/rid/0/hasEnhancedFeeds/0/columns/' + AWIN_COLUMNS +
                     '/format/csv/delimiter/%2C/compression/gzip/adultcontent/1/';
 
-    process.stdout.write('  ' + name + ' (mid ' + mid + ') ... ');
+    process.stdout.write('  ' + name + ' (fid ' + fid + ', ' + count + ') ... ');
     const t = await testFeed(feedUrl);
     if (!t.ok) { console.log('KO ' + t.status); skipped.push(name); continue; }
     console.log('OK');
 
-    const entry = { name: name, url: feedUrl, limit: 5000 };
+    const entry = { name: name, url: feedUrl, limit: count > 20000 ? 3000 : 5000 };
     const cat = guessCategory(name);
     if (cat) entry.category = cat;
     feeds.push(entry);
   }
 
+  if (skipped.length) console.log('\n  Ignores : ' + skipped.join(', '));
   console.log('\n' + feeds.length + ' flux Awin valides');
   if (skipped.length) console.log('Sans flux produit : ' + skipped.join(', '));
   console.log('\n>>> Secret AWIN_FEEDS :\n');
