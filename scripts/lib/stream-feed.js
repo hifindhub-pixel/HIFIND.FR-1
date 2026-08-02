@@ -7,7 +7,7 @@
 // Résout :
 //   - FATAL ERROR: v8::ToLocalChecked Empty MaybeLocal (chaîne JS > ~256 Mo)
 //   - absence de timeout (un marchand muet bloquait tout le run)
-//   - téléchargement intégral alors qu'on ne garde que `limit` lignes
+//   - accumulation en memoire des catalogues lus en entier
 
 import { Readable } from 'node:stream';
 import { StringDecoder } from 'node:string_decoder';
