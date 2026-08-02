@@ -1,3 +1,6 @@
+
+
+
 // HIFIND - Sync Affilae + Effinity -> Neon
 const AFFILAE_TOKEN       = process.env.AFFILAE_TOKEN;
 const NEON_URL            = process.env.NEON_URL;
@@ -9,12 +12,48 @@ import pkg from 'pg';
 const { Client } = pkg;
 
 let _neonClient = null;
+let _knownEanVendors = null;
 async function getNeon() {
   if (!_neonClient) {
     _neonClient = new Client({ connectionString: NEON_URL });
     await _neonClient.connect();
   }
   return _neonClient;
+}
+
+// Index compact charge une seule fois au debut du sync. Un EAN n'est retenu
+// que s'il existe deja chez un autre vendeur. Les gros catalogues peuvent ainsi
+// etre lus en entier sans etre materialises en memoire ni dans Neon.
+async function loadKnownEanVendors() {
+  if (_knownEanVendors) return _knownEanVendors;
+  const client = await getNeon();
+  const { rows } = await client.query(`
+    SELECT ean, array_agg(DISTINCT program_id) AS program_ids
+    FROM products
+    WHERE ean IS NOT NULL
+    GROUP BY ean
+  `);
+  _knownEanVendors = new Map(rows.map(row => [row.ean, new Set(row.program_ids)]));
+  console.log('🔎 Index EAN connus:', _knownEanVendors.size);
+  return _knownEanVendors;
+}
+
+function isKnownFromAnotherVendor(ean, programId) {
+  if (!ean || !_knownEanVendors) return false;
+  const vendors = _knownEanVendors.get(ean);
+  return !!vendors && (vendors.size > 1 || !vendors.has(programId));
+}
+
+function normalizedProgramId(network, name) {
+  let displayName = name;
+  if (network === 'awin') {
+    if (/^Rue du Commerce [A-Z]/.test(name)) displayName = 'Rue du Commerce';
+    if (/^Rakuten FR\d/.test(name)) displayName = 'Rakuten';
+    if (/^AliExpress [A-Z]/.test(name)) displayName = 'AliExpress';
+    if (/^ManoMano [A-Z]/.test(name)) displayName = 'ManoMano';
+    if (/^Whirlpool [A-Z]/.test(name)) displayName = 'Whirlpool';
+  }
+  return network + '_' + displayName.toLowerCase().replace(/[^a-z0-9]/g, '_');
 }
 
 const PAGE_SIZE           = 20;
@@ -211,8 +250,8 @@ async function syncEffinity() {
 
   for (const feed of feeds) {
     try {
-      const feedLimit = feed.limit || 200;
-      console.log('  →', feed.name, '(limit:', feedLimit, ')');
+      const programId = normalizedProgramId('effinity', feed.name);
+      console.log('  →', feed.name, '(catalogue complet, filtre EAN connu)');
 
       const products = [];
       const seen = new Set();
@@ -260,12 +299,12 @@ async function syncEffinity() {
       };
 
       const collect = (p) => {
-        if (!p.title || !p.url) return true;
+        if (!p.title || !p.url || !isKnownFromAnotherVendor(p.ean, programId)) return true;
         const key = p.product_id || (p.title.toLowerCase().trim()+'_'+p.price);
         if (seen.has(key)) return true;
         seen.add(key);
         products.push(p);
-        return products.length < feedLimit;   // false => coupe la connexion
+        return true;
       };
 
       let firstSample = null;
@@ -292,7 +331,6 @@ async function syncEffinity() {
       console.log('  Sample URL:', products[0]?.url);
       console.log('  📦', feed.name, ':', products.length, 'produits');
 
-      const programId = 'effinity_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
       await supabaseUpsert('programs', [{ id:programId, title:feed.name, categories:[], countries:['FR'], updated_at:new Date().toISOString() }]);
 
       // Déduplique par EAN par vendeur — garde le moins cher
@@ -340,7 +378,6 @@ async function syncBCDJeux() {
   const url = 'http://export.beezup.com/BCD_Jeux/Comparateur_BeezUP_CSV_2_FRA/8b4995eb-85a8-5258-ac4e-08fc6d3d39ed';
   const programId = 'bcdjeux';
   const AFFILIATE_CODE = '#ae=448';
-  const LIMIT = 500;
 
   try {
     const res = await fetch(url);
@@ -360,7 +397,8 @@ async function syncBCDJeux() {
       const cols = line.split(sep).map(v => v.trim().replace(/^"|"$/g, ''));
       if (cols.length < 9) continue;
       const [id, ean, nom, fabricant, prix, sku, stock, qte, urlProd, image, , categorie] = cols;
-      if (!nom || !urlProd) continue;
+      const normalizedEan = extractEAN(ean);
+      if (!nom || !urlProd || !isKnownFromAnotherVendor(normalizedEan, programId)) continue;
       if (seen.has(id)) continue;
       seen.add(id);
 
@@ -375,9 +413,8 @@ async function syncBCDJeux() {
         image_url:   image || null,
         category:    'enfants-bebes', // BCD Jeux = jeux/jouets
         brand:       fabricant || 'BCD Jeux',
-        ean:         ean || null,
+        ean:         normalizedEan,
       });
-      if (products.length >= LIMIT) break;
     }
 
     console.log('  📦 BCD Jeux:', products.length, 'produits');
@@ -398,6 +435,8 @@ async function syncBCDJeux() {
       url:         p.url,
       tracking_id: null,
       image_url:   p.image_url,
+      brand:       p.brand,
+      ean:         p.ean,
       category:    p.category,
       lang:        'fr',
       status:      'enabled',
@@ -527,8 +566,8 @@ async function syncAffilaeFeeds() {
 
   for (const feed of feeds) {
     try {
-      const feedLimit = feed.limit || 2000;
-      console.log('  →', feed.name, '(limit:', feedLimit, ')');
+      const programId = normalizedProgramId('affilae_feed', feed.name);
+      console.log('  →', feed.name, '(catalogue complet, filtre EAN connu)');
 
       const products = [];
       const seen = new Set();
@@ -565,12 +604,12 @@ async function syncAffilaeFeeds() {
       };
 
       const collect = (p) => {
-        if (!p.title || !p.url || !(p.price > 0)) return true;
+        if (!p.title || !p.url || !(p.price > 0) || !isKnownFromAnotherVendor(p.ean, programId)) return true;
         const key = p.product_id || (p.title.toLowerCase()+'_'+p.price);
         if (seen.has(key)) return true;
         seen.add(key);
         products.push(p);
-        return products.length < feedLimit;
+        return true;
       };
 
       let firstSample = null;
@@ -593,7 +632,6 @@ async function syncAffilaeFeeds() {
       console.log('  Sample URL:', products[0]?.url);
       console.log('  📦', feed.name, ':', products.length, 'produits');
 
-      const programId = 'affilae_feed_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
       await supabaseUpsert('programs', [{ id:programId, title:feed.name, categories:[], countries:['FR'], updated_at:new Date().toISOString() }]);
 
       // Dédup par EAN
@@ -636,10 +674,17 @@ async function syncAwin() {
   let feeds;
   try { feeds = JSON.parse(AWIN_FEEDS_JSON); } catch(e) { console.log('❌ AWIN_FEEDS JSON invalide'); return; }
 
+  const syncedPrograms = new Set();
   for (const feed of feeds) {
     try {
-      const feedLimit = feed.limit || 2000;
-      console.log('  →', feed.name, '(limit:', feedLimit, ')');
+      const programId = normalizedProgramId('awin', feed.name);
+      // Les trois exports Whirlpool sont identiques : un seul suffit.
+      if (syncedPrograms.has(programId) && /^Whirlpool [A-Z]/.test(feed.name)) {
+        console.log('  ↷', feed.name, ': doublon Whirlpool ignore');
+        continue;
+      }
+      syncedPrograms.add(programId);
+      console.log('  →', feed.name, '(catalogue complet, filtre EAN connu)');
 
       const products = [];
       const seen = new Set();
@@ -658,14 +703,14 @@ async function syncAwin() {
           const brand = obj.brand_name || obj.brand || '';
           const productId = obj.aw_product_id || obj.merchant_product_id || '';
 
-          if (!title || !url || !(price > 0)) return true;
+          if (!title || !url || !(price > 0) || !isKnownFromAnotherVendor(ean, programId)) return true;
           const key = productId || (title.toLowerCase() + '_' + price);
           if (seen.has(key)) return true;
           seen.add(key);
           const p = { title, url, price, image_url: image, ean, brand, product_id: productId };
           if (!firstSample) firstSample = p;
           products.push(p);
-          return products.length < feedLimit;
+          return true;
         },
       });
 
@@ -676,14 +721,6 @@ async function syncAwin() {
       console.log('  Sample URL:', products[0]?.url);
       console.log('  📦', feed.name, ':', products.length, 'produits');
 
-      // Normalise les noms de vendeurs splittés
-      let feedDisplayName = feed.name;
-      if (feed.name.match(/^Rue du Commerce [A-Z]/)) feedDisplayName = 'Rue du Commerce';
-      if (feed.name.match(/^Rakuten FR\d/)) feedDisplayName = 'Rakuten';
-      if (feed.name.match(/^AliExpress [A-Z]/)) feedDisplayName = 'AliExpress';
-      if (feed.name.match(/^ManoMano [A-Z]/)) feedDisplayName = 'ManoMano';
-      if (feed.name.match(/^Whirlpool [A-Z]/)) feedDisplayName = 'Whirlpool';
-      const programId = 'awin_' + feedDisplayName.toLowerCase().replace(/[^a-z0-9]/g, '_');
       await supabaseUpsert('programs', [{ id:programId, title:feed.name, categories:[], countries:['FR'], updated_at:new Date().toISOString() }]);
 
       // Dédup par EAN
@@ -864,9 +901,8 @@ async function syncCJ() {
   }
 
   for (const feed of feeds) {
-    const limit = feed.limit || 3000;
     const partnerId = feed.advertiserId || feed.adId;
-    console.log('  \u2192 ' + feed.name + ' (partnerId ' + partnerId + ', limit ' + limit + ')');
+    console.log('  \u2192 ' + feed.name + ' (partnerId ' + partnerId + ', catalogue complet, filtre EAN connu)');
 
     const programId = 'cj_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
     await supabaseUpsert('programs', [{
@@ -879,7 +915,7 @@ async function syncCJ() {
     const pageSize = 1000;
 
     try {
-      while (all.length < limit) {
+      while (true) {
         const query = '{ products(companyId: "' + CJ_PUBLISHER_ID + '", partnerIds: ["' + partnerId + '"], limit: ' + pageSize + ', offset: ' + offset + ') { totalCount count resultList { ' + CJ_FIELDS + ' } } }';
         const data = await cjQuery(query);
         const res = data && data.products;
@@ -892,7 +928,10 @@ async function syncCJ() {
           }
         }
         if (!items.length) break;
-        all.push.apply(all, items);
+        for (const p of items) {
+          const ean = extractEAN(p.gtin || p.mpn || '');
+          if (isKnownFromAnotherVendor(ean, programId)) all.push(p);
+        }
         offset += pageSize;
         if (items.length < pageSize) break;
       }
@@ -901,7 +940,7 @@ async function syncCJ() {
       continue;
     }
 
-    const products = all.slice(0, limit).map(function (p, i) {
+    const products = all.map(function (p, i) {
       const priceObj = p.salePrice && p.salePrice.amount ? p.salePrice : p.price;
       const price = parseFloat((priceObj && priceObj.amount) || 0);
       return {
@@ -924,7 +963,7 @@ async function syncCJ() {
       return p.title && p.url && p.price > 0 && p.currency === 'EUR';
     });
 
-    const dropped = all.slice(0, limit).length - products.length;
+    const dropped = all.length - products.length;
     if (dropped > 0) console.log('     ' + dropped + ' ecartes (devise != EUR ou champs manquants)');
 
     const seen = new Set();
@@ -969,11 +1008,13 @@ async function cleanupMonoVendors(label) {
 
 async function main() {
   try {
+    await loadKnownEanVendors();
     // await syncAffilae(); // Désactivé - marchands sans EAN fiables
     await syncEffinity();
     await cleanupMonoVendors('apres Effinity');
     await syncBCDJeux();
-    await syncRakuten();
+    // Rakuten Search ne fournit pas d'EAN : ses resultats ne peuvent pas etre
+    // compares et seraient aussitot supprimes par cleanupMonoVendors.
     await syncAffilaeFeeds();
     await cleanupMonoVendors('apres Affilae Feeds');
     await syncAwin();
