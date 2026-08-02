@@ -1,6 +1,3 @@
-
-
-
 // HIFIND - Sync Affilae + Effinity -> Neon
 const AFFILAE_TOKEN       = process.env.AFFILAE_TOKEN;
 const NEON_URL            = process.env.NEON_URL;
@@ -8,52 +5,17 @@ const EFFINITY_FEEDS_JSON = process.env.EFFINITY_FEEDS;
 const AFFILAE_BASE        = 'https://rest.affilae.com';
 
 import { streamFeed, parseCSVLine } from './lib/stream-feed.js';
+import { EanIndex, HarvestWriter, resetHarvest, harvestedPrograms, selectMatching, harvestDiskUsage } from './lib/ean-index.js';
 import pkg from 'pg';
 const { Client } = pkg;
 
 let _neonClient = null;
-let _knownEanVendors = null;
 async function getNeon() {
   if (!_neonClient) {
     _neonClient = new Client({ connectionString: NEON_URL });
     await _neonClient.connect();
   }
   return _neonClient;
-}
-
-// Index compact charge une seule fois au debut du sync. Un EAN n'est retenu
-// que s'il existe deja chez un autre vendeur. Les gros catalogues peuvent ainsi
-// etre lus en entier sans etre materialises en memoire ni dans Neon.
-async function loadKnownEanVendors() {
-  if (_knownEanVendors) return _knownEanVendors;
-  const client = await getNeon();
-  const { rows } = await client.query(`
-    SELECT ean, array_agg(DISTINCT program_id) AS program_ids
-    FROM products
-    WHERE ean IS NOT NULL
-    GROUP BY ean
-  `);
-  _knownEanVendors = new Map(rows.map(row => [row.ean, new Set(row.program_ids)]));
-  console.log('🔎 Index EAN connus:', _knownEanVendors.size);
-  return _knownEanVendors;
-}
-
-function isKnownFromAnotherVendor(ean, programId) {
-  if (!ean || !_knownEanVendors) return false;
-  const vendors = _knownEanVendors.get(ean);
-  return !!vendors && (vendors.size > 1 || !vendors.has(programId));
-}
-
-function normalizedProgramId(network, name) {
-  let displayName = name;
-  if (network === 'awin') {
-    if (/^Rue du Commerce [A-Z]/.test(name)) displayName = 'Rue du Commerce';
-    if (/^Rakuten FR\d/.test(name)) displayName = 'Rakuten';
-    if (/^AliExpress [A-Z]/.test(name)) displayName = 'AliExpress';
-    if (/^ManoMano [A-Z]/.test(name)) displayName = 'ManoMano';
-    if (/^Whirlpool [A-Z]/.test(name)) displayName = 'Whirlpool';
-  }
-  return network + '_' + displayName.toLowerCase().replace(/[^a-z0-9]/g, '_');
 }
 
 const PAGE_SIZE           = 20;
@@ -71,6 +33,9 @@ const CATEGORY_RULES = [
   { cat: 'animaux',         keywords: ['animal','animaux','chien','chat','oiseau','poisson','lapin','croquette','litière','collier','aquarium'] },
   { cat: 'auto-moto',       keywords: ['auto','moto','voiture','véhicule','scooter','pièce auto','pneu','huile moteur','gps','tuning'] },
 ];
+
+const EAN_INDEX = new EanIndex();
+const PROGRAM_META = new Map();   // programId -> { title, category }
 
 const FEED_REPORT = { ok: [], empty: [], failed: [] };
 function reportFeed(name, count, err) {
@@ -250,8 +215,8 @@ async function syncEffinity() {
 
   for (const feed of feeds) {
     try {
-      const programId = normalizedProgramId('effinity', feed.name);
-      console.log('  →', feed.name, '(catalogue complet, filtre EAN connu)');
+      const feedLimit = feed.limit || 200;
+      console.log('  →', feed.name, '(limit:', feedLimit, ')');
 
       const products = [];
       const seen = new Set();
@@ -298,13 +263,21 @@ async function syncEffinity() {
         };
       };
 
+      const programId = 'effinity_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
+      PROGRAM_META.set(programId, { title: feed.name, category: feed.category });
+      const writer = new HarvestWriter(programId);
+
       const collect = (p) => {
-        if (!p.title || !p.url || !isKnownFromAnotherVendor(p.ean, programId)) return true;
-        const key = p.product_id || (p.title.toLowerCase().trim()+'_'+p.price);
+        if (!p.title || !p.url || !p.ean) return true;
+        const key = p.ean + '_' + p.price;
         if (seen.has(key)) return true;
         seen.add(key);
-        products.push(p);
-        return true;
+        p.program_id = programId;
+        p.feed_name = feed.name;
+        p.feed_category = feed.category || null;
+        writer.write(p);
+        EAN_INDEX.add(p.ean, programId);
+        return true;   // on lit le catalogue en entier
       };
 
       let firstSample = null;
@@ -328,44 +301,10 @@ async function syncEffinity() {
       } else {
         console.log('  \u26a0\ufe0f aucune ligne de donnees exploitable');
       }
-      console.log('  Sample URL:', products[0]?.url);
-      console.log('  📦', feed.name, ':', products.length, 'produits');
-
-      await supabaseUpsert('programs', [{ id:programId, title:feed.name, categories:[], countries:['FR'], updated_at:new Date().toISOString() }]);
-
-      // Déduplique par EAN par vendeur — garde le moins cher
-      const eanSeen = new Map();
-      const deduped = [];
-      for (const p of products.filter(p=>p.title&&p.url)) {
-        if (p.ean) {
-          if (!eanSeen.has(p.ean) || p.price < eanSeen.get(p.ean).price) {
-            eanSeen.set(p.ean, p);
-          }
-        } else {
-          deduped.push(p);
-        }
-      }
-      deduped.push(...eanSeen.values());
-
-      const mapped = deduped.map((p,i) => {
-        const rawId = p.product_id ? programId+'_'+p.product_id : programId+'_'+i;
-        const safeId = rawId.replace(/[^a-z0-9_\-]/gi,'_').slice(0,100);
-        return {
-          id: safeId, affilae_id: safeId, program_id: programId,
-          title: p.title, description: p.description||null, price: p.price||null,
-          currency: 'EUR', url: p.url, tracking_id: null,
-          image_url: p.image_url||null,
-          brand: p.brand||null,
-          ean: p.ean || null,
-          category: feed.category || detectCategory({ title:p.title, description:p.description||'', program:{title:feed.name} }),
-          lang: 'fr', status: 'enabled', updated_at: new Date().toISOString()
-        };
-      });
-
-      console.log('  📦 après dédup:', mapped.length, 'produits ('+deduped.length+' uniques)');
-      for (let i = 0; i < mapped.length; i += 50) await supabaseUpsert('products', mapped.slice(i,i+50));
-      console.log('  ✅', feed.name, ':', mapped.length, 'insérés');
-      reportFeed(feed.name, mapped.length);
+      await writer.close();
+      console.log('  📦', feed.name, ':', writer.count, 'lignes recoltees ('
+                  + writer.skippedNoEan + ' sans EAN ignorees)');
+      reportFeed(feed.name, writer.count);
 
     } catch(e) { console.log('  ⚠️', feed.name, ':', e.message, '\n  Stack:', e.stack?.split('\n')[1]?.trim()); }
   }
@@ -378,6 +317,7 @@ async function syncBCDJeux() {
   const url = 'http://export.beezup.com/BCD_Jeux/Comparateur_BeezUP_CSV_2_FRA/8b4995eb-85a8-5258-ac4e-08fc6d3d39ed';
   const programId = 'bcdjeux';
   const AFFILIATE_CODE = '#ae=448';
+  const LIMIT = 500;
 
   try {
     const res = await fetch(url);
@@ -397,8 +337,7 @@ async function syncBCDJeux() {
       const cols = line.split(sep).map(v => v.trim().replace(/^"|"$/g, ''));
       if (cols.length < 9) continue;
       const [id, ean, nom, fabricant, prix, sku, stock, qte, urlProd, image, , categorie] = cols;
-      const normalizedEan = extractEAN(ean);
-      if (!nom || !urlProd || !isKnownFromAnotherVendor(normalizedEan, programId)) continue;
+      if (!nom || !urlProd) continue;
       if (seen.has(id)) continue;
       seen.add(id);
 
@@ -413,8 +352,9 @@ async function syncBCDJeux() {
         image_url:   image || null,
         category:    'enfants-bebes', // BCD Jeux = jeux/jouets
         brand:       fabricant || 'BCD Jeux',
-        ean:         normalizedEan,
+        ean:         ean || null,
       });
+      if (products.length >= LIMIT) break;
     }
 
     console.log('  📦 BCD Jeux:', products.length, 'produits');
@@ -435,8 +375,6 @@ async function syncBCDJeux() {
       url:         p.url,
       tracking_id: null,
       image_url:   p.image_url,
-      brand:       p.brand,
-      ean:         p.ean,
       category:    p.category,
       lang:        'fr',
       status:      'enabled',
@@ -566,8 +504,8 @@ async function syncAffilaeFeeds() {
 
   for (const feed of feeds) {
     try {
-      const programId = normalizedProgramId('affilae_feed', feed.name);
-      console.log('  →', feed.name, '(catalogue complet, filtre EAN connu)');
+      const feedLimit = feed.limit || 2000;
+      console.log('  →', feed.name, '(limit:', feedLimit, ')');
 
       const products = [];
       const seen = new Set();
@@ -603,12 +541,20 @@ async function syncAffilaeFeeds() {
         };
       };
 
+      const programId = 'affilae_feed_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
+      PROGRAM_META.set(programId, { title: feed.name, category: feed.category });
+      const writer = new HarvestWriter(programId);
+
       const collect = (p) => {
-        if (!p.title || !p.url || !(p.price > 0) || !isKnownFromAnotherVendor(p.ean, programId)) return true;
-        const key = p.product_id || (p.title.toLowerCase()+'_'+p.price);
+        if (!p.title || !p.url || !(p.price > 0) || !p.ean) return true;
+        const key = p.ean + '_' + p.price;
         if (seen.has(key)) return true;
         seen.add(key);
-        products.push(p);
+        p.program_id = programId;
+        p.feed_name = feed.name;
+        p.feed_category = feed.category || null;
+        writer.write(p);
+        EAN_INDEX.add(p.ean, programId);
         return true;
       };
 
@@ -629,37 +575,10 @@ async function syncAffilaeFeeds() {
                   '|', Math.round(stat.bytes/1e6*10)/10, 'Mo lus',
                   stat.stopped ? '(arret anticipe)' : '');
 
-      console.log('  Sample URL:', products[0]?.url);
-      console.log('  📦', feed.name, ':', products.length, 'produits');
-
-      await supabaseUpsert('programs', [{ id:programId, title:feed.name, categories:[], countries:['FR'], updated_at:new Date().toISOString() }]);
-
-      // Dédup par EAN
-      const eanSeen = new Map();
-      const deduped = [];
-      for (const p of products) {
-        if (p.ean) {
-          if (!eanSeen.has(p.ean) || p.price < eanSeen.get(p.ean).price) eanSeen.set(p.ean, p);
-        } else deduped.push(p);
-      }
-      deduped.push(...eanSeen.values());
-
-      const mapped = deduped.map((p,i) => {
-        const rawId = p.product_id ? programId+'_'+p.product_id : programId+'_'+i;
-        return {
-          id: rawId.replace(/[^a-z0-9_\-]/gi,'_').slice(0,100),
-          affilae_id: rawId.slice(0,100), program_id: programId,
-          title: p.title, description: null, price: p.price, currency: 'EUR',
-          url: p.url, tracking_id: null, image_url: p.image_url||null,
-          brand: p.brand||null, ean: p.ean||null,
-          category: feed.category || detectCategory({ title:p.title, description:'', program:{title:feed.name} }),
-          lang: 'fr', status: 'enabled', updated_at: new Date().toISOString()
-        };
-      });
-
-      for (let i = 0; i < mapped.length; i += 50) await supabaseUpsert('products', mapped.slice(i,i+50));
-      console.log('  ✅', feed.name, ':', mapped.length, 'insérés');
-      reportFeed(feed.name, mapped.length);
+      await writer.close();
+      console.log('  📦', feed.name, ':', writer.count, 'lignes recoltees ('
+                  + writer.skippedNoEan + ' sans EAN ignorees)');
+      reportFeed(feed.name, writer.count);
 
     } catch(e) { console.log('  ⚠️', feed.name, ':', e.message); }
   }
@@ -674,19 +593,22 @@ async function syncAwin() {
   let feeds;
   try { feeds = JSON.parse(AWIN_FEEDS_JSON); } catch(e) { console.log('❌ AWIN_FEEDS JSON invalide'); return; }
 
-  const syncedPrograms = new Set();
   for (const feed of feeds) {
     try {
-      const programId = normalizedProgramId('awin', feed.name);
-      // Les trois exports Whirlpool sont identiques : un seul suffit.
-      if (syncedPrograms.has(programId) && /^Whirlpool [A-Z]/.test(feed.name)) {
-        console.log('  ↷', feed.name, ': doublon Whirlpool ignore');
-        continue;
-      }
-      syncedPrograms.add(programId);
-      console.log('  →', feed.name, '(catalogue complet, filtre EAN connu)');
+      const feedLimit = feed.limit || 2000;
+      console.log('  →', feed.name, '(limit:', feedLimit, ')');
 
-      const products = [];
+      // Normalise les noms de vendeurs splittes AVANT la recolte
+      let feedDisplayName = feed.name;
+      if (feed.name.match(/^Rue du Commerce [A-Z]/)) feedDisplayName = 'Rue du Commerce';
+      if (feed.name.match(/^Rakuten FR\d/)) feedDisplayName = 'Rakuten';
+      if (feed.name.match(/^AliExpress [A-Z]/)) feedDisplayName = 'AliExpress';
+      if (feed.name.match(/^ManoMano [A-Z]/)) feedDisplayName = 'ManoMano';
+      if (feed.name.match(/^Whirlpool [A-Z]/)) feedDisplayName = 'Whirlpool';
+      const programId = 'awin_' + feedDisplayName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      PROGRAM_META.set(programId, { title: feedDisplayName, category: feed.category });
+      const writer = new HarvestWriter(programId);
+
       const seen = new Set();
       let firstSample = null;
 
@@ -703,13 +625,16 @@ async function syncAwin() {
           const brand = obj.brand_name || obj.brand || '';
           const productId = obj.aw_product_id || obj.merchant_product_id || '';
 
-          if (!title || !url || !(price > 0) || !isKnownFromAnotherVendor(ean, programId)) return true;
-          const key = productId || (title.toLowerCase() + '_' + price);
+          if (!title || !url || !(price > 0) || !ean) return true;
+          const key = ean + '_' + price;
           if (seen.has(key)) return true;
           seen.add(key);
-          const p = { title, url, price, image_url: image, ean, brand, product_id: productId };
+          const p = { title, url, price, image_url: image, ean, brand, product_id: productId,
+                      program_id: programId, feed_name: feedDisplayName,
+                      feed_category: feed.category || null };
           if (!firstSample) firstSample = p;
-          products.push(p);
+          writer.write(p);
+          EAN_INDEX.add(ean, programId);
           return true;
         },
       });
@@ -718,40 +643,10 @@ async function syncAwin() {
                   '|', Math.round(stat.bytes/1e6*10)/10, 'Mo lus',
                   stat.stopped ? '(arret anticipe)' : '');
 
-      console.log('  Sample URL:', products[0]?.url);
-      console.log('  📦', feed.name, ':', products.length, 'produits');
-
-      await supabaseUpsert('programs', [{ id:programId, title:feed.name, categories:[], countries:['FR'], updated_at:new Date().toISOString() }]);
-
-      // Dédup par EAN
-      const eanSeen = new Map();
-      const deduped = [];
-      for (const p of products) {
-        if (p.ean) {
-          if (!eanSeen.has(p.ean) || p.price < eanSeen.get(p.ean).price) eanSeen.set(p.ean, p);
-        } else deduped.push(p);
-      }
-      deduped.push(...eanSeen.values());
-
-      const mapped = deduped.map((p, i) => {
-        const rawId = p.product_id ? programId+'_'+p.product_id : programId+'_'+i;
-        return {
-          id: rawId.replace(/[^a-z0-9_\-]/gi,'_').slice(0,100),
-          affilae_id: rawId.slice(0,100),
-          program_id: programId,
-          title: p.title, description: null,
-          price: p.price, currency: feed.currency || 'EUR',
-          url: p.url, tracking_id: null,
-          image_url: p.image_url || null,
-          brand: p.brand || null, ean: p.ean || null,
-          category: feed.category || detectCategory({ title:p.title, description:'', program:{title:feed.name} }),
-          lang: 'fr', status: 'enabled', updated_at: new Date().toISOString()
-        };
-      });
-
-      for (let i = 0; i < mapped.length; i += 50) await supabaseUpsert('products', mapped.slice(i, i+50));
-      console.log('  ✅', feed.name, ':', mapped.length, 'insérés');
-      reportFeed(feed.name, mapped.length);
+      await writer.close();
+      console.log('  📦', feedDisplayName, ':', writer.count, 'lignes recoltees ('
+                  + writer.skippedNoEan + ' sans EAN ignorees)');
+      reportFeed(feed.name, writer.count);
 
     } catch(e) { console.log('  ⚠️', feed.name, ':', e.message); }
   }
@@ -901,8 +796,9 @@ async function syncCJ() {
   }
 
   for (const feed of feeds) {
+    const limit = feed.limit || 3000;
     const partnerId = feed.advertiserId || feed.adId;
-    console.log('  \u2192 ' + feed.name + ' (partnerId ' + partnerId + ', catalogue complet, filtre EAN connu)');
+    console.log('  \u2192 ' + feed.name + ' (partnerId ' + partnerId + ', limit ' + limit + ')');
 
     const programId = 'cj_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
     await supabaseUpsert('programs', [{
@@ -915,7 +811,7 @@ async function syncCJ() {
     const pageSize = 1000;
 
     try {
-      while (true) {
+      while (all.length < limit) {
         const query = '{ products(companyId: "' + CJ_PUBLISHER_ID + '", partnerIds: ["' + partnerId + '"], limit: ' + pageSize + ', offset: ' + offset + ') { totalCount count resultList { ' + CJ_FIELDS + ' } } }';
         const data = await cjQuery(query);
         const res = data && data.products;
@@ -928,10 +824,7 @@ async function syncCJ() {
           }
         }
         if (!items.length) break;
-        for (const p of items) {
-          const ean = extractEAN(p.gtin || p.mpn || '');
-          if (isKnownFromAnotherVendor(ean, programId)) all.push(p);
-        }
+        all.push.apply(all, items);
         offset += pageSize;
         if (items.length < pageSize) break;
       }
@@ -940,7 +833,7 @@ async function syncCJ() {
       continue;
     }
 
-    const products = all.map(function (p, i) {
+    const products = all.slice(0, limit).map(function (p, i) {
       const priceObj = p.salePrice && p.salePrice.amount ? p.salePrice : p.price;
       const price = parseFloat((priceObj && priceObj.amount) || 0);
       return {
@@ -963,7 +856,7 @@ async function syncCJ() {
       return p.title && p.url && p.price > 0 && p.currency === 'EUR';
     });
 
-    const dropped = all.length - products.length;
+    const dropped = all.slice(0, limit).length - products.length;
     if (dropped > 0) console.log('     ' + dropped + ' ecartes (devise != EUR ou champs manquants)');
 
     const seen = new Set();
@@ -1006,19 +899,99 @@ async function cleanupMonoVendors(label) {
   }
 }
 
+
+// ══════════════════════════════════════════════════════════════════
+// PHASE B — INGESTION
+// L'index EAN est complet : on sait quels codes-barres existent chez
+// au moins deux marchands. On relit les fichiers de recolte et on
+// n'insere que ceux-la.
+// ══════════════════════════════════════════════════════════════════
+async function ingestHarvest() {
+  const s = EAN_INDEX.stats();
+  console.log('\n' + '='.repeat(64));
+  console.log('PHASE B \u2014 INGESTION');
+  console.log('='.repeat(64));
+  console.log('Lignes recoltees   : ' + s.lignes.toLocaleString('fr-FR'));
+  console.log('EAN uniques        : ' + s.eansUniques.toLocaleString('fr-FR'));
+  console.log('EAN multi-vendeurs : ' + s.eansPartages.toLocaleString('fr-FR')
+              + '  (' + (s.eansUniques ? Math.round(1000 * s.eansPartages / s.eansUniques) / 10 : 0) + '%)');
+  console.log('Disque utilise     : ' + Math.round(harvestDiskUsage() / 1e6) + ' Mo');
+  console.log('');
+
+  EAN_INDEX.compact();   // libere la Map, seul le Set des EAN partages sert
+
+  let totalKept = 0, totalScanned = 0;
+  for (const { programId, file } of harvestedPrograms()) {
+    const meta = PROGRAM_META.get(programId) || { title: programId, category: null };
+    try {
+      const { scanned, kept } = await selectMatching(file, EAN_INDEX);
+      totalScanned += scanned;
+      if (!kept.length) {
+        console.log('  \u2013 ' + meta.title + ' : 0 / ' + scanned.toLocaleString('fr-FR'));
+        continue;
+      }
+
+      await supabaseUpsert('programs', [{
+        id: programId, title: meta.title, categories: [], countries: ['FR'],
+        updated_at: new Date().toISOString()
+      }]);
+
+      const mapped = kept.map((p, i) => {
+        const raw = p.product_id ? programId + '_' + p.product_id : programId + '_' + p.ean;
+        return {
+          id: raw.replace(/[^a-z0-9_\-]/gi, '_').slice(0, 100),
+          affilae_id: raw.slice(0, 100),
+          program_id: programId,
+          title: p.title,
+          description: p.description || null,
+          price: p.price || null,
+          currency: 'EUR',
+          url: p.url,
+          tracking_id: null,
+          image_url: p.image_url || null,
+          brand: p.brand || null,
+          ean: p.ean,
+          category: p.feed_category || meta.category
+            || detectCategory({ title: p.title, description: p.description || '', program: { title: meta.title } }),
+          lang: 'fr', status: 'enabled', updated_at: new Date().toISOString()
+        };
+      });
+
+      for (let i = 0; i < mapped.length; i += 50) {
+        await supabaseUpsert('products', mapped.slice(i, i + 50));
+      }
+      totalKept += mapped.length;
+      const pct = scanned ? Math.round(1000 * mapped.length / scanned) / 10 : 0;
+      console.log('  \u2705 ' + meta.title + ' : ' + mapped.length.toLocaleString('fr-FR')
+                  + ' / ' + scanned.toLocaleString('fr-FR') + '  (' + pct + '%)');
+    } catch (e) {
+      console.log('  \u26a0\ufe0f ' + meta.title + ' : ' + e.message);
+    }
+  }
+
+  console.log('\n\ud83c\udf89 Ingestion : ' + totalKept.toLocaleString('fr-FR')
+              + ' produits comparables sur ' + totalScanned.toLocaleString('fr-FR') + ' recoltes');
+  return totalKept;
+}
+
 async function main() {
   try {
-    await loadKnownEanVendors();
-    // await syncAffilae(); // Désactivé - marchands sans EAN fiables
+    // ── PHASE A : récolte (aucune écriture en base) ──
+    console.log('='.repeat(64));
+    console.log('PHASE A \u2014 RECOLTE (lecture integrale des catalogues)');
+    console.log('='.repeat(64));
+    resetHarvest();
+
     await syncEffinity();
-    await cleanupMonoVendors('apres Effinity');
-    await syncBCDJeux();
-    // Rakuten Search ne fournit pas d'EAN : ses resultats ne peuvent pas etre
-    // compares et seraient aussitot supprimes par cleanupMonoVendors.
     await syncAffilaeFeeds();
-    await cleanupMonoVendors('apres Affilae Feeds');
     await syncAwin();
-    await cleanupMonoVendors('apres Awin');
+
+    // ── PHASE B : on n'insère que les EAN présents chez 2+ marchands ──
+    await ingestHarvest();
+
+    // ── Sources API : petits volumes, insertion directe ──
+    await syncBCDJeux();
+    await syncRakuten();
     await syncCJ();
     // await syncAliExpress(); // Désactivé - tracking_id invalide
     if (_neonClient) await _neonClient.end();
@@ -1040,7 +1013,7 @@ async function main() {
     console.log('\n' + '='.repeat(64));
     console.log('RECAPITULATIF DES FLUX');
     console.log('='.repeat(64));
-    console.log('\u2705 OK     : ' + FEED_REPORT.ok.length);
+    console.log('\u2705 Flux recoltes : ' + FEED_REPORT.ok.length);
     if (FEED_REPORT.empty.length) {
       console.log('\u26a0\ufe0f  VIDES  : ' + FEED_REPORT.empty.length + '  \u2014 ' + FEED_REPORT.empty.join(', '));
     }
