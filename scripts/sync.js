@@ -984,6 +984,7 @@ async function ingestHarvest() {
   const res = applyPrefixes(allRows, learned);
   console.log('\n\ud83e\udde0 Prefixes entreprise appris : ' + res.prefixes.toLocaleString('fr-FR'));
   console.log('   Produits reclasses depuis "autres" : ' + res.reclasses.toLocaleString('fr-FR'));
+  if (res.blocked) console.log('   Reclassements refuses (conflit avec le texte) : ' + res.blocked.toLocaleString('fr-FR'));
   if (res.reclasses) {
     Object.entries(res.parCategorie).sort(function(a,b){ return b[1]-a[1]; })
       .forEach(function(e){ console.log('     ' + e[0].padEnd(20) + e[1]); });
