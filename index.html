@@ -537,104 +537,11 @@ nav {
 .breadcrumb span:hover { color:var(--text); }
 .breadcrumb-sep { color:var(--dim); }
 
-.detail-grid {
-  display:grid; grid-template-columns:300px 1fr;
-  gap:2rem; align-items:start; margin-bottom:2rem;
-}
-.detail-img-box {
-  background:#fff; border:1px solid var(--border);
-  border-radius:14px; padding:1.5rem;
-  display:flex; align-items:center; justify-content:center;
-  height:280px;
-}
 .detail-img-box img { max-width:240px; max-height:240px; object-fit:contain; }
-.detail-info {}
-.detail-brand {
-  font-size:.7rem; font-weight:700; text-transform:uppercase;
-  letter-spacing:.08em; color:var(--coral); margin-bottom:.4rem;
-}
-.detail-name {
-  font-family:'Barlow',sans-serif; font-size:1.6rem;
-  font-weight:800; line-height:1.2; margin-bottom:1rem; color:var(--text);
-}
-.detail-price-box {
-  background:var(--bg2); border:1px solid var(--border);
-  border-radius:12px; padding:1rem 1.2rem; margin-bottom:1.2rem;
-  display:flex; align-items:center; justify-content:space-between; gap:1rem;
-}
-.detail-price-label { font-size:.7rem; color:var(--sub); font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.2rem; }
-.detail-price-val {
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:2.2rem; font-weight:900; color:var(--coral); line-height:1;
-}
-.detail-price-ship { font-size:.72rem; color:var(--green); margin-top:.2rem; }
-.detail-fav-btn {
-  padding:.55rem 1.2rem; background:var(--bg3);
-  border:1px solid var(--border2); border-radius:8px;
-  font-weight:600; font-size:.82rem; color:var(--text); cursor:pointer;
-  transition:all .2s; white-space:nowrap;
-}
 .detail-fav-btn:hover { border-color:var(--coral); color:var(--coral); }
 
-.offers-table {
-  border:1px solid var(--border); border-radius:12px; overflow:hidden;
-}
-.offers-table-head {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:.7rem 1.1rem; background:var(--bg3); border-bottom:1px solid var(--border);
-}
-.offers-table-title { font-weight:700; font-size:.88rem; }
-.offers-table-count { font-size:.75rem; color:var(--sub); }
-.offers-table-cols {
-  display:grid; grid-template-columns:1fr 120px 140px 130px;
-  gap:.5rem; padding:.5rem 1.1rem;
-  background:var(--bg3); border-bottom:1px solid var(--border);
-  font-size:.65rem; font-weight:700; color:var(--dim); text-transform:uppercase; letter-spacing:.06em;
-}
-.offer-row {
-  display:grid; grid-template-columns:1fr 120px 140px 130px;
-  gap:.5rem; align-items:center; padding:.85rem 1.1rem;
-  border-bottom:1px solid var(--border); transition:background .15s;
-}
 .offer-row:last-child { border-bottom:none; }
 .offer-row:hover { background:var(--bg3); }
-.offer-row.best { background:rgba(34,197,94,.04); }
-.offer-merchant { display:flex; align-items:center; gap:.6rem; }
-.offer-logo {
-  width:34px; height:34px; border-radius:7px; object-fit:contain;
-  background:#fff; border:1px solid var(--border2); padding:3px; flex-shrink:0;
-}
-.offer-logo-placeholder {
-  width:34px; height:34px; border-radius:7px; flex-shrink:0;
-  background:var(--bg4); border:1px solid var(--border2);
-  display:flex; align-items:center; justify-content:center;
-  color:var(--sub); font-family:'Barlow Condensed',sans-serif;
-  font-size:.8rem; font-weight:800; letter-spacing:.02em;
-}
-.offer-name { font-weight:700; font-size:.85rem; }
-.offer-badges { display:flex; gap:.3rem; margin-top:.15rem; flex-wrap:wrap; }
-.offer-badge {
-  font-size:.6rem; font-weight:700; padding:.1rem .35rem;
-  border-radius:4px;
-}
-.offer-badge.best { background:#22c55e; color:#fff; }
-.offer-badge.stock { background:rgba(34,197,94,.12); color:#22c55e; }
-.offer-ship { font-size:.8rem; color:var(--green); font-weight:600; }
-.offer-price-col { text-align:right; }
-.offer-price {
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:1.2rem; font-weight:900;
-}
-.offer-price.best-price { color:#22c55e; }
-.offer-price-ship { font-size:.62rem; color:var(--dim); }
-.offer-btn-col { display:flex; justify-content:flex-end; }
-.offer-btn {
-  padding:.45rem .9rem; border:none; border-radius:7px;
-  font-weight:700; font-size:.78rem; cursor:pointer;
-  transition:opacity .2s; white-space:nowrap;
-}
-.offer-btn.primary { background:#22c55e; color:#fff; }
-.offer-btn.secondary { background:var(--bg4); color:var(--text); border:1px solid var(--border2); }
 .offer-btn:hover { opacity:.85; }
 
 /* ═══════════════════════════════════════
@@ -741,7 +648,20 @@ nav {
 .chips-clear{ font-size:.76rem; color:var(--coral); font-weight:600; cursor:pointer; background:none; border:none; padding:.28rem .4rem; }
 
 /* ── Sidebar de facettes ── */
-.facets{ background:var(--bg2); border:1px solid var(--border); border-radius:12px; position:sticky; top:112px; overflow:hidden; }
+.facets{
+  background:var(--bg2); border:1px solid var(--border); border-radius:12px;
+  position:sticky; top:112px;
+  max-height:calc(100vh - 128px);
+  overflow-y:auto; overflow-x:hidden;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+}
+.facets::-webkit-scrollbar{ width:5px; }
+.facets::-webkit-scrollbar-thumb{ background:var(--border2); border-radius:3px; }
+.facets::-webkit-scrollbar-track{ background:transparent; }
+@media(max-width:900px){
+  .facets{ position:static; max-height:none; overflow-y:visible; }
+}
 .facet{ border-bottom:1px solid var(--border); }
 .facet:last-child{ border-bottom:none; }
 .facet-btn{ width:100%; display:flex; align-items:center; justify-content:space-between; gap:.5rem;
@@ -843,6 +763,106 @@ nav {
 @media(max-width:768px){
   .cat-title{ font-size:1.5rem; }
   .pgrid{ grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:.7rem; }
+}
+
+
+.offer-logo {
+  width:34px; height:34px; border-radius:7px; object-fit:contain;
+  background:#fff; border:1px solid var(--border2); padding:3px; flex-shrink:0;
+}
+.offer-logo-placeholder {
+  width:34px; height:34px; border-radius:7px; flex-shrink:0;
+  background:var(--bg4); border:1px solid var(--border2);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--sub); font-family:'Barlow Condensed',sans-serif;
+  font-size:.8rem; font-weight:800; letter-spacing:.02em;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FICHE PRODUIT — refonte
+   ═══════════════════════════════════════════════════════════ */
+.pd-layout{ display:grid; grid-template-columns:340px 1fr; gap:2.2rem; align-items:start; margin-bottom:2.6rem; }
+
+.pd-media{ position:sticky; top:112px; }
+.pd-img-box{
+  position:relative; background:#fff; border:1px solid var(--border);
+  border-radius:16px; padding:2rem; aspect-ratio:1;
+  display:flex; align-items:center; justify-content:center;
+}
+.pd-img-box img{ max-width:100%; max-height:100%; object-fit:contain; }
+.pd-fav-btn{
+  position:absolute; top:.9rem; right:.9rem; width:38px; height:38px; border-radius:10px;
+  background:rgba(255,255,255,.95); border:1px solid var(--border2);
+  display:grid; place-items:center; color:#64748b; cursor:pointer;
+  transition:color .15s, transform .15s;
+}
+.pd-fav-btn:hover{ transform:scale(1.06); }
+.pd-fav-btn.on{ color:var(--coral); }
+.pd-media-meta{ margin-top:.9rem; text-align:center; font-size:.76rem; color:var(--sub); }
+.pd-media-meta strong{ color:var(--jade); font-family:var(--num); font-weight:700; }
+
+.pd-info{ min-width:0; }
+.pd-brand{ font-family:var(--num); font-size:.75rem; font-weight:700; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--coral); margin-bottom:.5rem; }
+.pd-title{ font-family:'Barlow',sans-serif; font-size:1.7rem; font-weight:800;
+  line-height:1.25; margin-bottom:.6rem; color:var(--text); }
+.pd-specs{ font-size:.86rem; color:var(--sub); line-height:1.55; margin-bottom:1.4rem; max-width:58ch; }
+
+.pd-hero{
+  background:var(--bg2); border:1px solid var(--border); border-radius:14px;
+  padding:1.3rem 1.4rem; display:flex; align-items:center; justify-content:space-between;
+  gap:1.2rem; flex-wrap:wrap;
+}
+.pd-hero-label{ font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--sub); margin-bottom:.3rem; }
+.pd-hero-value{ font-family:var(--num); font-size:2.3rem; font-weight:900; color:var(--jade); line-height:1; }
+.pd-hero-sub{ font-size:.78rem; color:var(--sub); margin-top:.4rem; }
+.pd-hero-cta{
+  display:inline-flex; align-items:center; gap:.4rem; padding:.8rem 1.3rem;
+  background:var(--coral); color:#fff; border-radius:10px; font-weight:700; font-size:.86rem;
+  text-decoration:none; transition:background .15s, transform .15s; white-space:nowrap;
+}
+.pd-hero-cta:hover{ background:var(--coral-h); transform:translateY(-1px); }
+
+.pd-offers{ margin-bottom:2.8rem; scroll-margin-top:130px; }
+.pd-offers-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:.6rem; }
+.pd-offers-title{ font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; font-weight:800; }
+.pd-offers-title span{ font-family:var(--num); color:var(--sub); font-weight:600; font-size:.9rem; margin-left:.4rem; }
+
+.pd-offers-list{ border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+.pd-offer-row{
+  display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:1.2rem;
+  padding:.95rem 1.2rem; border-bottom:1px solid var(--border); transition:background .15s;
+}
+.pd-offer-row:last-child{ border-bottom:none; }
+.pd-offer-row:hover{ background:var(--bg3); }
+.pd-offer-row.best{ background:var(--jade-bg); }
+.pd-offer-merchant{ display:flex; align-items:center; gap:.7rem; min-width:0; }
+.pd-offer-name{ font-weight:700; font-size:.88rem; }
+.pd-offer-tag{
+  display:inline-block; margin-top:.2rem; font-size:.64rem; font-weight:700;
+  padding:.12rem .4rem; border-radius:4px; background:var(--jade); color:#04241a;
+  letter-spacing:.02em; text-transform:uppercase;
+}
+.pd-offer-price{ font-family:var(--num); font-size:1.25rem; font-weight:800; text-align:right; white-space:nowrap; }
+.pd-offer-row.best .pd-offer-price{ color:var(--jade); }
+.pd-offer-btn{
+  padding:.55rem 1.1rem; border-radius:8px; font-weight:700; font-size:.8rem;
+  text-decoration:none; white-space:nowrap; transition:opacity .15s, background .15s;
+}
+.pd-offer-btn.primary{ background:var(--coral); color:#fff; }
+.pd-offer-btn.primary:hover{ background:var(--coral-h); }
+.pd-offer-btn.secondary{ background:var(--bg3); color:var(--text); border:1px solid var(--border2); }
+.pd-offer-btn.secondary:hover{ background:var(--bg4); }
+
+.pd-similar{ margin-top:2.8rem; }
+.pd-similar-head{ font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; font-weight:800; margin-bottom:1rem; }
+
+@media(max-width:860px){
+  .pd-layout{ grid-template-columns:1fr; }
+  .pd-media{ position:static; }
+  .pd-offer-row{ grid-template-columns:1fr; row-gap:.6rem; }
+  .pd-offer-price{ text-align:left; }
+  .pd-offer-btn{ justify-self:start; }
 }
 
 </style>
@@ -1514,82 +1534,72 @@ async function openDetail(id) {
   var offers = [];
   if (p.ean_offers && p.ean_offers.length > 0) {
     p.ean_offers.forEach(function(o) {
+      var pr = parseFloat(o.price);
+      if (!(pr > 0)) return;
       offers.push({
         merchant: normalizeMerchant(o.program_title || (o.programs && o.programs.title) || 'Partenaire'),
-        price: parseFloat(o.price) || 0,
+        price: pr,
         url: o.tracking_url || o.url,
       });
     });
   } else {
     offers.push({
-      merchant: p.program_title || p.brand || 'Partenaire',
+      merchant: normalizeMerchant(p.program_title || p.brand || 'Partenaire'),
       price: parseFloat(p.price) || 0,
       url: p.tracking_url || p.url,
     });
   }
   offers.sort(function(a,b){ return a.price - b.price; });
+  CURRENT_OFFERS = offers;
 
   var img = getImageUrl(p);
-  var price = offers.length > 0 ? offers[0].price : parseFloat(p.price) || 0;
+  var lo = offers.length ? offers[0].price : 0;
+  var hi = offers.length ? offers[offers.length - 1].price : lo;
   var isFav = favorites.some(f => f.id === p.id);
+  var sid = String(p.id).replace(/'/g, "\\'");
 
-  var offerRows = offers.map(function(o, i) {
-    var fav = getFavicon(o.merchant);
-    var logoEl = fav
-      ? '<img src="' + fav + '" class="offer-logo" alt="" loading="lazy" onerror="this.outerHTML=\'<div class=&quot;offer-logo-placeholder&quot;>' + o.merchant.slice(0,2).toUpperCase() + '</div>\'">'
-      : '<div class="offer-logo-placeholder">' + o.merchant.slice(0,2).toUpperCase() + '</div>';
-    var isBest = i === 0;
-    return '<div class="offer-row' + (isBest ? ' best' : '') + '">'
-      + '<div class="offer-merchant">' + logoEl
-        + '<div><div class="offer-name">' + o.merchant + '</div>'
-          + '<div class="offer-badges">'
-            + (isBest ? '<span class="offer-badge best">Meilleur prix</span>' : '')
-            + '<span class="offer-badge stock">En stock</span>'
-          + '</div>'
-        + '</div>'
-      + '</div>'
-      + '<div class="offer-ship">Gratuite</div>'
-      + '<div class="offer-price-col">'
-        + '<div class="offer-price' + (isBest ? ' best-price' : '') + '">' + o.price.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €</div>'
-        + '<div class="offer-price-ship">livraison incluse</div>'
-      + '</div>'
-      + '<div class="offer-btn-col">'
-        + '<a href="' + o.url + '" target="_blank" rel="noopener sponsored" style="text-decoration:none">'
-          + '<button class="offer-btn ' + (isBest ? 'primary' : 'secondary') + '">Voir l&#39;offre →</button>'
-        + '</a>'
-      + '</div>'
-    + '</div>';
-  }).join('');
+  var heroSub = hi > lo
+    ? 'chez ' + offers[0].merchant + ' &middot; jusqu\'\u00e0 ' + fmtEur(hi) + ' ailleurs'
+    : 'chez ' + offers[0].merchant;
 
   document.getElementById('detailContent').innerHTML =
-    '<div class="detail-grid">'
-      + '<div>'
-          + '<div class="detail-img-box">'
-            + (img ? '<img src="' + img + '" alt="' + p.title + '" onerror="this.style.display=\'none\'">' : '<div style="font-size:4rem;color:#ccc"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></div>')
-          + '</div>'
+    '<div class="pd-layout">'
+      + '<div class="pd-media">'
+        + '<div class="pd-img-box">'
+          + '<button class="pd-fav-btn' + (isFav ? ' on' : '') + '" id="detailFavBtn" onclick="toggleFav(\'' + sid + '\',this)" aria-label="Sauvegarder">' + ICO.heart(isFav) + '</button>'
+          + (img ? '<img src="' + img + '" alt="' + p.title.replace(/"/g,'&quot;') + '" onerror="this.style.display=\'none\'">' : '<span style="color:#cbd5e1">' + ICO.box + '</span>')
         + '</div>'
-      + '<div class="detail-info">'
-          + '<div class="detail-brand">' + (p.program_title || p.brand || '') + '</div>'
-          + '<h1 class="detail-name barlow">' + p.title + '</h1>'
-          + '<div class="detail-price-box">'
-            + '<div>'
-              + '<div class="detail-price-label">Meilleur prix</div>'
-              + '<div class="detail-price-val">' + price.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €</div>'
-              + '<div class="detail-price-ship"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Livraison gratuite incluse</div>'
-            + '</div>'
-            + '<button class="detail-fav-btn" id="detailFavBtn" onclick="toggleFav(\'' + p.id + '\',this)">' + (isFav ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 14c1.5-1.5 3-3.4 3-5.5A5.5 5.5 0 0 0 12 5 5.5 5.5 0 0 0 2 8.5c0 2.1 1.5 4 3 5.5l7 7Z"/></svg> Sauvegardé' : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.5-1.5 3-3.4 3-5.5A5.5 5.5 0 0 0 12 5 5.5 5.5 0 0 0 2 8.5c0 2.1 1.5 4 3 5.5l7 7Z"/></svg> Sauvegarder') + '</button>'
-          + '</div>'
-          + '<div class="offers-table">'
-            + '<div class="offers-table-head">'
-              + '<span class="offers-table-title">Comparer les offres</span>'
-              + '<span class="offers-table-count">' + offers.length + ' vendeur' + (offers.length > 1 ? 's' : '') + '</span>'
-            + '</div>'
-            + '<div class="offers-table-cols"><span>Marchand</span><span>Livraison</span><span style="text-align:right">Prix</span><span></span></div>'
-            + offerRows
-          + '</div>'
+        + '<div class="pd-media-meta"><strong>' + offers.length + '</strong> marchand' + (offers.length > 1 ? 's' : '') + ' compar\u00e9' + (offers.length > 1 ? 's' : '') + '</div>'
       + '</div>'
-    + '</div>';
+      + '<div class="pd-info">'
+        + (p.brand ? '<div class="pd-brand">' + p.brand + '</div>' : '')
+        + '<h1 class="pd-title">' + p.title + '</h1>'
+        + (p.description ? '<p class="pd-specs">' + p.description.slice(0, 220) + '</p>' : '')
+        + '<div class="pd-hero">'
+          + '<div>'
+            + '<div class="pd-hero-label">Prix le plus bas</div>'
+            + '<div class="pd-hero-value">' + fmtEur(lo) + '</div>'
+            + '<div class="pd-hero-sub">' + heroSub + '</div>'
+          + '</div>'
+          + '<a href="#pdOffers" class="pd-hero-cta">Comparer les offres' + ICO.arrow + '</a>'
+        + '</div>'
+      + '</div>'
+    + '</div>'
+    + '<div class="pd-offers" id="pdOffers">'
+      + '<div class="pd-offers-head">'
+        + '<h2 class="pd-offers-title">Comparer les prix<span>' + offers.length + ' offre' + (offers.length > 1 ? 's' : '') + '</span></h2>'
+        + '<select class="sort-select" onchange="sortOffers(this.value)" aria-label="Trier les offres">'
+          + '<option value="price">Prix croissant</option>'
+          + '<option value="name">Marchand A-Z</option>'
+        + '</select>'
+      + '</div>'
+      + '<div class="pd-offers-list" id="pdOffersList">' + renderOfferRows(offers, lo) + '</div>'
+    + '</div>'
+    + '<div id="pdSimilar"></div>';
+
+  renderSimilar(p);
 }
+
 
 // ══ FAVORITES ══
 function toggleFav(id, btn) {
@@ -2015,6 +2025,52 @@ function setView(v){
   VIEW = v; localStorage.setItem('hf-view', v);
   document.querySelectorAll('.view-toggle button').forEach(function(b){ b.classList.toggle('on', b.dataset.view === v); });
   renderResults(currentResults);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   FICHE PRODUIT — rendu et interactions
+   ═══════════════════════════════════════════════════════════ */
+var CURRENT_OFFERS = [];
+
+function renderOfferRows(offers, minPrice){
+  return offers.map(function(o){
+    var isBest = o.price === minPrice;
+    var fav = getFavicon(o.merchant);
+    var logoEl = fav
+      ? '<img src="' + fav + '" class="offer-logo" alt="" loading="lazy" onerror="this.outerHTML=\'<div class=&quot;offer-logo-placeholder&quot;>' + o.merchant.slice(0,2).toUpperCase() + '</div>\'">'
+      : '<div class="offer-logo-placeholder">' + o.merchant.slice(0,2).toUpperCase() + '</div>';
+    return '<div class="pd-offer-row' + (isBest ? ' best' : '') + '">'
+      + '<div class="pd-offer-merchant">' + logoEl
+        + '<div><div class="pd-offer-name">' + o.merchant + '</div>'
+          + (isBest ? '<span class="pd-offer-tag">Meilleur prix</span>' : '')
+        + '</div>'
+      + '</div>'
+      + '<div class="pd-offer-price">' + fmtEur(o.price) + '</div>'
+      + '<a class="pd-offer-btn ' + (isBest ? 'primary' : 'secondary') + '" href="' + o.url + '" target="_blank" rel="noopener sponsored">Voir l\'offre</a>'
+    + '</div>';
+  }).join('');
+}
+
+function sortOffers(mode){
+  var arr = CURRENT_OFFERS.slice();
+  if (mode === 'name') arr.sort(function(a,b){ return a.merchant.localeCompare(b.merchant, 'fr'); });
+  else arr.sort(function(a,b){ return a.price - b.price; });
+  var minPrice = Math.min.apply(null, CURRENT_OFFERS.map(function(o){ return o.price; }));
+  var el = document.getElementById('pdOffersList');
+  if (el) el.innerHTML = renderOfferRows(arr, minPrice);
+}
+
+async function renderSimilar(product){
+  var host = document.getElementById('pdSimilar');
+  if (!host || !product.category) return;
+  try {
+    var data = await apiFetch('action=category&cat=' + encodeURIComponent(product.category) + '&limit=13');
+    var items = (data && data.data ? data.data : []).filter(function(x){ return x.id !== product.id; }).slice(0, 8);
+    if (!items.length) { host.innerHTML = ''; return; }
+    host.innerHTML = '<div class="pd-similar"><h2 class="pd-similar-head">Produits similaires</h2>'
+      + '<div class="pgrid">' + items.map(function(x, i){ return cardHTML(x, i); }).join('') + '</div></div>';
+  } catch(e) { host.innerHTML = ''; }
 }
 
 </script>
