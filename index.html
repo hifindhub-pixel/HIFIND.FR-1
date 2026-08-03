@@ -867,7 +867,10 @@ nav {
       <li class="nav-cat" onclick="goCategory('sport-outdoor',this)">Sport</li>
       <li class="nav-cat" onclick="goCategory('maison-jardin',this)">Maison & Jardin</li>
       <li class="nav-cat" onclick="goCategory('beaute-bienetre',this)">Beauté & Santé</li>
-      <li class="nav-cat" onclick="goCategory('auto-moto',this)">Auto & Moto</li>
+      <li class="nav-cat" onclick="goCategory('auto-moto',this)">Auto &amp; Moto</li>
+      <li class="nav-cat" onclick="goCategory('mode-vetements',this)">Mode</li>
+      <li class="nav-cat" onclick="goCategory('enfants-bebes',this)">Enfants</li>
+      <li class="nav-cat" onclick="goCategory('livres-bd',this)">Livres &amp; BD</li>
     </ul>
     <div class="nav-actions">
       <button onclick="toggleTheme()" id="themeBtn" title="Thème" style="width:34px;height:34px;border-radius:4px;background:transparent;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--sub);transition:all .2s;padding:0">
@@ -1883,6 +1886,15 @@ function facetBlock(id, title, body){
     + '<div class="facet-body">' + body + '</div></div>';
 }
 
+
+
+var CAT_LABELS = {
+  'high-tech':'High-tech', 'auto-moto':'Auto & moto', 'maison-jardin':'Maison & jardin',
+  'mode-vetements':'Mode & vêtements', 'beaute-bienetre':'Beauté & bien-être',
+  'sante-nutrition':'Santé & nutrition', 'enfants-bebes':'Enfants & bébés',
+  'sport-outdoor':'Sport & outdoor', 'animaux':'Animaux',
+  'alimentation-bio':'Alimentation', 'livres-bd':'Livres & BD', 'autres':'Autres produits'
+};
 
 function setCatTitle(label, lede){
   var t = document.getElementById('catTitle');
