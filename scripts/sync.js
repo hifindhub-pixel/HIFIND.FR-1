@@ -6,6 +6,7 @@ const AFFILAE_BASE        = 'https://rest.affilae.com';
 
 import { streamFeed, parseCSVLine } from './lib/stream-feed.js';
 import { EanIndex, HarvestWriter, resetHarvest, harvestedPrograms, selectMatching, harvestDiskUsage } from './lib/ean-index.js';
+import { categorize } from './lib/categorize.js';
 import pkg from 'pg';
 const { Client } = pkg;
 
@@ -35,6 +36,7 @@ const CATEGORY_RULES = [
 ];
 
 const EAN_INDEX = new EanIndex();
+const CAT_STATS = {};
 const PROGRAM_META = new Map();   // programId -> { title, category }
 
 const FEED_REPORT = { ok: [], empty: [], failed: [] };
@@ -951,11 +953,18 @@ async function ingestHarvest() {
           image_url: p.image_url || null,
           brand: p.brand || null,
           ean: p.ean,
-          category: p.feed_category || meta.category
-            || detectCategory({ title: p.title, description: p.description || '', program: { title: meta.title } }),
+          category: categorize({
+            title: p.title,
+            description: p.description || '',
+            feedCat: p.feed_cat || '',
+            merchant: meta.title,
+            merchantCategory: p.feed_category || meta.category || null
+          }).category,
           lang: 'fr', status: 'enabled', updated_at: new Date().toISOString()
         };
       });
+
+      mapped.forEach(function(m){ CAT_STATS[m.category] = (CAT_STATS[m.category] || 0) + 1; });
 
       for (let i = 0; i < mapped.length; i += 50) {
         await supabaseUpsert('products', mapped.slice(i, i + 50));
@@ -971,6 +980,15 @@ async function ingestHarvest() {
 
   console.log('\n\ud83c\udf89 Ingestion : ' + totalKept.toLocaleString('fr-FR')
               + ' produits comparables sur ' + totalScanned.toLocaleString('fr-FR') + ' recoltes');
+
+  const cats = Object.entries(CAT_STATS).sort(function(a,b){ return b[1]-a[1]; });
+  if (cats.length) {
+    console.log('\nRepartition par categorie :');
+    cats.forEach(function(e){
+      const pct = Math.round(1000 * e[1] / totalKept) / 10;
+      console.log('  ' + e[0].padEnd(20) + String(e[1]).padStart(7) + '  (' + pct + '%)');
+    });
+  }
   return totalKept;
 }
 
