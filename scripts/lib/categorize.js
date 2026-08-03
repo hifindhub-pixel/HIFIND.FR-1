@@ -34,6 +34,21 @@ const norm = s => (s || '')
 
 /** Regles fortes : un seul terme suffit, aucune ambiguite possible. */
 const STRONG = [
+  ['sport-outdoor', ['tapis de course','velo elliptique','rameur','halteres','kettlebell',
+    'banc de musculation','tapis de yoga','raquette de tennis','ballon de football',
+    'crampons football','maillot de football','sac de couchage','tente de camping',
+    'rechaud camping','baton de randonnee','chaussure de randonnee','combinaison de plongee',
+    'planche de surf','ski alpin','snowboard','trottinette electrique','ballon','ballon de basket','ballon de rugby','ballon de handball',
+    'raquette','raquette de badminton','raquette de padel','volant de badminton','corde a sauter',
+    'tapis de gym','banc abdominaux','barre de traction','elastique de musculation',
+    'gourde sport','sac de sport','maillot de bain sport','lunettes de natation','bonnet de bain',
+    'palmes','masque de plongee','tuba','gilet de sauvetage','kayak','paddle',
+    'velo de route','vtt','velo electrique','casque velo','antivol velo','porte bidon',
+    'chaussure de running','chaussure de foot','crampons','protege tibia','gant de boxe',
+    'sac de frappe','tapis de sol','swiss ball','roue abdominale','stepper','velo d appartement',
+    'chaussure de ski','fixation ski','baton de ski','luge','crampons alpinisme','baudrier',
+    'sac a dos randonnee','frontale','rechaud','gourde isotherme','matelas autogonflant',
+    'canne a peche','moulinet','leurre','epuisette','carquois','arc','cible']],
   ['livres-bd', ['tome','manga','bande dessinee','integrale','roman','livre','livres',
     'coffret bd','edition collector','anthologie','beau livre','album','poche','broche',
     'guide de voyage','dictionnaire','encyclopedie','biographie','essai','recueil',
@@ -52,7 +67,11 @@ const STRONG = [
     'tablette tactile','montre connectee','drone','appareil photo','objectif photo','webcam',
     'camera de securite','camera ip','camera de surveillance','visiophone','interphone',
     'thermostat connecte','ampoule connectee','prise connectee','assistant vocal',
-    'liseuse','barre de son','casque vr','carte mere','alimentation pc','ventirad']],
+    'liseuse','barre de son','casque vr','carte mere','alimentation pc','ventirad',
+    'apple watch','airpods','galaxy watch','galaxy buds','imac','ipod','apple tv',
+    'kindle','liseuse kindle','playstation 5','xbox series','nintendo 3ds',
+    'fitbit','disque dur externe','ssd externe','power bank','batterie externe',
+    'robot aspirateur','aspirateur robot','enceinte connectee']],
   ['beaute-bienetre', ['eau de parfum','eau de toilette','eau de cologne','rouge a levres',
     'fond de teint','mascara','vernis a ongles','anti rides','creme hydratante','serum visage',
     'shampooing','shampoing','apres shampoing','coloration cheveux','tondeuse cheveux',
@@ -68,11 +87,6 @@ const STRONG = [
     'collier chien','collier chat','panier chien','panier chat','harnais chien','gamelle',
     'arbre a chat','cage oiseau','terrarium','pate pour chat','pate pour chien']],
   ['auto-moto', ['revue technique']],
-  ['sport-outdoor', ['tapis de course','velo elliptique','rameur','halteres','kettlebell',
-    'banc de musculation','tapis de yoga','raquette de tennis','ballon de football',
-    'crampons football','maillot de football','sac de couchage','tente de camping',
-    'rechaud camping','baton de randonnee','chaussure de randonnee','combinaison de plongee',
-    'planche de surf','ski alpin','snowboard','trottinette electrique']],
   ['maison-jardin', ['perceuse','visseuse','meuleuse','scie circulaire','ponceuse','tronconneuse',
     'tondeuse a gazon','taille haie','debroussailleuse','nettoyeur haute pression','aspirateur',
     'lave linge','lave vaisselle','refrigerateur','congelateur','four encastrable','micro ondes',
@@ -87,7 +101,11 @@ const STRONG = [
     'autocuiseur','cocotte','poele','casserole','couvercle de cuisson','planche a decouper',
     'robinet','lavabo','receveur de douche','parquet','carrelage','peinture murale','tapis salon',
     'rideau','store enrouleur','matelas','sommier','couette','escabeau','echelle']],
-  ['mode-vetements', ['robe','jean','pantalon','chemise','veste','manteau','pull','sweat',
+  ['mode-vetements', ['chemise homme','chemise femme','pantalon homme','pantalon femme',
+    'pull homme','pull femme','veste homme','veste femme','tee shirt homme','tee shirt femme',
+    'chaussure homme','chaussure femme','sandale femme','mule','tunique','peignoir','body',
+    'combinaison','blouson','parka','doudoune','trench','gilet','cardigan','legging',
+    'robe','jean','pantalon','chemise','veste','manteau','pull','sweat',
     't shirt','tee shirt','polo','jupe','short','chaussettes','collant','soutien gorge',
     'culotte','slip','boxer','pyjama','maillot de bain','basket','sneaker','mocassin',
     'escarpin','sandale','botte','bottine','sac a main','portefeuille','ceinture','echarpe',
@@ -105,16 +123,16 @@ const WEAK = [
   ['livres-bd', ['editions','edition','auteur','scenario','dessin','couleurs','volume','chapitre','saga','serie']],
   ['high-tech', ['tech','electronique','usb','hdmi','wifi','bluetooth','gaming','pc','led',
     'batterie','chargeur','ecran','pouces','go','to','ghz','mah']],
-  ['auto-moto', ['auto','moto','voiture','vehicule','scooter','quad','remorque','moteur','r15','r16','r17','r18']],
+  ['auto-moto', ['auto','moto','voiture','vehicule','scooter','quad','remorque','moteur','r15','r16','r17','r18','casque']],
   ['maison-jardin', ['maison','jardin','deco','meuble','cuisine','salle de bain','bricolage',
     'outil','outillage','jardinage','arrosage','terrasse','piscine','chauffage','luminaire']],
-  ['mode-vetements', ['mode','vetement','pret a porter','taille','coton','cuir','laine','denim','manches']],
+  ['mode-vetements', ['mode','vetement','pret a porter','taille','coton','cuir','laine','denim','manches','col','doublure','fermeture eclair','coupe','slim','regular','oversize']],
   ['beaute-bienetre', ['beaute','soin','creme','serum','cosmetique','parfum','visage','cheveux',
     'peau','maquillage','hydratant','nettoyant','bio']],
   ['sante-nutrition', ['sante','complement','nutrition','minceur','detox','sommeil','immunite','bien etre']],
   ['enfants-bebes', ['enfant','bebe','baby','kids','garcon','fille','puericulture','eveil','ans']],
   ['sport-outdoor', ['sport','fitness','musculation','yoga','running','velo','randonnee','camping',
-    'outdoor','trail','ski','tennis','football','natation','entrainement']],
+    'outdoor','trail','ski','tennis','football','natation','entrainement','casque']],
   ['animaux', ['animal','animaux','chien','chat','chiot','chaton','rongeur','oiseau','aquariophilie']],
   ['alimentation-bio', ['alimentation','epicerie','boisson','snack','vegan','sans gluten','saveur','gout']],
 ];
@@ -158,19 +176,21 @@ function scoreRules(text, rules, weight) {
  * @param {string} [p.merchantCategory]  categorie configuree pour ce marchand
  * @returns {{category:string, source:string, score:number}}
  */
-export function categorize(p) {
+/**
+ * Score TEXTE SEUL (titre + categorie de flux + description), sans jamais
+ * consulter le marchand. Sert a la fois de base pour categorize() et de
+ * verification independante dans ean-prefix.js (pour ne pas propager une
+ * categorie qui contredirait ce que le produit dit lui-meme de son cote).
+ */
+export function textSignal(p) {
   const title = norm(p.title);
   const desc  = norm(p.description).slice(0, 300);
   const feed  = norm(p.feedCat);
-  const merchant = norm(p.merchant);
-  const isMarketplace = [...MARKETPLACES].some(m => merchant.indexOf(norm(m)) !== -1);
 
-  // 1) Regle forte sur le titre : verdict immediat.
   for (const [cat, terms] of STRONG) {
     for (const t of terms) if (hasWord(title, t)) return { category: cat, source: 'titre', score: 10 };
   }
 
-  // 2) Cumul pondere : titre > categorie du flux > description.
   const scores = {};
   const add = src => { for (const k in src) scores[k] = (scores[k] || 0) + src[k]; };
   add(scoreRules(title, WEAK, 3));
@@ -178,21 +198,51 @@ export function categorize(p) {
   add(scoreRules(feed,  WEAK, 2));
   add(scoreRules(desc,  WEAK, 1));
 
-  // 3) Categorie du marchand : uniquement s'il est specialise.
-  if (p.merchantCategory && !isMarketplace) {
-    // Un marchand specialise est un signal fort : sans lui, un titre de livre
-    // sans le mot "tome" finirait en "autres".
-    scores[p.merchantCategory] = (scores[p.merchantCategory] || 0) + 4;
-  }
-
   let best = null, bestScore = 0;
   for (const k in scores) if (scores[k] > bestScore) { bestScore = scores[k]; best = k; }
+  return best ? { category: best, source: 'score', score: bestScore } : null;
+}
 
-  if (best && bestScore >= 3) return { category: best, source: 'score', score: bestScore };
+/**
+ * Categories dont les boutiques specialisees vendent aussi, en articles
+ * d'appel, des produits qui n'ont rien a voir (le cas signale : un Apple
+ * Watch vendu par un motoriste, classe "auto-moto" faute de mieux). Pour
+ * celles-ci, le repli marchand exige un indice textuel, meme faible.
+ */
+const RISKY_FALLBACK = new Set(['auto-moto', 'maison-jardin', 'sport-outdoor']);
 
-  // 4) Repli : le marchand specialise, sinon "autres".
+export function categorize(p) {
+  const merchant = norm(p.merchant);
+  const isMarketplace = [...MARKETPLACES].some(m => merchant.indexOf(norm(m)) !== -1);
+
+  const sig = textSignal(p);          // 1+2) regle forte, puis score pondere sur le texte seul
+  if (sig && sig.score >= 10) return sig;   // regle forte : verdict immediat, le marchand ne rentre pas en jeu
+
+  // 3) Le marchand ne DEPARTAGE que s'il existe deja un indice textuel,
+  //    meme faible et ambigu. Sans texte du tout, laisser le marchand
+  //    seul decider revient a plaquer sa categorie sur n'importe quel
+  //    produit — un chargeur, une montre, un parfum vendu par un
+  //    specialiste auto-moto se retrouvait ainsi classe "auto-moto".
+  //    Mieux vaut "autres" honnete qu'une categorie fausse avec assurance.
+  if (sig && p.merchantCategory && !isMarketplace) {
+    const scores = { [sig.category]: sig.score, [p.merchantCategory]: (sig.category === p.merchantCategory ? sig.score : 0) + 4 };
+    let best = null, bestScore = 0;
+    for (const k in scores) if (scores[k] > bestScore) { bestScore = scores[k]; best = k; }
+    if (bestScore >= 3) return { category: best, source: 'score', score: bestScore };
+  }
+
+  if (sig && sig.score >= 3) return sig;
+
+  // 4) Repli marchand. Pour les categories "a risque" — celles dont les
+  //    boutiques specialisees vendent aussi, en articles d'appel, des
+  //    produits sans rapport (gadgets electroniques chez un motoriste,
+  //    outillage chez un jardinier...) — on exige un indice textuel, meme
+  //    faible. Pour les specialistes purs (un libraire ne vend QUE des
+  //    livres), le repli reste inconditionnel : le risque de derive y est
+  //    quasi nul, et l'exiger degraderait des classements deja fiables.
   if (p.merchantCategory && !isMarketplace) {
-    return { category: p.merchantCategory, source: 'marchand', score: 1 };
+    const risky = RISKY_FALLBACK.has(p.merchantCategory);
+    if (!risky || sig) return { category: p.merchantCategory, source: 'marchand', score: 1 };
   }
   return { category: 'autres', source: 'defaut', score: 0 };
 }
