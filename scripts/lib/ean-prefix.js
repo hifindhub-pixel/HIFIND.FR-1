@@ -1,4 +1,5 @@
 // scripts/lib/ean-prefix.js
+import { textSignal } from './categorize.js';
 //
 // L'EAN ne code pas la categorie du produit — les chiffres n'indiquent que
 // l'organisation GS1 emettrice, puis le fabricant, puis la reference article.
@@ -16,8 +17,10 @@
 const PREFIX_LEN = 7;
 
 /** Seuils : combien de produits connus, et quelle proportion d'accord. */
-const MIN_KNOWN = 4;      // en dessous, l'echantillon ne prouve rien
-const MIN_RATIO = 0.75;   // il faut une majorite nette
+const MIN_KNOWN = 8;       // en dessous, l'echantillon ne prouve rien
+const MIN_RATIO = 0.85;   // il faut une majorite tres nette : un fabricant
+                           // generaliste (accessoires + high-tech + auto...)
+                           // ne doit jamais franchir ce seuil par accident
 
 export function prefixOf(ean) {
   const s = String(ean || '').replace(/\D/g, '');
@@ -59,7 +62,7 @@ export function learnPrefixes(products) {
  * @returns {{reclasses:number, prefixes:number, parCategorie:object}}
  */
 export function applyPrefixes(products, learned) {
-  let reclasses = 0;
+  let reclasses = 0, blocked = 0;
   const parCategorie = Object.create(null);
 
   for (const p of products) {
@@ -68,10 +71,20 @@ export function applyPrefixes(products, learned) {
     if (!pref) continue;
     const hit = learned.get(pref);
     if (!hit) continue;
+
+    // Garde-fou : si le TEXTE de ce produit precis pointe vers une autre
+    // categorie que celle apprise pour son prefixe, on refuse la
+    // propagation plutot que de trancher a l'aveugle. Un fabricant
+    // generaliste (ex: accessoires auto ET high-tech sous le meme prefixe)
+    // ne doit jamais imposer sa majorite a une minorite qui se decrit
+    // elle-meme differemment.
+    const sig = textSignal(p);
+    if (sig && sig.category !== hit.category) { blocked++; continue; }
+
     p.category = hit.category;
     p._categorySource = 'prefixe-ean';
     reclasses++;
     parCategorie[hit.category] = (parCategorie[hit.category] || 0) + 1;
   }
-  return { reclasses, prefixes: learned.size, parCategorie };
+  return { reclasses, blocked, prefixes: learned.size, parCategorie };
 }
