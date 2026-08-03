@@ -9,7 +9,7 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 180
 
     steps:
       - uses: actions/checkout@v4
@@ -23,13 +23,20 @@ jobs:
 
       - name: Run sync
         env:
+          # Base
           NEON_URL: ${{ secrets.NEON_URL }}
+
+          # Seuil de vendeurs distincts pour retenir un produit (defaut : 3)
+          MIN_VENDORS: '3'
+          # Marge memoire pour l'index EAN (plusieurs millions d'entrees)
+          NODE_OPTIONS: '--max-old-space-size=6144'
+
+          # Reseaux d'affiliation
           AFFILAE_TOKEN: ${{ secrets.AFFILAE_TOKEN }}
           AFFILAE_FEEDS: ${{ secrets.AFFILAE_FEEDS }}
           EFFINITY_FEEDS: ${{ secrets.EFFINITY_FEEDS }}
           AWIN_API_KEY: ${{ secrets.AWIN_API_KEY }}
           AWIN_FEEDS: ${{ secrets.AWIN_FEEDS }}
-          ALIEXPRESS_APP_SECRET: ${{ secrets.ALIEXPRESS_APP_SECRET }}
           CJ_TOKEN: ${{ secrets.CJ_TOKEN }}
           CJ_PUBLISHER_ID: ${{ secrets.CJ_PUBLISHER_ID }}
           CJ_FEEDS: ${{ secrets.CJ_FEEDS }}
