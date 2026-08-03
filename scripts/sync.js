@@ -26,7 +26,7 @@ const CATEGORY_RULES = [
   { cat: 'mode-vetements',  keywords: ['mode','vêtement','robe','pantalon','jean','chemise','veste','manteau','pull','t-shirt','chaussure','basket','sneaker','sac','bijou','montre','lingerie','fashion'] },
   { cat: 'maison-jardin',   keywords: ['maison','jardin','déco','meuble','cuisine','ménager','aspirateur','plante','graine','potager','terrasse','outil','jardinage','arrosage','fleur'] },
   { cat: 'alimentation-bio',keywords: ['alimentation','bio','nourriture','snack','boisson','thé','café','superaliment','céréale','vegan','sans gluten','organic','épicerie','miel'] },
-  { cat: 'cbd-chanvre',     keywords: ['cbd','chanvre','cannabis','hemp','cannabidiol','fleur cbd','huile cbd'] },
+  { cat: 'sante-nutrition',     keywords: ['cbd','chanvre','cannabis','hemp','cannabidiol','fleur cbd','huile cbd'] },
   { cat: 'enfants-bebes',   keywords: ['enfant','bébé','baby','jouet','jeu','puériculture','poussette','couche','biberon','apprentissage','éveil'] },
   { cat: 'sport-outdoor',   keywords: ['sport','fitness','musculation','yoga','running','vélo','natation','randonnée','camping','outdoor','gym','trail','ski','tennis','football'] },
   { cat: 'high-tech',       keywords: ['tech','électronique','smartphone','téléphone','ordinateur','laptop','tablette','casque','écouteur','drone','smart','bluetooth','gaming','console'] },
@@ -909,13 +909,13 @@ async function cleanupMonoVendors(label) {
 async function ingestHarvest() {
   const s = EAN_INDEX.stats();
   console.log('\n' + '='.repeat(64));
-  console.log('PHASE B \u2014 INGESTION');
+  console.log('PHASE B \u2014 INGESTION  (seuil : ' + s.seuil + ' marchands)');
   console.log('='.repeat(64));
-  console.log('Lignes recoltees   : ' + s.lignes.toLocaleString('fr-FR'));
-  console.log('EAN uniques        : ' + s.eansUniques.toLocaleString('fr-FR'));
-  console.log('EAN multi-vendeurs : ' + s.eansPartages.toLocaleString('fr-FR')
-              + '  (' + (s.eansUniques ? Math.round(1000 * s.eansPartages / s.eansUniques) / 10 : 0) + '%)');
-  console.log('Disque utilise     : ' + Math.round(harvestDiskUsage() / 1e6) + ' Mo');
+  console.log('Lignes recoltees     : ' + s.lignes.toLocaleString('fr-FR'));
+  console.log('EAN uniques          : ' + s.eansUniques.toLocaleString('fr-FR'));
+  console.log('EAN chez 2 marchands+: ' + s.eansDeuxPlus.toLocaleString('fr-FR'));
+  console.log('EAN retenus (>=' + s.seuil + ')   : ' + s.eansRetenus.toLocaleString('fr-FR'));
+  console.log('Disque utilise       : ' + Math.round(harvestDiskUsage() / 1e6) + ' Mo');
   console.log('');
 
   EAN_INDEX.compact();   // libere la Map, seul le Set des EAN partages sert
