@@ -7,6 +7,7 @@ const AFFILAE_BASE        = 'https://rest.affilae.com';
 import { streamFeed, parseCSVLine } from './lib/stream-feed.js';
 import { EanIndex, HarvestWriter, resetHarvest, harvestedPrograms, selectMatching, harvestDiskUsage } from './lib/ean-index.js';
 import { categorize } from './lib/categorize.js';
+import { learnPrefixes, applyPrefixes } from './lib/ean-prefix.js';
 import pkg from 'pg';
 const { Client } = pkg;
 
@@ -607,6 +608,7 @@ async function syncAwin() {
       if (feed.name.match(/^AliExpress [A-Z]/)) feedDisplayName = 'AliExpress';
       if (feed.name.match(/^ManoMano [A-Z]/)) feedDisplayName = 'ManoMano';
       if (feed.name.match(/^Whirlpool [A-Z]/)) feedDisplayName = 'Whirlpool';
+      if (feed.name.match(/^Velostore [A-Z]/)) feedDisplayName = 'Velostore';
       const programId = 'awin_' + feedDisplayName.toLowerCase().replace(/[^a-z0-9]/g, '_');
       PROGRAM_META.set(programId, { title: feedDisplayName, category: feed.category });
       const writer = new HarvestWriter(programId);
@@ -803,10 +805,7 @@ async function syncCJ() {
     console.log('  \u2192 ' + feed.name + ' (partnerId ' + partnerId + ', limit ' + limit + ')');
 
     const programId = 'cj_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-    await supabaseUpsert('programs', [{
-      id: programId, title: feed.name, categories: [], countries: ['FR'],
-      updated_at: new Date().toISOString()
-    }]);
+    PROGRAM_META.set(programId, { title: feed.name, category: feed.category });
 
     const all = [];
     let offset = 0;
@@ -835,13 +834,11 @@ async function syncCJ() {
       continue;
     }
 
-    const products = all.slice(0, limit).map(function (p, i) {
+    const mapped = all.slice(0, limit).map(function (p, i) {
       const priceObj = p.salePrice && p.salePrice.amount ? p.salePrice : p.price;
       const price = parseFloat((priceObj && priceObj.amount) || 0);
       return {
-        id: (programId + '_' + (p.id || i)).replace(/[^a-z0-9_]/gi, '_').slice(0, 100),
-        affilae_id: programId + '_' + (p.id || i),
-        program_id: programId,
+        product_id: p.id || String(i),
         title: cleanTitle(p.title || ''),
         price: price,
         currency: (priceObj && priceObj.currency) || 'EUR',
@@ -849,34 +846,39 @@ async function syncCJ() {
         image_url: p.imageLink || '',
         brand: p.brand || null,
         ean: extractEAN(p.gtin || p.mpn || ''),
-        category: feed.category || detectCategory({ title: p.title || '', description: p.description || '', program: { title: feed.name } }),
-        lang: 'fr',
-        status: 'enabled',
-        updated_at: new Date().toISOString()
+        description: p.description || ''
       };
     }).filter(function (p) {
       return p.title && p.url && p.price > 0 && p.currency === 'EUR';
     });
 
-    const dropped = all.slice(0, limit).length - products.length;
+    const dropped = all.slice(0, limit).length - mapped.length;
     if (dropped > 0) console.log('     ' + dropped + ' ecartes (devise != EUR ou champs manquants)');
 
     const seen = new Set();
-    const unique = products.filter(function (p) {
-      if (seen.has(p.id)) return false;
-      seen.add(p.id); return true;
+    const writer = new HarvestWriter(programId);
+    mapped.forEach(function (p) {
+      const key = p.ean || p.product_id;
+      if (seen.has(key)) return;
+      seen.add(key);
+      p.program_id = programId;
+      p.feed_name = feed.name;
+      p.feed_category = feed.category || null;
+      writer.write(p);
+      if (p.ean) EAN_INDEX.add(p.ean, programId);
     });
 
-    const withEan = unique.filter(function (x) { return x.ean; }).length;
-    const pct = unique.length ? Math.round(100 * withEan / unique.length) : 0;
-    console.log('     EAN renseigne : ' + withEan + '/' + unique.length + ' (' + pct + '%)');
-    if (unique.length && pct === 0) {
+    const withEan = mapped.filter(function (x) { return x.ean; }).length;
+    const pct = mapped.length ? Math.round(100 * withEan / mapped.length) : 0;
+    console.log('     EAN renseigne : ' + withEan + '/' + mapped.length + ' (' + pct + '%)');
+    if (mapped.length && pct === 0) {
       const s = all[0] || {};
       console.log('     \u26a0\ufe0f aucun EAN \u2014 gtin=' + JSON.stringify(s.gtin)
                   + ' mpn=' + JSON.stringify(s.mpn));
     }
-    await supabaseUpsert('products', unique);
-    console.log('     \u2705 ' + unique.length + ' ins\u00e9r\u00e9s');
+    await writer.close();
+    console.log('     \ud83d\udce6 ' + writer.count + ' recoltees (' + writer.skippedNoEan + ' sans EAN ignorees)');
+    reportFeed(feed.name, writer.count);
   }
   console.log('\ud83c\udf89 CJ done');
 }
@@ -923,6 +925,7 @@ async function ingestHarvest() {
   EAN_INDEX.compact();   // libere la Map, seul le Set des EAN partages sert
 
   let totalKept = 0, totalScanned = 0;
+  const PENDING = [];
   for (const { programId, file } of harvestedPrograms()) {
     const meta = PROGRAM_META.get(programId) || { title: programId, category: null };
     try {
@@ -932,11 +935,6 @@ async function ingestHarvest() {
         console.log('  \u2013 ' + meta.title + ' : 0 / ' + scanned.toLocaleString('fr-FR'));
         continue;
       }
-
-      await supabaseUpsert('programs', [{
-        id: programId, title: meta.title, categories: [], countries: ['FR'],
-        updated_at: new Date().toISOString()
-      }]);
 
       const mapped = kept.map((p, i) => {
         const raw = p.product_id ? programId + '_' + p.product_id : programId + '_' + p.ean;
@@ -964,11 +962,7 @@ async function ingestHarvest() {
         };
       });
 
-      mapped.forEach(function(m){ CAT_STATS[m.category] = (CAT_STATS[m.category] || 0) + 1; });
-
-      for (let i = 0; i < mapped.length; i += 50) {
-        await supabaseUpsert('products', mapped.slice(i, i + 50));
-      }
+      PENDING.push({ programId: programId, meta: meta, rows: mapped });
       totalKept += mapped.length;
       const pct = scanned ? Math.round(1000 * mapped.length / scanned) / 10 : 0;
       console.log('  \u2705 ' + meta.title + ' : ' + mapped.length.toLocaleString('fr-FR')
@@ -977,6 +971,33 @@ async function ingestHarvest() {
       console.log('  \u26a0\ufe0f ' + meta.title + ' : ' + e.message);
     }
   }
+
+  // ── Apprentissage par prefixe entreprise EAN ──
+  const allRows = [];
+  PENDING.forEach(function(b){ b.rows.forEach(function(r){ allRows.push(r); }); });
+
+  const learned = learnPrefixes(allRows);
+  const res = applyPrefixes(allRows, learned);
+  console.log('\n\ud83e\udde0 Prefixes entreprise appris : ' + res.prefixes.toLocaleString('fr-FR'));
+  console.log('   Produits reclasses depuis "autres" : ' + res.reclasses.toLocaleString('fr-FR'));
+  if (res.reclasses) {
+    Object.entries(res.parCategorie).sort(function(a,b){ return b[1]-a[1]; })
+      .forEach(function(e){ console.log('     ' + e[0].padEnd(20) + e[1]); });
+  }
+
+  // ── Insertion ──
+  for (const b of PENDING) {
+    try {
+      await supabaseUpsert('programs', [{
+        id: b.programId, title: b.meta.title, categories: [], countries: ['FR'],
+        updated_at: new Date().toISOString()
+      }]);
+      for (let i = 0; i < b.rows.length; i += 50) {
+        await supabaseUpsert('products', b.rows.slice(i, i + 50));
+      }
+    } catch (e) { console.log('  \u26a0\ufe0f ' + b.meta.title + ' : ' + e.message); }
+  }
+  allRows.forEach(function(r){ CAT_STATS[r.category] = (CAT_STATS[r.category] || 0) + 1; });
 
   console.log('\n\ud83c\udf89 Ingestion : ' + totalKept.toLocaleString('fr-FR')
               + ' produits comparables sur ' + totalScanned.toLocaleString('fr-FR') + ' recoltes');
@@ -1003,14 +1024,14 @@ async function main() {
     await syncEffinity();
     await syncAffilaeFeeds();
     await syncAwin();
+    await syncCJ();   // API paginee : reste en phase A pour beneficier du croisement 3-marchands
 
-    // ── PHASE B : on n'insère que les EAN présents chez 2+ marchands ──
+    // ── PHASE B : on n'insère que les EAN présents chez 3+ marchands ──
     await ingestHarvest();
 
     // ── Sources API : petits volumes, insertion directe ──
     await syncBCDJeux();
     await syncRakuten();
-    await syncCJ();
     // await syncAliExpress(); // Désactivé - tracking_id invalide
     if (_neonClient) await _neonClient.end();
     // Nettoyage automatique des mono-vendeurs
