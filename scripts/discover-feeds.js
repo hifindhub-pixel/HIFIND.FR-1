@@ -68,9 +68,13 @@ async function discoverAwin() {
     console.log('  Programmes rejoints : ' + progs.length);
   } catch (e) { console.log('  Erreur: ' + e.message); return null; }
 
-  // 2) Liste des FLUX (fid). Le fid n'est PAS le mid : il faut cet endpoint.
+  // 2) Liste des FLUX (fid) avec leur URL d'exemple REELLE. Le fid n'est PAS
+  //    le mid : il faut cet endpoint. L'URL d'exemple choisit elle-meme le bon
+  //    format (classique productdata.awin.com OU darwin ui.awin.com) selon
+  //    ce que le marchand a configure — on ne doit pas la reconstruire nous-memes.
   console.log('\n  Recuperation de la liste des flux (fid)...');
   const listCandidates = [
+    'https://ui.awin.com/productdata-darwin-download/publisher/' + AWIN_PUBLISHER_ID + '/' + AWIN_API_KEY + '/1/feedList',
     'https://productdata.awin.com/datafeed/list/apikey/' + AWIN_API_KEY + '/',
     'https://api.awin.com/publishers/' + AWIN_PUBLISHER_ID + '/datafeeds',
     'https://api.awin.com/publishers/' + AWIN_PUBLISHER_ID + '/productdata/feeds',
@@ -115,9 +119,17 @@ async function discoverAwin() {
     if (lang && lang !== 'FR') { continue; }
     if (count === 0) { skipped.push(name + ' (vide)'); continue; }
 
-    const feedUrl = 'https://productdata.awin.com/datafeed/download/apikey/' + AWIN_API_KEY +
-                    '/language/fr/fid/' + fid + '/rid/0/hasEnhancedFeeds/0/columns/' + AWIN_COLUMNS +
-                    '/format/csv/delimiter/%2C/compression/gzip/adultcontent/1/';
+    // L'URL d'exemple renvoyee par la liste connait le VRAI format du flux
+    // (colonnes personnalisees classiques, ou gabarit darwin/Google Merchant
+    // fixe). On l'utilise telle quelle plutot que de la reconstruire :
+    // reconstruire donne un flux vide pour les marchands en darwin.
+    const exampleUrl = row['Example Download URL'] || row.exampleDownloadUrl
+                      || row['Example URL'] || row.url || row.downloadUrl;
+    const feedUrl = exampleUrl || (
+      'https://productdata.awin.com/datafeed/download/apikey/' + AWIN_API_KEY +
+      '/language/fr/fid/' + fid + '/rid/0/hasEnhancedFeeds/0/columns/' + AWIN_COLUMNS +
+      '/format/csv/delimiter/%2C/compression/gzip/adultcontent/1/'
+    );
 
     process.stdout.write('  ' + name + ' (fid ' + fid + ', ' + count + ') ... ');
     const t = await testFeed(feedUrl);
