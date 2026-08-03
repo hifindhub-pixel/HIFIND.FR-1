@@ -621,13 +621,17 @@ async function syncAwin() {
         normalizeHeader: h => h.trim().replace(/^"|"$/g,'').toLowerCase().replace(/\s+/g,'_'),
         onHeaders: (headers, sep) => console.log('  Colonnes:', headers.length, '| sep:', JSON.stringify(sep)),
         onRecord: (obj) => {
-          const title = cleanTitle(obj.product_name || obj.name || obj.title || '');
-          const url = obj.aw_deep_link || obj.merchant_deep_link || obj.url || '';
-          const price = parseFloat(obj.search_price || obj.store_price || obj.price || '0');
-          const image = obj.aw_image_url || obj.merchant_image_url || obj.large_image || '';
-          const ean = extractEAN(obj.ean || obj.product_gtin || obj.upc || obj.isbn || '');
+          // Deux familles de flux Awin : le format "datafeed" classique
+          // (aw_deep_link, search_price, ean) et le format Google Merchant
+          // "retail" (link, price, gtin) utilise par certains marchands
+          // (ex: Planet Foot, Welax) quand le format classique est vide.
+          const title = cleanTitle(obj.product_name || obj.title || obj.name || '');
+          const url = obj.aw_deep_link || obj.merchant_deep_link || obj.link || obj.url || '';
+          const price = parseFloat(obj.search_price || obj.price || obj.store_price || obj.sale_price || '0');
+          const image = obj.aw_image_url || obj.image_link || obj.merchant_image_url || obj.large_image || '';
+          const ean = extractEAN(obj.ean || obj.gtin || obj.product_gtin || obj.upc || obj.isbn || '');
           const brand = obj.brand_name || obj.brand || '';
-          const productId = obj.aw_product_id || obj.merchant_product_id || '';
+          const productId = obj.aw_product_id || obj.id || obj.merchant_product_id || '';
 
           if (!title || !url || !(price > 0) || !ean) return true;
           const key = ean + '_' + price;
