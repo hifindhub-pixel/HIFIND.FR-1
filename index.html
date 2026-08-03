@@ -600,11 +600,16 @@ nav {
 .offer-row:hover { background:var(--bg3); }
 .offer-row.best { background:rgba(34,197,94,.04); }
 .offer-merchant { display:flex; align-items:center; gap:.6rem; }
-.offer-logo { width:22px; height:22px; border-radius:4px; object-fit:contain; }
+.offer-logo {
+  width:34px; height:34px; border-radius:7px; object-fit:contain;
+  background:#fff; border:1px solid var(--border2); padding:3px; flex-shrink:0;
+}
 .offer-logo-placeholder {
-  width:22px; height:22px; border-radius:4px;
-  background:var(--coral); display:flex; align-items:center;
-  justify-content:center; color:#fff; font-size:.55rem; font-weight:900;
+  width:34px; height:34px; border-radius:7px; flex-shrink:0;
+  background:var(--bg4); border:1px solid var(--border2);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--sub); font-family:'Barlow Condensed',sans-serif;
+  font-size:.8rem; font-weight:800; letter-spacing:.02em;
 }
 .offer-name { font-weight:700; font-size:.85rem; }
 .offer-badges { display:flex; gap:.3rem; margin-top:.15rem; flex-wrap:wrap; }
@@ -1177,6 +1182,7 @@ function applyTheme(t) {
 function toggleTheme() { applyTheme(theme === 'dark' ? 'light' : 'dark'); }
 
 // ══ STATE ══
+var allResults = [];
 var currentResults = [];
 var currentProduct = null;
 var favorites = JSON.parse(localStorage.getItem('hf_favs') || '[]');
@@ -1273,11 +1279,9 @@ async function runSearch(q) {
   showSpinner('resultsContainer');
   var data = await apiFetch('action=search&q=' + encodeURIComponent(q) + '&limit=40');
   if (data && data.data && data.data.length > 0) {
-    currentResults = data.data;
+    allResults = data.data; currentResults = allResults.slice();
     renderResults(currentResults);
-    updateCount(currentResults.length, q);
   renderFacets(); renderChips();
-    updateSliderMax(currentResults);
   } else {
     document.getElementById('resultsContainer').innerHTML =
       '<div class="empty-state"><div class="empty-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div><div class="empty-title">Aucun résultat</div><div class="empty-sub">Essayez avec d\'autres mots clés</div></div>';
@@ -1292,11 +1296,9 @@ async function loadCategory(cat) {
   var action = cat ? 'action=category&cat=' + encodeURIComponent(cat) : 'action=list';
   var data = await apiFetch(action + '&limit=40');
   if (data && data.data && data.data.length > 0) {
-    currentResults = data.data;
-    updateSliderMax(currentResults);
+    allResults = data.data; currentResults = allResults.slice();
   renderFacets(); renderChips();
     renderResults(currentResults);
-    updateCount(currentResults.length, cat || 'tous les produits');
   } else {
     document.getElementById('resultsContainer').innerHTML =
       '<div class="empty-state"><div class="empty-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></div><div class="empty-title">Aucun produit</div><div class="empty-sub">Aucun produit dans cette catégorie pour l\'instant</div></div>';
@@ -1307,10 +1309,7 @@ function showSpinner(id) {
   document.getElementById(id).innerHTML = '<div class="spinner"><div class="spin"></div><p class="spin-lbl">Chargement...</p></div>';
 }
 
-function updateCount(n, q) {
-  var el = document.getElementById('resultsCount');
-  if (el) el.innerHTML = '<strong>' + n + '</strong> produit' + (n > 1 ? 's' : '') + (q ? ' pour "' + q + '"' : '');
-}
+
 
 // ══ FILTRES ══
 function filterCat(cat, btn) {
@@ -1324,51 +1323,15 @@ function filterCat(cat, btn) {
   }
 }
 
-function setPriceRange(max) {
-  document.getElementById('priceSlider').value = max;
-  document.getElementById('priceDisplay').textContent = max + ' €';
-  document.querySelectorAll('.price-range-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-  applyFilters();
-}
 
-function updatePriceDisplay() {
-  var v = document.getElementById('priceSlider').value;
-  document.getElementById('priceDisplay').textContent = v + ' €';
-}
 
-function updateSliderMax(results) {
-  if (!results || !results.length) return;
-  var max = Math.ceil(Math.max(...results.map(p => parseFloat(p.price) || 0)));
-  var slider = document.getElementById('priceSlider');
-  if (slider) { slider.max = max; slider.value = max; }
-  document.getElementById('priceDisplay').textContent = max + ' €';
-}
 
-function applyFilters() {
-  var maxPrice = parseFloat(document.getElementById('priceSlider').value) || Infinity;
-  var checkedBrands = Array.from(document.querySelectorAll('.brand-cb:checked')).map(c => c.value);
-  var freeShip = document.getElementById('filterFreeShip') && document.getElementById('filterFreeShip').checked;
-  var filtered = currentResults.filter(function(p) {
-    if ((parseFloat(p.price)||0) > maxPrice) return false;
-    if (checkedBrands.length > 0) {
-      var b = p.brand || p.program_title || '';
-      if (!checkedBrands.includes(b)) return false;
-    }
-    return true;
-  });
-  renderResults(filtered);
-  updateCount(filtered.length, '');
-}
 
-function clearFilters() {
-  document.querySelectorAll('.price-range-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.brand-cb').forEach(c => c.checked = false);
-  var fs = document.getElementById('filterFreeShip');
-  if (fs) fs.checked = false;
-  updateSliderMax(currentResults);
-  renderResults(currentResults);
-}
+
+
+
+
+
 
 function sortResults() {
   var s = (document.getElementById('sortSelect')||{}).value || 'relevance';
@@ -1423,19 +1386,61 @@ function getImageUrl(p) {
 
 function getFavicon(name) {
   if (!name) return '';
-  var n = name.toLowerCase();
+  var n = normalizeMerchant(name).toLowerCase().trim();
   var map = {
-    'news parfums': 'news-parfums.com', 'beauty success': 'beautysuccess.fr',
-    'norauto': 'norauto.fr', 'pièces et pneus': 'piecesetpneus.com',
-    'pieces et pneus': 'piecesetpneus.com', 'made in sport': 'madeinsport.com',
-    'pc portable': 'pc-portable.net', 'vertbaudet': 'vertbaudet.fr',
-    'mon pied': 'monpiedceheros.fr', 'cabesto': 'cabesto.com',
-    'electro': 'electrodepot.fr', 'dim': 'dim.fr', 'daxon': 'daxon.fr',
-    'rakuten': 'rakuten.com', 'darty': 'darty.com',
+    // Effinity
+    'norauto':'norauto.fr','vertbaudet':'vertbaudet.fr','mon pied':'monpiedceheros.fr',
+    'beauty success':'beautysuccess.fr','pc portable':'pc-portable.net',
+    'made in sport':'madeinsport.com','pieces et pneus':'piecesetpneus.com',
+    'pièces et pneus':'piecesetpneus.com','news parfums':'news-parfums.com',
+    'my beauty factory':'mybeautyfactory.fr','electro':'electrodepot.fr',
+    'daxon':'daxon.fr','cabesto':'cabesto.com','speedway':'speedway.fr',
+    'moto axxe':'moto-axxe.fr','maxxess':'maxxess.fr','gorilla':'gorillasports.fr',
+    'clarins':'clarins.fr','carter':'carter-cash.com','blancheporte':'blancheporte.fr',
+    'cyrillus':'cyrillus.fr','afibel':'afibel.com','devred':'devred.com',
+    'isotoner':'isotoner.fr','jambissima':'jambissima.fr','batinea':'batinea.com',
+    'fackelmann':'fackelmann.fr','gerflor':'gerflor.fr','amour de tapis':'unamourdetapis.com',
+    'maison berger':'maison-berger.fr','jardin affaires':'jardin-affaires.com',
+    'jardins loisirs':'jardins-loisirs.com','stores et rideaux':'stores-et-rideaux.com',
+    'tempur':'fr.tempur.com','hailo':'hailo-shop.fr','warm-on':'warm-on.fr',
+    'detecteurs':'detecteurs.fr','1001 pendules':'1001pendules.fr',
+    'parapharmacie':'parapharmacie-et-medicament.com','ilapharm':'ilapharm.com',
+    'ruedesplantes':'ruedesplantes.com','propolia':'propolia.com','livlab':'livlab.care',
+    'securimed':'securimed.fr','malentille':'malentille.com','dietbon':'dietbon.fr',
+    'biarritz':'laboratoires-biarritz.com','materiel informatique':'materiel-informatique.fr',
+    'matériel informatique':'materiel-informatique.fr','factorefurb':'factorefurb.com',
+    'toner':'toner.fr','rekt':'rekt.fr','modz':'modz.fr','kymaxx':'kymaxx.com',
+    'becanerie':'la-becanerie.com','bécanerie':'la-becanerie.com',
+    'revue technique':'revue-technique-auto.fr','velo boutique':'veloboutiquepro.com',
+    'vélo boutique':'veloboutiquepro.com','tentbox':'eu.tentbox.com','lunii':'lunii.com',
+    'kids around':'kidsaround.com','little crevette':'little-crevette.fr',
+    'cotons de romane':'lescotonsderomane.com','equilibre':'equilibre-et-instinct.com',
+    'bdfugue':'bdfugue.com','ecigplanete':'ecigplanete.com','pixartprinting':'pixartprinting.fr',
+    'prismashop':'prismashop.fr','conteenium':'conteenium.fr','tempsl':'tempsl.fr',
+    'poulettes':'lespoulettes-bijoux.fr','elise':'eliseetmoi.com',
+    // Affilae
+    '1001 pneus':'1001pneus.fr','allo pneus':'allopneus.com',
+    'boutique du coiffeur':'laboutiqueducoiffeur.com','greenweez':'greenweez.com',
+    'biomedi':'biomedi.fr',
+    // Awin
+    'geekbuying':'geekbuying.com','footstore':'foot-store.fr','foot store':'foot-store.fr',
+    'acer':'acer.com','rakuten':'fr.shopping.rakuten.com','rue du commerce':'rueducommerce.fr',
+    'joybuy':'joybuy.com','pixmania':'pixmania.com','electrolux':'electrolux.fr',
+    'aliexpress':'aliexpress.com','perfumeria comas':'perfumeriascomas.com',
+    'xiaomi':'mi.com','planet foot':'planetfoot.com','pneus fr':'pneus.fr',
+    'manomano':'manomano.fr','whirlpool':'whirlpool.fr',
+    // CJ
+    'sandisk':'sandisk.com','ugreen':'ugreen.com','wd':'westerndigital.com',
+    'stiga':'stigasports.com','babybjorn':'babybjorn.fr','printworks':'printworksmarket.com',
+    'irobot':'irobot.fr','lexar':'lexar.com',
+    // Autres
+    'bcd jeux':'bcdjeux.com'
   };
-  for (var k in map) { if (n.includes(k)) return 'https://www.google.com/s2/favicons?sz=32&domain=' + map[k]; }
-  return '';
+  for (var k in map) { if (n.indexOf(k) !== -1) return 'https://www.google.com/s2/favicons?sz=64&domain=' + map[k]; }
+  var guess = n.replace(/[^a-z0-9]/g, '');
+  return guess ? 'https://www.google.com/s2/favicons?sz=64&domain=' + guess + '.fr' : '';
 }
+
 
 function pcardHTML(p) {
   var img = getImageUrl(p);
@@ -1528,7 +1533,7 @@ async function openDetail(id) {
   var offerRows = offers.map(function(o, i) {
     var fav = getFavicon(o.merchant);
     var logoEl = fav
-      ? '<img src="' + fav + '" class="offer-logo" onerror="this.style.display=\'none\'">'
+      ? '<img src="' + fav + '" class="offer-logo" alt="" loading="lazy" onerror="this.outerHTML=\'<div class=&quot;offer-logo-placeholder&quot;>' + o.merchant.slice(0,2).toUpperCase() + '</div>\'">'
       : '<div class="offer-logo-placeholder">' + o.merchant.slice(0,2).toUpperCase() + '</div>';
     var isBest = i === 0;
     return '<div class="offer-row' + (isBest ? ' best' : '') + '">'
@@ -1679,56 +1684,51 @@ function hideSugg(id) { var el=document.getElementById(id); if(el) el.style.disp
 
 async function initHome() {
   try {
-    var data = await apiFetch('action=list&limit=30');
-    var products = data && data.data ? data.data : [];
+    // On demande large : le tri se fait ensuite sur la distribution reelle
+    var data = await apiFetch('action=list&limit=120');
+    var products = (data && data.data) ? data.data : [];
+    products.forEach(function(p){ homeProductsCache[p.id] = p; });
 
-    products.forEach(p => { homeProductsCache[p.id] = p; });
+    // Score de "best-seller" : un produit reference par beaucoup de marchands
+    // est, de fait, un produit que le marche distribue largement.
+    var scored = products.map(function(p){
+      var offers = offersOf(p);
+      var lo = offers.length ? offers[0].price : (parseFloat(p.price) || 0);
+      var hi = offers.length ? offers[offers.length-1].price : lo;
+      var spread = hi > lo ? (1 - lo/hi) : 0;
+      return { p: p, n: offers.length, spread: spread, lo: lo };
+    }).filter(function(x){ return x.n >= 2 && x.lo > 0; });
 
-    var tg = document.getElementById('trendingGrid');
-    if (tg) tg.innerHTML = products.slice(0, 8).map(p => prodCardSmall(p, false)).join('') || '<p style="color:var(--sub);padding:1rem">Aucun produit</p>';
+    // Les plus distribues d'abord, l'ecart departage a nombre egal
+    var popular = scored.slice().sort(function(a,b){
+      return (b.n - a.n) || (b.spread - a.spread);
+    });
+    // Les plus gros ecarts, parmi ceux vendus par 3 marchands ou plus
+    var deals = scored.filter(function(x){ return x.n >= 3; })
+                      .sort(function(a,b){ return b.spread - a.spread; });
 
-    // Bons plans : ceux avec le plus grand écart de prix
-    var deals = products.filter(p => p.ean_offers && p.ean_offers.length > 1).map(p => {
-      var prices = p.ean_offers.map(o => parseFloat(o.price)).filter(x => x > 0).sort((a,b)=>a-b);
-      var saving = prices.length > 1 ? Math.round((1 - prices[0]/prices[prices.length-1]) * 100) : 0;
-      return { ...p, saving };
-    }).sort((a,b) => b.saving - a.saving);
-
-    var dg = document.getElementById('dealsGrid');
-    if (dg) dg.innerHTML = deals.slice(0, 8).map(p => prodCardSmall(p, true)).join('') || '<p style="color:var(--sub);padding:1rem">Aucun bon plan</p>';
-
-    // Carousel hero
-    var heroProducts = products.filter(function(p){ return p.image_url; }).slice(0, 5);
-    if (heroProducts.length > 0) {
-      var slides = document.getElementById('heroSlides');
-      var dots = document.getElementById('heroDots');
-      if (slides) {
-        slides.innerHTML = heroProducts.map(function(p, i) {
-          var img = p.image_url || '';
-          var price = parseFloat(p.price).toLocaleString('fr-FR', {minimumFractionDigits:2});
-          var brand = normalizeMerchant(p.program_title || p.brand || '');
-          var safeSlideId = p.id; return '<div class="hero-slide" data-id="' + safeSlideId + '" style="min-width:100%;height:100%;position:relative;background:#fff;cursor:pointer">'
-            + '<img src="' + img + '" style="width:100%;height:100%;object-fit:contain;padding:1.5rem">'
-            + '<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(15,23,42,.95));padding:1.2rem">'
-              + '<div style="font-size:.65rem;color:#94a3b8;font-weight:700;text-transform:uppercase;margin-bottom:.2rem">' + brand + '</div>'
-              + '<div style="font-size:.88rem;font-weight:700;color:#fff;margin-bottom:.3rem;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">' + p.title + '</div>'
-              + '<div style="font-size:.65rem;color:#94a3b8;margin-bottom:.1rem">À partir de</div>'
-              + '<div style="font-family:Barlow Condensed,sans-serif;font-size:1.5rem;font-weight:900;color:#FF6B6B">' + price + ' €</div>'
-            + '</div>'
-          + '</div>';
-        }).join('');
-        if (dots) {
-          dots.innerHTML = heroProducts.map(function(_, i) {
-            return '<div onclick="goToSlide(' + i + ')" style="width:' + (i===0?'18':'7') + 'px;height:7px;border-radius:4px;background:' + (i===0?'#FF6B6B':'rgba(255,255,255,.4)') + ';cursor:pointer;transition:all .3s" id="dot-' + i + '"></div>';
-          }).join('');
-        }
-        heroProducts.forEach(function(p) { homeProductsCache[p.id] = p; });
+    var seen = {};
+    var fill = function(el, list, count, flagBest){
+      if (!el) return;
+      var out = [];
+      for (var i = 0; i < list.length && out.length < count; i++) {
+        var id = list[i].p.id;
+        if (seen[id]) continue;
+        seen[id] = 1;
+        out.push(cardHTML(list[i].p, flagBest ? out.length : 1));
       }
-    }
-  } catch(e) {
-    console.error('initHome error:', e);
+      el.className = 'pgrid';
+      el.innerHTML = out.length ? out.join('')
+        : '<p style="color:var(--sub);padding:1rem">Aucun produit pour le moment.</p>';
+    };
+
+    fill(document.getElementById('dealsGrid'), deals, 12, true);
+    fill(document.getElementById('trendingGrid'), popular, 16, false);
+  } catch (e) {
+    console.error('initHome', e);
   }
 }
+
 
 // ── CAROUSEL ──
 var carouselIdx = 0;
