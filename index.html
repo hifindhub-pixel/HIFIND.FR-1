@@ -702,6 +702,144 @@ nav {
   .prod-grid { grid-template-columns:repeat(2,1fr); }
   .hero h1 { font-size:2.2rem; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   PAGE CATÉGORIE — facettes + cartes à fourchette de prix
+   ═══════════════════════════════════════════════════════════ */
+:root{
+  --jade:#10B981; --jade-bg:rgba(16,185,129,.12);
+  --amber:#F59E0B; --amber-bg:rgba(245,158,11,.14);
+  --num:'Barlow Condensed',var(--font-body,sans-serif);
+}
+.num{ font-family:var(--num); font-variant-numeric:tabular-nums; font-weight:700; }
+
+/* ── En-tête de catégorie ── */
+.cat-head{ max-width:1400px; margin:0 auto; padding:1.4rem 1.5rem .2rem; }
+.cat-head-top{ display:flex; align-items:flex-end; justify-content:space-between; gap:1.5rem; flex-wrap:wrap; }
+.cat-title{ font-family:'Barlow Condensed',sans-serif; font-size:2rem; font-weight:800; letter-spacing:-.01em; line-height:1.05; }
+.cat-title .cat-count{ font-family:var(--num); font-size:1.05rem; font-weight:600; color:var(--dim); margin-left:.5rem; vertical-align:.18em; }
+.cat-lede{ font-size:.86rem; color:var(--sub); margin-top:.35rem; max-width:62ch; }
+.cat-tools{ display:flex; align-items:center; gap:.5rem; }
+
+.view-toggle{ display:flex; border:1px solid var(--border2); border-radius:8px; overflow:hidden; }
+.view-toggle button{ width:34px; height:34px; display:grid; place-items:center; background:transparent; border:none; color:var(--dim); cursor:pointer; transition:background .15s,color .15s; }
+.view-toggle button:hover{ color:var(--text); }
+.view-toggle button.on{ background:var(--bg3); color:var(--coral); }
+
+/* ── Facettes actives ── */
+.chips{ display:flex; flex-wrap:wrap; gap:.4rem; padding:.9rem 0 0; }
+.chip{ display:inline-flex; align-items:center; gap:.4rem; padding:.28rem .55rem .28rem .7rem;
+  background:var(--bg3); border:1px solid var(--border2); border-radius:100px; font-size:.76rem; color:var(--text); }
+.chip button{ width:16px; height:16px; display:grid; place-items:center; border:none; background:transparent;
+  color:var(--dim); cursor:pointer; border-radius:50%; }
+.chip button:hover{ background:var(--coral); color:#fff; }
+.chips-clear{ font-size:.76rem; color:var(--coral); font-weight:600; cursor:pointer; background:none; border:none; padding:.28rem .4rem; }
+
+/* ── Sidebar de facettes ── */
+.facets{ background:var(--bg2); border:1px solid var(--border); border-radius:12px; position:sticky; top:112px; overflow:hidden; }
+.facet{ border-bottom:1px solid var(--border); }
+.facet:last-child{ border-bottom:none; }
+.facet-btn{ width:100%; display:flex; align-items:center; justify-content:space-between; gap:.5rem;
+  padding:.75rem .9rem; background:transparent; border:none; cursor:pointer; color:var(--text);
+  font-size:.82rem; font-weight:700; text-align:left; }
+.facet-btn:hover{ background:var(--bg3); }
+.facet-btn svg{ color:var(--dim); transition:transform .2s; flex-shrink:0; }
+.facet.closed .facet-btn svg{ transform:rotate(-90deg); }
+.facet-body{ padding:0 .9rem .85rem; }
+.facet.closed .facet-body{ display:none; }
+
+.facet-list{ max-height:220px; overflow-y:auto; margin:0 -.2rem; padding:0 .2rem; scrollbar-width:thin; }
+.facet-list::-webkit-scrollbar{ width:4px; }
+.facet-list::-webkit-scrollbar-thumb{ background:var(--border2); border-radius:2px; }
+
+.opt{ display:flex; align-items:center; gap:.55rem; padding:.3rem .25rem; border-radius:6px;
+  font-size:.8rem; color:var(--sub); cursor:pointer; transition:background .12s,color .12s; }
+.opt:hover{ background:var(--bg3); color:var(--text); }
+.opt input{ accent-color:var(--coral); width:14px; height:14px; cursor:pointer; flex-shrink:0; }
+.opt-label{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.opt-n{ font-family:var(--num); font-size:.74rem; font-weight:600; color:var(--dim); }
+.opt input:checked ~ .opt-label{ color:var(--text); font-weight:600; }
+
+.facet-search{ width:100%; height:30px; padding:0 .55rem; margin-bottom:.45rem;
+  background:var(--bg3); border:1px solid var(--border); border-radius:6px;
+  color:var(--text); font-size:.76rem; outline:none; }
+.facet-search:focus{ border-color:var(--coral); }
+.facet-more{ background:none; border:none; color:var(--coral); font-size:.75rem; font-weight:600;
+  cursor:pointer; padding:.35rem .25rem 0; }
+
+/* Prix : deux champs + curseur */
+.range-row{ display:flex; align-items:center; gap:.4rem; margin-bottom:.6rem; }
+.range-in{ flex:1; min-width:0; height:32px; padding:0 .5rem; background:var(--bg3);
+  border:1px solid var(--border); border-radius:6px; color:var(--text);
+  font-family:var(--num); font-size:.85rem; font-weight:600; outline:none; text-align:center; }
+.range-in:focus{ border-color:var(--coral); }
+.range-sep{ color:var(--dim); font-size:.8rem; }
+.range-go{ width:32px; height:32px; flex-shrink:0; display:grid; place-items:center;
+  background:var(--coral); border:none; border-radius:6px; color:#fff; cursor:pointer; }
+.range-go:hover{ background:var(--coral-h); }
+.range-slider{ width:100%; accent-color:var(--coral); }
+
+/* ── Grille produits ── */
+.pgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(232px,1fr)); gap:1rem; }
+.plist{ display:flex; flex-direction:column; gap:.7rem; }
+
+.card{ background:var(--bg2); border:1px solid var(--border); border-radius:12px;
+  overflow:hidden; cursor:pointer; display:flex; flex-direction:column;
+  transition:border-color .18s, transform .18s, box-shadow .18s; }
+.card:hover{ border-color:var(--border2); transform:translateY(-2px); box-shadow:var(--shadow); }
+
+.card-media{ position:relative; aspect-ratio:4/3; background:#fff; display:grid; place-items:center; padding:1rem; }
+.card-media img{ max-width:100%; max-height:100%; object-fit:contain; }
+.card-flag{ position:absolute; top:.55rem; left:.55rem; padding:.2rem .45rem; border-radius:5px;
+  font-family:var(--num); font-size:.7rem; font-weight:700; letter-spacing:.02em; }
+.card-flag.top{ background:var(--amber); color:#1a1200; }
+.card-flag.deal{ background:var(--jade); color:#04241a; }
+.card-fav{ position:absolute; top:.45rem; right:.45rem; width:30px; height:30px; border-radius:8px;
+  background:rgba(255,255,255,.92); border:none; display:grid; place-items:center;
+  color:#64748b; cursor:pointer; transition:color .15s, transform .15s; }
+.card-fav:hover{ color:var(--coral); transform:scale(1.08); }
+.card-fav.on{ color:var(--coral); }
+
+.card-body{ padding:.75rem .8rem .8rem; display:flex; flex-direction:column; gap:.45rem; flex:1; }
+.card-brand{ font-family:var(--num); font-size:.7rem; font-weight:700; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--dim); }
+.card-name{ font-size:.85rem; font-weight:600; line-height:1.35;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.card-specs{ font-size:.74rem; color:var(--sub); line-height:1.4;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
+/* Signature : la fourchette de prix */
+.spread{ margin-top:auto; padding-top:.55rem; border-top:1px solid var(--border); }
+.spread-track{ height:4px; border-radius:2px; background:var(--bg4); position:relative; overflow:hidden; margin-bottom:.4rem; }
+.spread-fill{ position:absolute; inset:0 auto 0 0; background:linear-gradient(90deg,var(--jade),var(--amber)); }
+.spread-row{ display:flex; align-items:baseline; justify-content:space-between; gap:.5rem; }
+.spread-low{ font-family:var(--num); font-size:1.28rem; font-weight:800; color:var(--text); line-height:1; }
+.spread-low small{ font-size:.68rem; font-weight:600; color:var(--dim); display:block; margin-bottom:.1rem;
+  letter-spacing:.06em; text-transform:uppercase; }
+.spread-high{ font-family:var(--num); font-size:.82rem; font-weight:600; color:var(--dim); }
+.card-meta{ display:flex; align-items:center; gap:.4rem; font-size:.73rem; color:var(--sub); margin-top:.35rem; }
+.card-meta .dot{ width:3px; height:3px; border-radius:50%; background:var(--dim); }
+.card-meta strong{ color:var(--jade); font-family:var(--num); font-weight:700; }
+
+/* ── Vue liste ── */
+.plist .card{ flex-direction:row; }
+.plist .card-media{ width:150px; flex-shrink:0; aspect-ratio:1; }
+.plist .card-body{ flex-direction:row; align-items:center; gap:1.2rem; }
+.plist .card-main{ flex:1; min-width:0; display:flex; flex-direction:column; gap:.35rem; }
+.plist .spread{ width:210px; flex-shrink:0; margin:0; padding:0 0 0 1.2rem; border-top:none; border-left:1px solid var(--border); }
+.plist .card-specs{ -webkit-line-clamp:1; }
+
+@media(max-width:900px){
+  .plist .card{ flex-direction:column; }
+  .plist .card-media{ width:100%; aspect-ratio:4/3; }
+  .plist .card-body{ flex-direction:column; align-items:stretch; }
+  .plist .spread{ width:auto; padding:.55rem 0 0; border-left:none; border-top:1px solid var(--border); }
+}
+@media(max-width:768px){
+  .cat-title{ font-size:1.5rem; }
+  .pgrid{ grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:.7rem; }
+}
+
 </style>
 </head>
 <body>
@@ -716,7 +854,7 @@ nav {
       <input type="text" id="navInput" placeholder="Rechercher un produit..."
         onkeydown="if(event.key==='Enter') doNavSearch()"
         autocomplete="off">
-      <button onclick="doNavSearch()">🔍</button>
+      <button onclick="doNavSearch()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
     </div>
     <ul class="nav-cats">
       <li class="nav-cat active" onclick="showPage('home');setActiveNavCat(this)">Bons plans</li>
@@ -742,7 +880,7 @@ nav {
   <div class="hero">
     <div class="hero-inner">
       <div class="hero-left">
-        <div class="hero-badge">✨ La plateforme qui vous fait économiser</div>
+        <div class="hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.9 1.4 7L12 17.8 5.8 21.3l1.4-7L2 9.4l7-.8Z"/></svg> La plateforme qui vous fait économiser</div>
         <h1 class="barlow">Les <span class="accent">meilleurs prix</span>,<br>un seul endroit.</h1>
         <p class="hero-sub">Comparez en temps réel des milliers d'offres chez vos marchands préférés. Économisez jusqu'à 40% sur vos produits.</p>
         <div class="hero-search">
@@ -812,7 +950,7 @@ nav {
 
   <!-- CATÉGORIES -->
   <div class="section">
-    <div class="section-label">📦 Univers</div>
+    <div class="section-label"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg> Univers</div>
     <h2 class="section-title barlow">Trouvez par univers</h2>
     <div class="cats-grid">
       <div class="cat-card large" onclick="goCategory('beaute-bienetre')">
@@ -886,7 +1024,7 @@ nav {
   <!-- TENDANCES -->
   <div style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:3rem 0">
     <div class="section" style="padding-top:0;padding-bottom:0">
-      <div class="section-label">🔥 Tendances du moment</div>
+      <div class="section-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3.5-1.5 4.5-1.5 7A3.5 3.5 0 0 0 14 12c1.5 0 2-1 2-1s1.5 2 1.5 4.5A5.5 5.5 0 0 1 12 21a5.5 5.5 0 0 1-5.5-5.5C6.5 10 12 8.5 12 2Z"/></svg> Tendances du moment</div>
       <h2 class="section-title barlow">Ce que les Français achètent</h2>
       <div class="prod-grid" id="trendingGrid">
         <div class="spinner"><div class="spin"></div></div>
@@ -896,7 +1034,7 @@ nav {
 
   <!-- MEILLEURES AFFAIRES -->
   <div class="section">
-    <div class="section-label">💰 Économies maximales</div>
+    <div class="section-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 12 22l-9-9V4a1 1 0 0 1 1-1h9l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/></svg> Économies maximales</div>
     <h2 class="section-title barlow">Les meilleures affaires</h2>
     <p class="section-sub">Produits avec le plus gros écart de prix entre marchands</p>
     <div class="prod-grid" id="dealsGrid">
@@ -911,65 +1049,47 @@ nav {
   <div class="sp-bar">
     <div class="sp-bar-inner">
       <div class="sp-wrap">
-        <span class="sp-icon">🔍</span>
+        <span class="sp-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>
         <input class="sp-input" type="text" id="spInput" placeholder="Rechercher un produit..."
           onkeydown="if(event.key==='Enter'){doSpSearch();hideSugg('spSugg')}"
           oninput="showSuggestions('spSugg',this.value);document.getElementById('spClear').style.display=this.value?'block':'none'"
           onblur="setTimeout(()=>hideSugg('spSugg'),200)"
           autocomplete="off">
         <div id="spSugg" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:150;margin-top:4px"></div>
-        <button id="spClear" style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--dim);font-size:1rem;cursor:pointer;display:none" onclick="clearSearch()">✕</button>
+        <button id="spClear" style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--dim);font-size:1rem;cursor:pointer;display:none" onclick="clearSearch()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
       <button class="sp-btn" onclick="doSpSearch()">Rechercher</button>
     </div>
   </div>
-  <div class="search-layout">
-    <aside class="filters-panel">
-      <div class="filters-head">
-        <span class="filters-head-title">Filtres</span>
-        <span class="filters-reset" onclick="clearFilters()">Réinitialiser</span>
+  <div class="cat-head">
+    <div class="cat-head-top">
+      <div>
+        <h1 class="cat-title" id="catTitle">Résultats<span class="cat-count" id="resCountNum">0</span></h1>
+        <p class="cat-lede" id="catLede">Chaque produit ci-dessous est vendu par au moins trois marchands. Le prix affiché est le plus bas relevé lors de la dernière actualisation.</p>
       </div>
-      <!-- PRIX -->
-      <div class="filter-section">
-        <div class="filter-label">Prix maximum</div>
-        <input type="range" class="price-slider" id="priceSlider" min="0" max="2000" value="2000" oninput="updatePriceDisplay()">
-        <div style="display:flex;justify-content:space-between;font-size:.73rem;color:var(--dim);margin:.3rem 0 .7rem">
-          <span>0 €</span><span id="priceDisplay" style="color:var(--text);font-weight:600">2000 €</span>
-        </div>
-        <button class="price-range-btn" onclick="setPriceRange(50)">Moins de 50 €</button>
-        <button class="price-range-btn" onclick="setPriceRange(100)">Moins de 100 €</button>
-        <button class="price-range-btn" onclick="setPriceRange(500)">Moins de 500 €</button>
-        <button class="filter-apply" onclick="applyFilters()">Appliquer</button>
-      </div>
-      <!-- MARQUES -->
-      <div class="filter-section">
-        <div class="filter-label">Marque</div>
-        <div id="brandFilters" style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:.2rem">
-          <div style="font-size:.73rem;color:var(--dim)">Chargement...</div>
-        </div>
-      </div>
-      <!-- LIVRAISON -->
-      <div class="filter-section">
-        <div class="filter-label">Livraison</div>
-        <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;cursor:pointer;padding:.25rem 0">
-          <input type="checkbox" id="filterFreeShip" onchange="applyFilters()" style="accent-color:var(--coral)">
-          Livraison gratuite
-        </label>
-      </div>
-    </aside>
-    <div>
-      <div class="results-top">
-        <div class="results-count" id="resultsCount"><strong>0</strong> produits</div>
-        <select class="sort-select" id="sortSelect" onchange="sortResults()">
-          <option value="relevance">Pertinence</option>
+      <div class="cat-tools">
+        <select class="sort-select" id="sortSelect" onchange="sortResults()" aria-label="Trier les résultats">
+          <option value="relevance">Trier : pertinence</option>
           <option value="price_asc">Prix croissant</option>
           <option value="price_desc">Prix décroissant</option>
-          <option value="offers">Plus d'offres</option>
+          <option value="offers">Nombre de marchands</option>
+          <option value="spread">Écart de prix</option>
         </select>
+        <div class="view-toggle" role="group" aria-label="Affichage">
+          <button data-view="grid" class="on" onclick="setView('grid')" aria-label="Grille"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg></button>
+          <button data-view="list" onclick="setView('list')" aria-label="Liste"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="4" width="18" height="4" rx="1.5"/><rect x="3" y="10" width="18" height="4" rx="1.5"/><rect x="3" y="16" width="18" height="4" rx="1.5"/></svg></button>
+        </div>
       </div>
+    </div>
+    <div class="chips" id="activeChips"></div>
+  </div>
+
+  <div class="search-layout">
+    <aside class="facets" id="facetsPanel"></aside>
+    <div>
       <div id="resultsContainer">
         <div class="empty-state">
-          <div class="empty-icon">🔍</div>
+          <div class="empty-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div>
           <div class="empty-title">Lancez une recherche</div>
           <div class="empty-sub">Entrez un terme pour comparer les prix</div>
         </div>
@@ -1025,7 +1145,7 @@ nav {
     <div class="footer-col">
       <h4>HiFind</h4>
       <a onclick="showPage('home')">Accueil</a>
-      <a href="https://hiflight.fr" target="_blank">HiFlight ✈</a>
+      <a href="https://hiflight.fr" target="_blank">HiFlight <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5a2.1 2.1 0 0 0-3-3L13 8 4.8 6.2a.5.5 0 0 0-.5.8l3.2 3.2-1.7 1.7-1.6-.4a.5.5 0 0 0-.5.8L6 15l2.7 2.3a.5.5 0 0 0 .8-.5l-.4-1.6 1.7-1.7 3.2 3.2a.5.5 0 0 0 .8-.5Z"/></svg></a>
     </div>
     <div class="footer-col">
       <h4>Légal</h4>
@@ -1156,11 +1276,11 @@ async function runSearch(q) {
     currentResults = data.data;
     renderResults(currentResults);
     updateCount(currentResults.length, q);
-    loadBrandFilters(currentResults);
+  renderFacets(); renderChips();
     updateSliderMax(currentResults);
   } else {
     document.getElementById('resultsContainer').innerHTML =
-      '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun résultat</div><div class="empty-sub">Essayez avec d\'autres mots clés</div></div>';
+      '<div class="empty-state"><div class="empty-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div><div class="empty-title">Aucun résultat</div><div class="empty-sub">Essayez avec d\'autres mots clés</div></div>';
   }
 }
 
@@ -1174,12 +1294,12 @@ async function loadCategory(cat) {
   if (data && data.data && data.data.length > 0) {
     currentResults = data.data;
     updateSliderMax(currentResults);
-    loadBrandFilters(currentResults);
+  renderFacets(); renderChips();
     renderResults(currentResults);
     updateCount(currentResults.length, cat || 'tous les produits');
   } else {
     document.getElementById('resultsContainer').innerHTML =
-      '<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">Aucun produit</div><div class="empty-sub">Aucun produit dans cette catégorie pour l\'instant</div></div>';
+      '<div class="empty-state"><div class="empty-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></div><div class="empty-title">Aucun produit</div><div class="empty-sub">Aucun produit dans cette catégorie pour l\'instant</div></div>';
   }
 }
 
@@ -1251,25 +1371,38 @@ function clearFilters() {
 }
 
 function sortResults() {
-  var s = document.getElementById('sortSelect').value;
-  var sorted = [...currentResults];
-  if (s === 'price_asc') sorted.sort((a, b) => (parseFloat(a.price)||0) - (parseFloat(b.price)||0));
-  if (s === 'price_desc') sorted.sort((a, b) => (parseFloat(b.price)||0) - (parseFloat(a.price)||0));
-  if (s === 'offers') sorted.sort((a, b) => (b.offers_count||1) - (a.offers_count||1));
-  renderResults(sorted);
+  var s = (document.getElementById('sortSelect')||{}).value || 'relevance';
+  var l = currentResults.slice();
+  var lowOf = function(p){ var o = offersOf(p); return o.length ? o[0].price : (parseFloat(p.price)||0); };
+  var spreadOf = function(p){ var o = offersOf(p); if (o.length < 2) return 0;
+    var lo = o[0].price, hi = o[o.length-1].price; return hi > 0 ? (1 - lo/hi) : 0; };
+  if (s === 'price_asc')  l.sort(function(a,b){ return lowOf(a) - lowOf(b); });
+  if (s === 'price_desc') l.sort(function(a,b){ return lowOf(b) - lowOf(a); });
+  if (s === 'offers')     l.sort(function(a,b){ return offersOf(b).length - offersOf(a).length; });
+  if (s === 'spread')     l.sort(function(a,b){ return spreadOf(b) - spreadOf(a); });
+  renderResults(l);
 }
+
 
 // ══ RENDER RESULTS ══
 function renderResults(list) {
-  // Filtre Darty Pro (prix HT non pertinents)
-  list = list.filter(function(p){ var pid = (p.program_id||'').toLowerCase(); return !pid.includes('darty'); });
+  list = list.filter(function(p){ var pid = (p.program_id||'').toLowerCase(); return pid.indexOf('darty') === -1; });
+  var el = document.getElementById('resultsContainer');
+  if (!el) return;
   if (!list || !list.length) {
-    document.getElementById('resultsContainer').innerHTML =
-      '<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucun résultat</div></div>';
+    el.className = '';
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">' + ICO.search + '</div>'
+      + '<div class="empty-title">Aucun produit ne correspond</div>'
+      + '<p class="empty-sub">Elargissez la fourchette de prix ou retirez une marque.</p>'
+      + '<button class="empty-btn" onclick="clearFacets()">Reinitialiser les filtres</button></div>';
     return;
   }
-  document.getElementById('resultsContainer').innerHTML = list.map(p => pcardHTML(p)).join('');
+  el.className = VIEW === 'list' ? 'plist' : 'pgrid';
+  el.innerHTML = list.map(function(p, i){ return cardHTML(p, i); }).join('');
+  var n = document.getElementById('resCountNum');
+  if (n) n.textContent = list.length.toLocaleString('fr-FR');
 }
+
 
 function normalizeMerchant(name) {
   if (!name) return name;
@@ -1321,14 +1454,14 @@ function pcardHTML(p) {
   }
   return '<div class="pcard" onclick="openDetail(\'' + safeId + '\')">'
     + '<div class="pcard-img-col">'
-      + (img ? '<img src="' + img + '" alt="' + p.title.replace(/"/g,'&quot;') + '" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem;color:#ccc">📦</div>')
+      + (img ? '<img src="' + img + '" alt="' + p.title.replace(/"/g,'&quot;') + '" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem;color:#ccc"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></div>')
       + (savePct ? '<div class="prod-card-badge" style="position:absolute;top:.5rem;left:.5rem">' + savePct + '</div>' : '')
-      + '<button class="pcard-btn-fav" onclick="event.stopPropagation();toggleFav(\'' + safeId + '\',this)">' + (isFav ? '❤️' : '🤍') + '</button>'
+      + '<button class="pcard-btn-fav" onclick="event.stopPropagation();toggleFav(\'' + safeId + '\',this)">' + (isFav ? ICO.heart(true) : ICO.heart(false)) + '</button>'
     + '</div>'
     + '<div class="pcard-body">'
       + '<div class="pcard-brand">' + brand + '</div>'
       + '<div class="pcard-name">' + p.title + '</div>'
-      + (offers > 1 ? '<div class="pcard-offers-badge">✓ ' + offers + ' offres comparées</div>' : '')
+      + (offers > 1 ? '<div class="pcard-offers-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> ' + offers + ' offres comparées</div>' : '')
       + '<div class="pcard-bottom">'
         + '<div class="pcard-price-block">'
           + '<div class="pcard-price-from">Dès</div>'
@@ -1362,7 +1495,7 @@ async function openDetail(id) {
   }
 
   if (!p) {
-    document.getElementById('detailContent').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Produit introuvable</div></div>';
+    document.getElementById('detailContent').innerHTML = '<div class="empty-state"><div class="empty-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17.5v.01"/></svg></div><div class="empty-title">Produit introuvable</div></div>';
     return;
   }
 
@@ -1424,7 +1557,7 @@ async function openDetail(id) {
     '<div class="detail-grid">'
       + '<div>'
           + '<div class="detail-img-box">'
-            + (img ? '<img src="' + img + '" alt="' + p.title + '" onerror="this.style.display=\'none\'">' : '<div style="font-size:4rem;color:#ccc">📦</div>')
+            + (img ? '<img src="' + img + '" alt="' + p.title + '" onerror="this.style.display=\'none\'">' : '<div style="font-size:4rem;color:#ccc"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></div>')
           + '</div>'
         + '</div>'
       + '<div class="detail-info">'
@@ -1434,9 +1567,9 @@ async function openDetail(id) {
             + '<div>'
               + '<div class="detail-price-label">Meilleur prix</div>'
               + '<div class="detail-price-val">' + price.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €</div>'
-              + '<div class="detail-price-ship">✓ Livraison gratuite incluse</div>'
+              + '<div class="detail-price-ship"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Livraison gratuite incluse</div>'
             + '</div>'
-            + '<button class="detail-fav-btn" id="detailFavBtn" onclick="toggleFav(\'' + p.id + '\',this)">' + (isFav ? '❤️ Sauvegardé' : '🤍 Sauvegarder') + '</button>'
+            + '<button class="detail-fav-btn" id="detailFavBtn" onclick="toggleFav(\'' + p.id + '\',this)">' + (isFav ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 14c1.5-1.5 3-3.4 3-5.5A5.5 5.5 0 0 0 12 5 5.5 5.5 0 0 0 2 8.5c0 2.1 1.5 4 3 5.5l7 7Z"/></svg> Sauvegardé' : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.5-1.5 3-3.4 3-5.5A5.5 5.5 0 0 0 12 5 5.5 5.5 0 0 0 2 8.5c0 2.1 1.5 4 3 5.5l7 7Z"/></svg> Sauvegarder') + '</button>'
           + '</div>'
           + '<div class="offers-table">'
             + '<div class="offers-table-head">'
@@ -1455,11 +1588,11 @@ function toggleFav(id, btn) {
   var idx = favorites.findIndex(f => f.id === id);
   if (idx >= 0) {
     favorites.splice(idx, 1);
-    if (btn) btn.textContent = btn.classList.contains('detail-fav-btn') ? '🤍 Sauvegarder' : '🤍';
+    if (btn) btn.textContent = btn.classList.contains('detail-fav-btn') ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.5-1.5 3-3.4 3-5.5A5.5 5.5 0 0 0 12 5 5.5 5.5 0 0 0 2 8.5c0 2.1 1.5 4 3 5.5l7 7Z"/></svg> Sauvegarder' : ICO.heart(false);
   } else {
     var p = currentResults.find(x => x.id === id) || currentProduct || homeProductsCache[id];
     if (p) favorites.push(p);
-    if (btn) btn.textContent = btn.classList.contains('detail-fav-btn') ? '❤️ Sauvegardé' : '❤️';
+    if (btn) btn.textContent = btn.classList.contains('detail-fav-btn') ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 14c1.5-1.5 3-3.4 3-5.5A5.5 5.5 0 0 0 12 5 5.5 5.5 0 0 0 2 8.5c0 2.1 1.5 4 3 5.5l7 7Z"/></svg> Sauvegardé' : ICO.heart(true);
   }
   localStorage.setItem('hf_favs', JSON.stringify(favorites));
 }
@@ -1469,7 +1602,7 @@ function renderFavorites() {
   var cnt = document.getElementById('favCount');
   cnt.textContent = favorites.length + ' produit' + (favorites.length !== 1 ? 's' : '');
   if (!favorites.length) {
-    c.innerHTML = '<div class="empty-state"><div class="empty-icon">❤️</div><div class="empty-title">Aucun favori</div><div class="empty-sub">Cliquez sur ❤️ pour sauvegarder des produits</div><button class="empty-btn" onclick="showPage(\'home\')">Découvrir</button></div>';
+    c.innerHTML = '<div class="empty-state"><div class="empty-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 14c1.5-1.5 3-3.4 3-5.5A5.5 5.5 0 0 0 12 5 5.5 5.5 0 0 0 2 8.5c0 2.1 1.5 4 3 5.5l7 7Z"/></svg></div><div class="empty-title">Aucun favori</div><div class="empty-sub">Cliquez sur <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 14c1.5-1.5 3-3.4 3-5.5A5.5 5.5 0 0 0 12 5 5.5 5.5 0 0 0 2 8.5c0 2.1 1.5 4 3 5.5l7 7Z"/></svg> pour sauvegarder des produits</div><button class="empty-btn" onclick="showPage(\'home\')">Découvrir</button></div>';
     return;
   }
   var prev = currentResults;
@@ -1495,13 +1628,13 @@ function prodCardSmall(p, showBadge) {
   }
   return '<div class="prod-card" onclick="openDetail(\'' + safeId + '\')">'
     + '<div class="prod-card-img">'
-      + (img ? '<img src="' + img + '" alt="' + p.title.replace(/"/g,'') + '" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem;color:#ccc">📦</div>')
+      + (img ? '<img src="' + img + '" alt="' + p.title.replace(/"/g,'') + '" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem;color:#ccc"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></div>')
       + (savePct ? '<div class="prod-card-badge">-' + savePct + '%</div>' : '')
     + '</div>'
     + '<div class="prod-card-body">'
       + '<div class="prod-card-brand">' + brand + '</div>'
       + '<div class="prod-card-name">' + p.title + '</div>'
-      + '<div class="prod-card-stars"><span class="stars">★★★★</span>★ <span>4.5</span></div>'
+      + '<div class="prod-card-stars"><span class="stars"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.9 1.4 7L12 17.8 5.8 21.3l1.4-7L2 9.4l7-.8Z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.9 1.4 7L12 17.8 5.8 21.3l1.4-7L2 9.4l7-.8Z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.9 1.4 7L12 17.8 5.8 21.3l1.4-7L2 9.4l7-.8Z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.9 1.4 7L12 17.8 5.8 21.3l1.4-7L2 9.4l7-.8Z"/></svg></span><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.9 1.4 7L12 17.8 5.8 21.3l1.4-7L2 9.4l7-.8Z"/></svg> <span>4.5</span></div>'
       + '<div class="prod-card-price">'
         + '<span class="prod-card-from">Dès</span>'
         + '<span class="prod-card-amount">' + price.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €</span>'
@@ -1531,7 +1664,7 @@ function showSuggestions(id, val) {
     var idx = s.toLowerCase().indexOf(val.toLowerCase());
     var div = document.createElement('div');
     div.style.cssText = 'padding:.65rem 1rem;cursor:pointer;font-size:.88rem;display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--border);transition:background .15s';
-    div.innerHTML = '🔍 ' + s.slice(0,idx) + '<strong style="color:var(--coral)">' + s.slice(idx,idx+val.length) + '</strong>' + s.slice(idx+val.length);
+    div.innerHTML = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> ' + s.slice(0,idx) + '<strong style="color:var(--coral)">' + s.slice(idx,idx+val.length) + '</strong>' + s.slice(idx+val.length);
     div.onmouseover = function(){ this.style.background='var(--bg3)'; };
     div.onmouseout = function(){ this.style.background=''; };
     div.onclick = (function(term,elId){ return function(){ searchFor(term); hideSugg(elId); }; })(s,id);
@@ -1542,22 +1675,7 @@ function showSuggestions(id, val) {
 function hideSugg(id) { var el=document.getElementById(id); if(el) el.style.display='none'; }
 
 // ══ BRAND FILTERS ══
-function loadBrandFilters(results) {
-  var brands = {};
-  results.forEach(function(p) {
-    var b = p.brand || p.program_title || '';
-    if (b) brands[b] = (brands[b]||0) + 1;
-  });
-  var el = document.getElementById('brandFilters');
-  if (!el) return;
-  var sorted = Object.entries(brands).sort((a,b)=>b[1]-a[1]).slice(0,12);
-  el.innerHTML = sorted.map(function(e) {
-    return '<label style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;cursor:pointer;padding:.2rem 0">'
-      + '<input type="checkbox" class="brand-cb" value="' + e[0] + '" onchange="applyFilters()" style="accent-color:var(--coral)">'
-      + e[0] + ' <span style="color:var(--dim);font-size:.7rem;margin-left:auto">(' + e[1] + ')</span>'
-      + '</label>';
-  }).join('');
-}
+
 
 async function initHome() {
   try {
@@ -1651,6 +1769,242 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }).catch(() => {});
 });
+
+/* ═══════════════════════════════════════════════════════════
+   PAGE CATÉGORIE — état des facettes et rendu
+   ═══════════════════════════════════════════════════════════ */
+var VIEW = localStorage.getItem('hf-view') || 'grid';
+var FACETS = { brands: new Set(), merchants: new Set(), minOffers: 0, min: null, max: null, freeShip: false };
+var FACET_OPEN = { price:true, brand:true, merchant:true, offers:true };
+var BRAND_SHOW_ALL = false, MERCHANT_SHOW_ALL = false, BRAND_Q = '';
+
+/* Icônes — plus aucun emoji */
+var ICO = {
+  heart: function(f){ return '<svg width="15" height="15" viewBox="0 0 24 24" fill="'+(f?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M19 14c1.5-1.5 3-3.4 3-5.5A5.5 5.5 0 0 0 12 5 5.5 5.5 0 0 0 2 8.5c0 2.1 1.5 4 3 5.5l7 7Z"/></svg>'; },
+  search: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  chevron: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>',
+  arrow: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>',
+  close: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  grid: '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg>',
+  list: '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="4" width="18" height="4" rx="1.5"/><rect x="3" y="10" width="18" height="4" rx="1.5"/><rect x="3" y="16" width="18" height="4" rx="1.5"/></svg>',
+  box: '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>'
+};
+
+function fmtEur(n){
+  n = parseFloat(n) || 0;
+  return n.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' €';
+}
+function offersOf(p){
+  var raw = (p.ean_offers && p.ean_offers.length) ? p.ean_offers : [p];
+  var byM = {}, out = [];
+  raw.forEach(function(o){
+    var name = normalizeMerchant(o.program_title || (o.programs && o.programs.title) || o.brand || 'Marchand');
+    var pr = parseFloat(o.price);
+    if (!(pr > 0)) return;
+    if (byM[name]) { if (pr < byM[name].price) byM[name].price = pr; return; }
+    byM[name] = { name:name, price:pr, free: !!o.free_shipping };
+    out.push(byM[name]);
+  });
+  out.sort(function(a,b){ return a.price - b.price; });
+  return out;
+}
+
+/* ── Carte produit ── */
+function cardHTML(p, rank){
+  var offers = offersOf(p);
+  var lo = offers.length ? offers[0].price : (parseFloat(p.price)||0);
+  var hi = offers.length ? offers[offers.length-1].price : lo;
+  var pct = hi > lo ? Math.round((1 - lo/hi) * 100) : 0;
+  var isFav = favorites.some(function(f){ return f.id === p.id; });
+  var sid = String(p.id).replace(/'/g,"\\'");
+  var img = getImageUrl(p);
+  var esc = function(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); };
+
+  var flag = '';
+  if (rank === 0 && offers.length >= 4) flag = '<span class="card-flag top">N°1 des offres</span>';
+  else if (pct >= 25) flag = '<span class="card-flag deal">−' + pct + '&nbsp;%</span>';
+
+  var media = '<div class="card-media">' + flag
+    + '<button class="card-fav' + (isFav?' on':'') + '" aria-label="Suivre ce produit"'
+    + ' onclick="event.stopPropagation();toggleFav(\'' + sid + '\',this)">' + ICO.heart(isFav) + '</button>'
+    + (img ? '<img src="' + esc(img) + '" alt="' + esc(p.title) + '" loading="lazy" onerror="this.style.display=\'none\'">'
+           : '<span style="color:#cbd5e1">' + ICO.box + '</span>')
+    + '</div>';
+
+  var spread = '<div class="spread">'
+    + (hi > lo ? '<div class="spread-track"><i class="spread-fill" style="width:' + Math.max(8, 100-pct) + '%"></i></div>' : '')
+    + '<div class="spread-row">'
+      + '<span class="spread-low"><small>dès</small>' + fmtEur(lo) + '</span>'
+      + (hi > lo ? '<span class="spread-high">jusqu\'à ' + fmtEur(hi) + '</span>' : '')
+    + '</div>'
+    + '<div class="card-meta"><strong>' + offers.length + '</strong> marchands'
+      + (pct > 0 ? '<span class="dot"></span>' + pct + '&nbsp;% d\'écart' : '')
+    + '</div>'
+  + '</div>';
+
+  var main = '<div class="card-main">'
+    + (p.brand ? '<div class="card-brand">' + esc(p.brand) + '</div>' : '')
+    + '<h3 class="card-name">' + esc(p.title) + '</h3>'
+    + (p.description ? '<p class="card-specs">' + esc(p.description) + '</p>' : '')
+  + '</div>';
+
+  return '<article class="card" onclick="openDetail(\'' + sid + '\')">' + media
+    + '<div class="card-body">' + main + spread + '</div></article>';
+}
+
+/* ── Construction des facettes à partir des résultats ── */
+function buildFacets(list){
+  var brands = {}, merchants = {}, prices = [];
+  list.forEach(function(p){
+    if (p.brand) brands[p.brand] = (brands[p.brand]||0) + 1;
+    offersOf(p).forEach(function(o){ merchants[o.name] = (merchants[o.name]||0) + 1; });
+    var v = parseFloat(p.price); if (v > 0) prices.push(v);
+  });
+  prices.sort(function(a,b){ return a-b; });
+  return {
+    brands: Object.entries(brands).sort(function(a,b){ return b[1]-a[1]; }),
+    merchants: Object.entries(merchants).sort(function(a,b){ return b[1]-a[1]; }),
+    min: prices.length ? Math.floor(prices[0]) : 0,
+    max: prices.length ? Math.ceil(prices[prices.length-1]) : 1000
+  };
+}
+
+function optHTML(kind, value, count, checked){
+  var v = String(value).replace(/"/g,'&quot;');
+  return '<label class="opt"><input type="checkbox" ' + (checked?'checked ':'')
+    + 'onchange="toggleFacet(\'' + kind + '\',this.value,this.checked)" value="' + v + '">'
+    + '<span class="opt-label">' + v + '</span><span class="opt-n">' + count + '</span></label>';
+}
+
+function facetBlock(id, title, body){
+  var open = FACET_OPEN[id] !== false;
+  return '<div class="facet' + (open?'':' closed') + '" id="facet-' + id + '">'
+    + '<button class="facet-btn" onclick="toggleFacetPanel(\'' + id + '\')">' + title + ICO.chevron + '</button>'
+    + '<div class="facet-body">' + body + '</div></div>';
+}
+
+
+function setCatTitle(label, lede){
+  var t = document.getElementById('catTitle');
+  if (t) t.innerHTML = label + '<span class="cat-count" id="resCountNum">'
+    + (currentResults ? currentResults.length.toLocaleString('fr-FR') : '0') + '</span>';
+  var l = document.getElementById('catLede');
+  if (l && lede) l.textContent = lede;
+}
+
+function renderFacets(){
+  var f = buildFacets(allResults);
+  var el = document.getElementById('facetsPanel');
+  if (!el) return;
+
+  var price = '<div class="range-row">'
+    + '<input class="range-in" id="fMin" type="number" placeholder="' + f.min + '" value="' + (FACETS.min!=null?FACETS.min:'') + '" aria-label="Prix minimum">'
+    + '<span class="range-sep">–</span>'
+    + '<input class="range-in" id="fMax" type="number" placeholder="' + f.max + '" value="' + (FACETS.max!=null?FACETS.max:'') + '" aria-label="Prix maximum">'
+    + '<button class="range-go" onclick="applyPriceRange()" aria-label="Appliquer">' + ICO.arrow + '</button>'
+    + '</div>'
+    + '<input class="range-slider" type="range" min="' + f.min + '" max="' + f.max + '" '
+    + 'value="' + (FACETS.max!=null?FACETS.max:f.max) + '" oninput="document.getElementById(\'fMax\').value=this.value" onchange="applyPriceRange()">';
+
+  var bList = f.brands.filter(function(e){ return !BRAND_Q || e[0].toLowerCase().indexOf(BRAND_Q) !== -1; });
+  var bShown = BRAND_SHOW_ALL ? bList : bList.slice(0,8);
+  var brand = (f.brands.length > 8 ? '<input class="facet-search" placeholder="Rechercher une marque" value="' + BRAND_Q + '" oninput="BRAND_Q=this.value.toLowerCase();renderFacets()">' : '')
+    + '<div class="facet-list">' + (bShown.length
+        ? bShown.map(function(e){ return optHTML('brands', e[0], e[1], FACETS.brands.has(e[0])); }).join('')
+        : '<p style="font-size:.76rem;color:var(--dim);padding:.3rem 0">Aucune marque</p>') + '</div>'
+    + (bList.length > 8 ? '<button class="facet-more" onclick="BRAND_SHOW_ALL=!BRAND_SHOW_ALL;renderFacets()">'
+        + (BRAND_SHOW_ALL ? 'Réduire' : 'Voir les ' + bList.length + ' marques') + '</button>' : '');
+
+  var mShown = MERCHANT_SHOW_ALL ? f.merchants : f.merchants.slice(0,8);
+  var merch = '<div class="facet-list">'
+    + mShown.map(function(e){ return optHTML('merchants', e[0], e[1], FACETS.merchants.has(e[0])); }).join('')
+    + '</div>'
+    + (f.merchants.length > 8 ? '<button class="facet-more" onclick="MERCHANT_SHOW_ALL=!MERCHANT_SHOW_ALL;renderFacets()">'
+        + (MERCHANT_SHOW_ALL ? 'Réduire' : 'Voir les ' + f.merchants.length + ' marchands') + '</button>' : '');
+
+  var offers = [3,4,5].map(function(n){
+    return '<label class="opt"><input type="radio" name="fOffers" ' + (FACETS.minOffers===n?'checked ':'')
+      + 'onchange="FACETS.minOffers=' + n + ';applyFacets()"><span class="opt-label">' + n + ' marchands ou plus</span></label>';
+  }).join('')
+  + '<label class="opt"><input type="radio" name="fOffers" ' + (!FACETS.minOffers?'checked ':'')
+  + 'onchange="FACETS.minOffers=0;applyFacets()"><span class="opt-label">Tous</span></label>';
+
+  el.innerHTML =
+      facetBlock('price', 'Prix', price)
+    + facetBlock('brand', 'Marque', brand)
+    + facetBlock('merchant', 'Marchand', merch)
+    + facetBlock('offers', 'Nombre de marchands', offers);
+}
+
+function toggleFacetPanel(id){
+  FACET_OPEN[id] = FACET_OPEN[id] === false;
+  var el = document.getElementById('facet-' + id);
+  if (el) el.classList.toggle('closed');
+}
+function toggleFacet(kind, value, on){
+  if (on) FACETS[kind].add(value); else FACETS[kind].delete(value);
+  applyFacets();
+}
+function applyPriceRange(){
+  var mn = parseFloat(document.getElementById('fMin').value);
+  var mx = parseFloat(document.getElementById('fMax').value);
+  FACETS.min = isNaN(mn) ? null : mn;
+  FACETS.max = isNaN(mx) ? null : mx;
+  applyFacets();
+}
+function clearFacets(){
+  FACETS = { brands:new Set(), merchants:new Set(), minOffers:0, min:null, max:null, freeShip:false };
+  BRAND_Q = '';
+  renderFacets(); applyFacets();
+}
+
+function applyFacets(){
+  var out = allResults.filter(function(p){
+    var offers = offersOf(p);
+    var lo = offers.length ? offers[0].price : (parseFloat(p.price)||0);
+    if (FACETS.min != null && lo < FACETS.min) return false;
+    if (FACETS.max != null && lo > FACETS.max) return false;
+    if (FACETS.brands.size && !FACETS.brands.has(p.brand)) return false;
+    if (FACETS.merchants.size && !offers.some(function(o){ return FACETS.merchants.has(o.name); })) return false;
+    if (FACETS.minOffers && offers.length < FACETS.minOffers) return false;
+    return true;
+  });
+  currentResults = out;
+  renderChips();
+  sortResults();
+}
+
+function renderChips(){
+  var el = document.getElementById('activeChips');
+  if (!el) return;
+  var chips = [];
+  FACETS.brands.forEach(function(b){ chips.push(['brands', b, b]); });
+  FACETS.merchants.forEach(function(m){ chips.push(['merchants', m, m]); });
+  if (FACETS.min != null || FACETS.max != null) {
+    chips.push(['price', '', (FACETS.min!=null?fmtEur(FACETS.min):'0 €') + ' – ' + (FACETS.max!=null?fmtEur(FACETS.max):'∞')]);
+  }
+  if (FACETS.minOffers) chips.push(['offers','', FACETS.minOffers + ' marchands ou plus']);
+
+  el.innerHTML = chips.length
+    ? chips.map(function(c){
+        return '<span class="chip">' + c[2] + '<button onclick="removeChip(\'' + c[0] + '\',\''
+          + String(c[1]).replace(/'/g,"\\'") + '\')" aria-label="Retirer">' + ICO.close + '</button></span>';
+      }).join('') + '<button class="chips-clear" onclick="clearFacets()">Tout effacer</button>'
+    : '';
+}
+function removeChip(kind, value){
+  if (kind === 'price') { FACETS.min = FACETS.max = null; }
+  else if (kind === 'offers') { FACETS.minOffers = 0; }
+  else { FACETS[kind].delete(value); }
+  renderFacets(); applyFacets();
+}
+
+function setView(v){
+  VIEW = v; localStorage.setItem('hf-view', v);
+  document.querySelectorAll('.view-toggle button').forEach(function(b){ b.classList.toggle('on', b.dataset.view === v); });
+  renderResults(currentResults);
+}
+
 </script>
 </body>
 </html>
