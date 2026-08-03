@@ -13,13 +13,16 @@
 
 export const CATEGORIES = [
   'high-tech','auto-moto','maison-jardin','mode-vetements','beaute-bienetre',
-  'sante-nutrition','enfants-bebes','sport-outdoor','animaux','alimentation-bio','autres'
+  'sante-nutrition','enfants-bebes','sport-outdoor','animaux','alimentation-bio',
+  'livres-bd','autres'
 ];
 
 /** Marchands generalistes : leur categorie declaree n'est pas fiable. */
 export const MARKETPLACES = new Set([
-  'rakuten','rue du commerce','pixmania','joybuy','aliexpress','manomano',
-  'temu','onbuy','cdiscount','bdfugue','geekbuying','modz'
+  // Generalistes uniquement : ceux qui vendent de tout, donc dont la
+  // categorie declaree ne veut rien dire au niveau du produit.
+  'rakuten','rue du commerce','pixmania','joybuy','aliexpress',
+  'temu','onbuy','cdiscount','fnac','darty'
 ]);
 
 const norm = s => (s || '')
@@ -31,6 +34,11 @@ const norm = s => (s || '')
 
 /** Regles fortes : un seul terme suffit, aucune ambiguite possible. */
 const STRONG = [
+  ['livres-bd', ['tome','manga','bande dessinee','integrale','roman','livre','livres',
+    'coffret bd','edition collector','anthologie','beau livre','album','poche','broche',
+    'guide de voyage','dictionnaire','encyclopedie','biographie','essai','recueil',
+    'shonen','shojo','seinen','comics','graphic novel','artbook','one shot',
+    'edition limitee bd','strip','webtoon']],
   ['auto-moto', ['pneu','pneus','jante','plaquette de frein','plaquettes de frein','amortisseur',
     'huile moteur','filtre a huile','filtre a air','bougie d allumage','essuie glace','attelage',
     'casque moto','casque integral','casque jet','blouson moto','gant moto','botte moto',
@@ -41,14 +49,21 @@ const STRONG = [
     'souris gamer','ecouteurs','casque bluetooth','casque audio','enceinte bluetooth','televiseur',
     'tv led','tv oled','videoprojecteur','imprimante','cartouche d encre','toner','routeur',
     'cle usb','carte sd','micro sd','console','nintendo switch','playstation','xbox','manette',
-    'tablette tactile','montre connectee','drone','appareil photo','objectif photo','webcam']],
+    'tablette tactile','montre connectee','drone','appareil photo','objectif photo','webcam',
+    'camera de securite','camera ip','camera de surveillance','visiophone','interphone',
+    'thermostat connecte','ampoule connectee','prise connectee','assistant vocal',
+    'liseuse','barre de son','casque vr','carte mere','alimentation pc','ventirad']],
   ['beaute-bienetre', ['eau de parfum','eau de toilette','eau de cologne','rouge a levres',
     'fond de teint','mascara','vernis a ongles','anti rides','creme hydratante','serum visage',
     'shampooing','shampoing','apres shampoing','coloration cheveux','tondeuse cheveux',
     'seche cheveux','lisseur','fer a boucler','gel douche','deodorant','rasoir','apres rasage']],
   ['enfants-bebes', ['peluche','doudou','poussette','siege auto bebe','biberon','tetine','couche',
     'lait infantile','chaise haute','lit parapluie','porte bebe','jouet','jeu de construction',
-    'lego','playmobil','puzzle enfant','trotteur','veilleuse','baby phone','table a langer']],
+    'lego','playmobil','puzzle','puzzle enfant','trotteur','veilleuse','baby phone','table a langer',
+    'figurine','poupee','peluche geante','jeu de societe','jeu de cartes','uno','monopoly',
+    'circuit de voiture','train electrique','maison de poupee','deguisement','tapis d eveil',
+    'porteur','draisienne','trottinette enfant','baby gym','hochet','boite a musique',
+    'billard de table','babyfoot','flechettes','coloriage','pate a modeler','kit creatif']],
   ['animaux', ['croquette','croquettes','litiere','griffoir','aquarium','niche','laisse',
     'collier chien','collier chat','panier chien','panier chat','harnais chien','gamelle',
     'arbre a chat','cage oiseau','terrarium','pate pour chat','pate pour chien']],
@@ -65,6 +80,11 @@ const STRONG = [
     'pince','pince multifonction','tournevis','marteau','cle a molette','cle a cliquet',
     'niveau a bulle','metre ruban','scie','burin','etau','serre joint','pistolet a colle',
     'multiprise','rallonge electrique','ampoule','interrupteur','cadenas','serrure',
+    'decapeur thermique','lame de scie','disque a tronconner','foret','meche','cheville',
+    'store','store enrouleur','purificateur d air','deshumidificateur','humidificateur',
+    'ventilateur','radiateur','climatiseur','nettoyeur vapeur','injecteur extracteur',
+    'centrale vapeur','fer a repasser','grille pain','friteuse','blender','mixeur',
+    'autocuiseur','cocotte','poele','casserole','couvercle de cuisson','planche a decouper',
     'robinet','lavabo','receveur de douche','parquet','carrelage','peinture murale','tapis salon',
     'rideau','store enrouleur','matelas','sommier','couette','escabeau','echelle']],
   ['mode-vetements', ['robe','jean','pantalon','chemise','veste','manteau','pull','sweat',
@@ -82,12 +102,13 @@ const STRONG = [
 
 /** Regles faibles : il en faut plusieurs pour trancher. */
 const WEAK = [
+  ['livres-bd', ['editions','edition','auteur','scenario','dessin','couleurs','volume','chapitre','saga','serie']],
   ['high-tech', ['tech','electronique','usb','hdmi','wifi','bluetooth','gaming','pc','led',
     'batterie','chargeur','ecran','pouces','go','to','ghz','mah']],
   ['auto-moto', ['auto','moto','voiture','vehicule','scooter','quad','remorque','moteur','r15','r16','r17','r18']],
   ['maison-jardin', ['maison','jardin','deco','meuble','cuisine','salle de bain','bricolage',
     'outil','outillage','jardinage','arrosage','terrasse','piscine','chauffage','luminaire']],
-  ['mode-vetements', ['mode','vetement','homme','femme','taille','coton','cuir','laine','denim']],
+  ['mode-vetements', ['mode','vetement','pret a porter','taille','coton','cuir','laine','denim','manches']],
   ['beaute-bienetre', ['beaute','soin','creme','serum','cosmetique','parfum','visage','cheveux',
     'peau','maquillage','hydratant','nettoyant','bio']],
   ['sante-nutrition', ['sante','complement','nutrition','minceur','detox','sommeil','immunite','bien etre']],
@@ -100,6 +121,7 @@ const WEAK = [
 
 /** Mots du texte du flux marchand vers une categorie HiFind. */
 const FEED_HINTS = [
+  ['livres-bd', ['livre','livres','bd','manga','comics','litterature','librairie','bande dessinee','jeunesse']],
   ['high-tech', ['informatique','telephonie','image son','high tech','multimedia','photo','audio','console','jeux video']],
   ['auto-moto', ['auto','moto','pneumatique','pieces detachees','garage','2 roues']],
   ['maison-jardin', ['maison','jardin','bricolage','electromenager','meuble','decoration','cuisine','sanitaire','chauffage','outillage']],
@@ -158,7 +180,9 @@ export function categorize(p) {
 
   // 3) Categorie du marchand : uniquement s'il est specialise.
   if (p.merchantCategory && !isMarketplace) {
-    scores[p.merchantCategory] = (scores[p.merchantCategory] || 0) + 2;
+    // Un marchand specialise est un signal fort : sans lui, un titre de livre
+    // sans le mot "tome" finirait en "autres".
+    scores[p.merchantCategory] = (scores[p.merchantCategory] || 0) + 4;
   }
 
   let best = null, bestScore = 0;
