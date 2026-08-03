@@ -1,42 +1,36 @@
 import { categorize } from '/mnt/user-data/outputs/scripts/lib/categorize.js';
 
 const cases = [
-  // Cas réels tirés de la base, catégorie "autres"
-  ['Décapeur thermique STANLEY FME670K FATMAX - 2000W','Rakuten',null,'','maison-jardin'],
-  ['Figurine Naruto Shippuden - Jiraiya - Colosseum 16 cm','Rakuten',null,'','enfants-bebes'],
-  ['Eufy Indoor Cam S350 Bulbe Caméra de sécurité IP Intérieure','Rakuten',null,'','high-tech'],
+  // Le bug signale : Apple Watch chez un specialiste auto-moto
+  ['Apple Watch Series 9 45mm GPS', 'Maxxess', 'auto-moto', '', 'high-tech'],
+  ['Apple Watch SE 44mm', 'Speedway', 'auto-moto', '', 'high-tech'],
+  ['AirPods Pro 2eme generation', 'Carter Cash', 'auto-moto', '', 'high-tech'],
+
+  // Meme sans regle forte : un produit sans AUCUN indice ne doit plus
+  // etre force dans la categorie du marchand (coeur du correctif)
+  ['XR-4471-B', 'Maxxess', 'auto-moto', '', 'autres'],
+  ['Reference 88291', 'Speedway', 'auto-moto', '', 'autres'],
+
+  // Non-regression : les vrais produits auto doivent rester en auto-moto
+  ['Casque J-CRUISE 2 UNI SHOEI', 'Maxxess', 'auto-moto', '', 'auto-moto'],
+  ['Pneu Michelin Primacy 4', 'Rakuten', null, '', 'auto-moto'],
+  ['ZARCO Echarpe Zarco', 'Moto Axxe', 'auto-moto', '', 'mode-vetements'],
+
+  // Non-regression : livres, jouets, mode, sport (session precedente)
   ["Viollet-le-duc - l'homme qui ressuscita Notre-dame",'BDfugue','livres-bd','','livres-bd'],
-  ['Leitz TruSens Z-2000 35 m² 64 dB 28 W Argent et Blanc','Rakuten',null,'','autres'],
-  ['Taf Toys 12385','Rakuten',null,'','autres'],
-  ['les chemins de malefosse tome 1 - le diable noir','BDfugue','livres-bd','','livres-bd'],
-  ['Notes - Tome 7 - Formicapunk','BDfugue','livres-bd','','livres-bd'],
-  ['mierEdu Boîte magnétique de voyage - Policier','Rakuten',null,'','autres'],
-  ['Les grandes aventures de Romano Scarpa tome 8','BDfugue','livres-bd','','livres-bd'],
-  ['Bouilloire vintage','Rakuten',null,'','maison-jardin'],
-  ['Lame de scie DSB 240/W - 575416','Rakuten',null,'','maison-jardin'],
-  ['King Conan - Colossal','BDfugue','livres-bd','','livres-bd'],
-  ['Les Reines De Sang - Cléopâtre, La Reine Fatale - Tome 2','BDfugue','livres-bd','','livres-bd'],
-  ['Billard de table 70 x 36 x 23 cm LEGLER','Rakuten',null,'','enfants-bebes'],
-  ['Garfield - Tome 37 - C\'est La Fête !','BDfugue','livres-bd','','livres-bd'],
-  ['EziClean® Nettoyeur injecteur-extracteur détachant W2','Rakuten',null,'','maison-jardin'],
-  ['Games Liar\'s Uno','Rakuten',null,'','enfants-bebes'],
-  ['LEGO Ninjago 71829 Le dragon vert de la forêt de Lloyd','Rakuten',null,'','enfants-bebes'],
-  ['Store à rouleau bambou naturel 100 x 160 cm','Rakuten',null,'','maison-jardin'],
-  // Non-régression
-  ['Peluche Lapin Doudou 30cm','Pixmania','high-tech','','enfants-bebes'],
-  ['Pince multifonction 12 en 1 acier','Gorilla Sports','sport-outdoor','','maison-jardin'],
-  ['Nintendo Switch Sports - Jeu Switch','Rakuten',null,'','high-tech'],
-  ['Pneu Michelin Primacy 4','Rakuten',null,'','auto-moto'],
-  ['Eau de Parfum Gucci Bloom 100ml','Pixmania','high-tech','','beaute-bienetre'],
+  ['LEGO Ninjago 71829 Le dragon vert','Rakuten',null,'','enfants-bebes'],
+  ['Chemise homme extraslim tissu traveler','Devred','mode-vetements','','mode-vetements'],
+  ['Ballon de football Adidas Tiro League','Rakuten',null,'','sport-outdoor'],
   ['Croquettes chaton poulet 12x85g','Rakuten',null,'','animaux'],
-  ['Robe longue fleurie été','Blancheporte','mode-vetements','','mode-vetements'],
-  ['Casque J-CRUISE 2 UNI SHOEI','Maxxess','auto-moto','','auto-moto'],
 ];
 
 let ok = 0, ko = [];
 for (const [title, merchant, mcat, feedCat, want] of cases) {
   const r = categorize({ title, merchant, merchantCategory: mcat, feedCat });
-  if (r.category === want) ok++; else ko.push([title, r.category, want]);
+  if (r.category === want) ok++; else ko.push([title, merchant, r.category, want, r.source]);
 }
 console.log(ok + '/' + cases.length + ' corrects');
-if (ko.length) { console.log('\nEcarts :'); ko.forEach(k => console.log('  ' + k[0].slice(0,48).padEnd(50) + k[1].padEnd(16) + '(attendu ' + k[2] + ')')); }
+if (ko.length) {
+  console.log('\nEchecs :');
+  ko.forEach(k => console.log('  ' + k[0].slice(0,40).padEnd(42) + '(' + k[1] + ')  -> ' + k[2] + '  attendu: ' + k[3] + '  [' + k[4] + ']'));
+}
