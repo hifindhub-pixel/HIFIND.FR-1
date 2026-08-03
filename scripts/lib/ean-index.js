@@ -19,25 +19,53 @@ import readline from 'node:readline';
 export const HARVEST_DIR = process.env.HARVEST_DIR || '/tmp/hifind-harvest';
 
 /** Index EAN → marchands. Mémoire : ~100 octets par EAN unique. */
+export const MIN_VENDORS = parseInt(process.env.MIN_VENDORS || '3', 10);
+
 export class EanIndex {
-  constructor() {
-    this.owner = new Map();   // ean -> premier program_id vu
-    this.multi = new Set();   // ean vus chez 2 marchands distincts ou plus
+  constructor(minVendors = MIN_VENDORS) {
+    this.min = Math.max(2, minVendors);
+    this.owner = new Map();   // ean -> program_id (1 seul vendeur)
+    this.owners = new Map();  // ean -> Set(program_id) (2 vendeurs ou plus)
+    this.multi = new Set();   // ean ayant atteint le seuil
     this.seen = 0;
+    this.pairs = 0;           // ean vus chez au moins 2 marchands
   }
   add(ean, programId) {
     if (!ean) return;
     this.seen++;
+
+    if (this.multi.has(ean)) return;           // seuil deja atteint
+
+    const set = this.owners.get(ean);
+    if (set) {                                  // deja 2+ marchands connus
+      set.add(programId);
+      if (set.size >= this.min) { this.multi.add(ean); this.owners.delete(ean); }
+      return;
+    }
+
     const first = this.owner.get(ean);
     if (first === undefined) { this.owner.set(ean, programId); return; }
-    if (first !== programId) this.multi.add(ean);
+    if (first === programId) return;
+
+    // 2e marchand distinct : on bascule sur un Set
+    this.pairs++;
+    this.owner.delete(ean);
+    const s = new Set([first, programId]);
+    if (s.size >= this.min) this.multi.add(ean);
+    else this.owners.set(ean, s);
   }
   isMulti(ean) { return this.multi.has(ean); }
   stats() {
-    return { lignes: this.seen, eansUniques: this.owner.size, eansPartages: this.multi.size };
+    return {
+      lignes: this.seen,
+      eansUniques: this.owner.size + this.owners.size + this.multi.size,
+      eansDeuxPlus: this.pairs,
+      eansRetenus: this.multi.size,
+      seuil: this.min,
+    };
   }
-  /** Libère la Map une fois la phase A terminée : seul `multi` sert ensuite. */
-  compact() { this.owner.clear(); }
+  /** Libère tout sauf le Set des EAN retenus. */
+  compact() { this.owner.clear(); this.owners.clear(); }
 }
 
 /* ─────────────────────────── Écriture ─────────────────────────── */
