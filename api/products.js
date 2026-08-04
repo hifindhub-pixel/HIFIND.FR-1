@@ -1,12 +1,29 @@
 import pkg from 'pg';
-const { Client } = pkg;
+const { Pool } = pkg;
 
 const AFFILAE_PROFILE_ID = '69c1bc52b682a8edf3205672';
 
-async function getNeonClient() {
-  const client = new Client({ connectionString: process.env.NEON_URL });
-  await client.connect();
-  return client;
+// ═══════════════════════════════════════════════════════════════
+// Pool de connexion créé UNE SEULE FOIS au chargement du module,
+// pas à chaque requête. Sur Vercel, une instance serverless "chaude"
+// réutilise ce pool entre deux invocations successives — ça évite de
+// refaire une poignée de main TCP+TLS complète avec Neon à chaque
+// visite, qui était la première cause de lenteur.
+//
+// max:3 reste prudent sur le plan gratuit Neon (limite de connexions
+// simultanées basse) tout en permettant un peu de parallélisme réel.
+// ═══════════════════════════════════════════════════════════════
+let _pool = null;
+function getPool() {
+  if (!_pool) {
+    _pool = new Pool({
+      connectionString: process.env.NEON_URL,
+      max: 3,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    });
+  }
+  return _pool;
 }
 
 function makeTrackingUrl(product) {
@@ -54,7 +71,6 @@ async function getEanOffers(client, ean) {
     AND p.program_id NOT LIKE '%darty%'
     ORDER BY p.program_id, p.price ASC
   `, [ean]);
-  // Re-sort by price after dedup
   const rows = r.rows.map(formatRow);
   rows.sort((a,b) => (parseFloat(a.price)||0) - (parseFloat(b.price)||0));
   return rows;
@@ -84,7 +100,6 @@ async function getAllOffersForEans(client, eans) {
     if (!byEan.has(row.ean)) byEan.set(row.ean, []);
     byEan.get(row.ean).push(formatted);
   }
-  // Tri par prix dans chaque groupe
   for (const offers of byEan.values()) {
     offers.sort((a,b) => (parseFloat(a.price)||0) - (parseFloat(b.price)||0));
   }
@@ -118,6 +133,20 @@ async function groupWithOffers(client, products) {
   return Array.from(eanMap.values());
 }
 
+/**
+ * Compte le nombre total d'EAN distincts correspondant au filtre, pour
+ * construire une vraie pagination ("page 3 sur 47"). Requête légère :
+ * juste un COUNT sur des EAN déjà indexés, pas de récupération de lignes.
+ */
+async function countDistinctEans(client, whereSql, params) {
+  const r = await client.query(`
+    SELECT COUNT(DISTINCT p.ean) AS total
+    FROM products p
+    WHERE ${whereSql}
+  `, params);
+  return parseInt(r.rows[0]?.total || '0', 10);
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -126,24 +155,32 @@ export default async function handler(req, res) {
 
   const { action='list', q='', limit='30', page='1', id='', cat='' } = req.query;
   const limitN = Math.min(parseInt(limit)||30, 100);
-  const offset = (parseInt(page)-1) * limitN;
+  const pageN = Math.max(parseInt(page)||1, 1);
+  const offset = (pageN - 1) * limitN;
 
-  const client = await getNeonClient();
+  const pool = getPool();
+  const client = await pool.connect();
 
   try {
     let rows = [];
+    let total = null;
 
     if (action === 'search' && q) {
       const term = '%' + q + '%';
-      const r = await client.query(`
-        SELECT DISTINCT ON (p.ean) p.*, pr.title as program_title
-        FROM products p
-        LEFT JOIN programs pr ON p.program_id = pr.id
-        WHERE ${MULTI_VENDOR_WHERE}
-        AND (p.title ILIKE $1 OR p.brand ILIKE $1 OR p.description ILIKE $1)
-        ORDER BY p.ean, p.price ASC
-        LIMIT $2
-      `, [term, limitN * 3]);
+      const searchWhere = MULTI_VENDOR_WHERE + ' AND (p.title ILIKE $1 OR p.brand ILIKE $1 OR p.description ILIKE $1)';
+
+      const [r, totalCount] = await Promise.all([
+        client.query(`
+          SELECT DISTINCT ON (p.ean) p.*, pr.title as program_title
+          FROM products p
+          LEFT JOIN programs pr ON p.program_id = pr.id
+          WHERE ${searchWhere}
+          ORDER BY p.ean, p.price ASC
+          LIMIT $2 OFFSET $3
+        `, [term, limitN * 3, offset]),
+        countDistinctEans(client, searchWhere, [term]),
+      ]);
+      total = totalCount;
 
       if (r.rows.length > 0) {
         rows = await groupWithOffers(client, r.rows);
@@ -158,6 +195,7 @@ export default async function handler(req, res) {
           ORDER BY p.updated_at DESC LIMIT $2
         `, [term, limitN]);
         rows = r2.rows.map(p => ({...formatRow(p), ean_offers: null, offers_count: 1}));
+        total = rows.length;
       }
 
     } else if (action === 'product' && id) {
@@ -177,15 +215,20 @@ export default async function handler(req, res) {
       }
 
     } else if (action === 'category' && cat) {
-      const r = await client.query(`
-        SELECT DISTINCT ON (p.ean) p.*, pr.title as program_title
-        FROM products p
-        LEFT JOIN programs pr ON p.program_id = pr.id
-        WHERE ${MULTI_VENDOR_WHERE}
-        AND p.category = $1
-        ORDER BY p.ean, p.price ASC
-        LIMIT $2 OFFSET $3
-      `, [cat, limitN * 3, offset]);
+      const catWhere = MULTI_VENDOR_WHERE + ' AND p.category = $1';
+
+      const [r, totalCount] = await Promise.all([
+        client.query(`
+          SELECT DISTINCT ON (p.ean) p.*, pr.title as program_title
+          FROM products p
+          LEFT JOIN programs pr ON p.program_id = pr.id
+          WHERE ${catWhere}
+          ORDER BY p.ean, p.price ASC
+          LIMIT $2 OFFSET $3
+        `, [cat, limitN * 3, offset]),
+        countDistinctEans(client, catWhere, [cat]),
+      ]);
+      total = totalCount;
 
       if (r.rows.length > 0) {
         rows = await groupWithOffers(client, r.rows);
@@ -200,10 +243,15 @@ export default async function handler(req, res) {
           ORDER BY p.updated_at DESC LIMIT $2 OFFSET $3
         `, [cat, limitN, offset]);
         rows = r2.rows.map(p => ({...formatRow(p), ean_offers: null, offers_count: 1}));
+        total = rows.length;
       }
 
     } else {
-      // HOME : sélection équilibrée par catégorie
+      // HOME : sélection équilibrée par catégorie, TOUT en parallèle.
+      // Avant : 7 categories x 2 requêtes chacune, l'une après l'autre
+      // (jusqu'à 14 allers-retours séquentiels). Maintenant : les 7
+      // premières requêtes partent en même temps, puis UNE SEULE requête
+      // d'offres pour l'ensemble des produits collectés.
       const CATS = [
         { cat: 'beaute-bienetre', n: 8 },
         { cat: 'auto-moto',       n: 6 },
@@ -214,9 +262,8 @@ export default async function handler(req, res) {
         { cat: 'maison-jardin',   n: 2 },
       ];
 
-      const allRows = [];
-      for (const { cat, n } of CATS) {
-        const r = await client.query(`
+      const perCatResults = await Promise.all(CATS.map(({ cat, n }) =>
+        client.query(`
           SELECT DISTINCT ON (p.ean) p.*, pr.title as program_title
           FROM products p
           LEFT JOIN programs pr ON p.program_id = pr.id
@@ -224,26 +271,45 @@ export default async function handler(req, res) {
           AND p.category = $1
           ORDER BY p.ean, p.price ASC
           LIMIT $2
-        `, [cat, n * 3]);
+        `, [cat, n * 3])
+      ));
 
-        if (r.rows.length > 0) {
-          const grouped = await groupWithOffers(client, r.rows);
-          // Shuffle pour varier
-          grouped.sort(() => Math.random() - 0.5);
-          allRows.push(...grouped.slice(0, n));
-        }
+      // Une seule requête d'offres pour TOUS les candidats de toutes
+      // les catégories, au lieu d'une par catégorie.
+      const allCandidates = perCatResults.flatMap(r => r.rows);
+      const grouped = await groupWithOffers(client, allCandidates);
+
+      // Re-répartit par catégorie pour respecter le nombre voulu par
+      // section (n), puis mélange chaque section indépendamment.
+      const byCat = new Map();
+      for (const p of grouped) {
+        if (!byCat.has(p.category)) byCat.set(p.category, []);
+        byCat.get(p.category).push(p);
+      }
+      const allRows = [];
+      for (const { cat, n } of CATS) {
+        const list = (byCat.get(cat) || []).sort(() => Math.random() - 0.5);
+        allRows.push(...list.slice(0, n));
       }
 
-      // Shuffle final
       rows = allRows.sort(() => Math.random() - 0.5).slice(0, limitN);
+      total = rows.length;
     }
 
-    return res.status(200).json({ data: rows, count: rows.length });
+    const pages = total != null ? Math.max(1, Math.ceil(total / limitN)) : null;
+    return res.status(200).json({
+      data: rows,
+      count: rows.length,
+      total,
+      page: pageN,
+      pages,
+      limit: limitN,
+    });
 
   } catch(err) {
     console.error('API error:', err.message);
     return res.status(500).json({ error: err.message });
   } finally {
-    await client.end();
+    client.release();   // rend la connexion au pool, ne la ferme pas
   }
 }
