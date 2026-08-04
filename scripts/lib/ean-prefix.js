@@ -17,10 +17,20 @@ import { textSignal } from './categorize.js';
 const PREFIX_LEN = 7;
 
 /** Seuils : combien de produits connus, et quelle proportion d'accord. */
-const MIN_KNOWN = 8;       // en dessous, l'echantillon ne prouve rien
-const MIN_RATIO = 0.85;   // il faut une majorite tres nette : un fabricant
+const MIN_KNOWN = 12;      // en dessous, l'echantillon ne prouve rien
+const MIN_RATIO = 0.90;   // il faut une majorite tres nette : un fabricant
                            // generaliste (accessoires + high-tech + auto...)
                            // ne doit jamais franchir ce seuil par accident
+
+// Plafond dur : meme un prefixe qui passe les deux seuils ci-dessus ne peut
+// reclasser plus de N produits. Un GRAND fabricant (Bosch, Samsung, Philips...)
+// enregistre UN SEUL prefixe GS1 pour des gammes totalement differentes
+// (plaquettes de frein ET perceuses ET lave-vaisselle). Sans ce plafond, une
+// poignee de references correctement identifiees suffit a "prouver" que le
+// prefixe entier est auto-moto, et a embarquer des milliers de produits sans
+// rapport. Un fabricant NICHE (Michelin = uniquement des pneus) ne rencontre
+// jamais ce plafond en pratique — c'est precisement les gros generalistes
+// qu'on veut brider.
 
 export function prefixOf(ean) {
   const s = String(ean || '').replace(/\D/g, '');
@@ -61,9 +71,12 @@ export function learnPrefixes(products) {
  * Ne touche jamais un produit deja classe : le texte prime toujours.
  * @returns {{reclasses:number, prefixes:number, parCategorie:object}}
  */
+const MAX_PER_PREFIX = 150;   // plafond dur, voir commentaire ci-dessus
+
 export function applyPrefixes(products, learned) {
-  let reclasses = 0, blocked = 0;
+  let reclasses = 0, blocked = 0, capped = 0;
   const parCategorie = Object.create(null);
+  const perPrefixCount = new Map();
 
   for (const p of products) {
     if (p.category && p.category !== 'autres') continue;
@@ -72,19 +85,21 @@ export function applyPrefixes(products, learned) {
     const hit = learned.get(pref);
     if (!hit) continue;
 
-    // Garde-fou : si le TEXTE de ce produit precis pointe vers une autre
-    // categorie que celle apprise pour son prefixe, on refuse la
-    // propagation plutot que de trancher a l'aveugle. Un fabricant
-    // generaliste (ex: accessoires auto ET high-tech sous le meme prefixe)
-    // ne doit jamais imposer sa majorite a une minorite qui se decrit
-    // elle-meme differemment.
+    // Garde-fou texte : si le produit se decrit lui-meme differemment,
+    // on refuse la propagation plutot que de trancher a l'aveugle.
     const sig = textSignal(p);
     if (sig && sig.category !== hit.category) { blocked++; continue; }
+
+    // Garde-fou volume : un seul prefixe ne peut pas "avaler" un nombre
+    // demesure de produits, meme s'il passe les seuils statistiques.
+    const already = perPrefixCount.get(pref) || 0;
+    if (already >= MAX_PER_PREFIX) { capped++; continue; }
+    perPrefixCount.set(pref, already + 1);
 
     p.category = hit.category;
     p._categorySource = 'prefixe-ean';
     reclasses++;
     parCategorie[hit.category] = (parCategorie[hit.category] || 0) + 1;
   }
-  return { reclasses, blocked, prefixes: learned.size, parCategorie };
+  return { reclasses, blocked, capped, prefixes: learned.size, parCategorie };
 }
