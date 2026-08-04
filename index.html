@@ -865,6 +865,31 @@ nav {
   .pd-offer-btn{ justify-self:start; }
 }
 
+
+/* ═══════════════════════════════════════════════════════════
+   PAGINATION
+   ═══════════════════════════════════════════════════════════ */
+.pagination{
+  display:flex; align-items:center; justify-content:center; gap:.35rem;
+  margin-top:2rem; flex-wrap:wrap;
+}
+.pagination:empty{ display:none; }
+.pg-btn{
+  min-width:36px; height:36px; padding:0 .5rem; display:inline-flex;
+  align-items:center; justify-content:center; border-radius:8px;
+  border:1px solid var(--border2); background:var(--bg2); color:var(--text);
+  font-family:var(--num); font-size:.85rem; font-weight:700; cursor:pointer;
+  transition:background .15s, border-color .15s, color .15s;
+}
+.pg-btn:hover:not(:disabled):not(.on){ background:var(--bg3); border-color:var(--border2); }
+.pg-btn.on{ background:var(--coral); border-color:var(--coral); color:#fff; cursor:default; }
+.pg-btn:disabled{ opacity:.35; cursor:default; }
+.pg-ellipsis{ color:var(--dim); font-size:.85rem; padding:0 .2rem; user-select:none; }
+.pg-info{
+  width:100%; text-align:center; font-size:.76rem; color:var(--sub);
+  margin-bottom:.6rem; font-family:var(--num);
+}
+
 </style>
 </head>
 <body>
@@ -1122,6 +1147,7 @@ nav {
           <div class="empty-sub">Entrez un terme pour comparer les prix</div>
         </div>
       </div>
+      <nav class="pagination" id="paginationBar" aria-label="Pagination"></nav>
     </div>
   </div>
 </div>
@@ -1311,18 +1337,27 @@ async function runSearch(q) {
   }
 }
 
-async function loadCategory(cat) {
+async function loadCategory(cat, page) {
+  page = page || 1;
   showSpinner('resultsContainer');
   document.querySelectorAll('.fcat').forEach(b => {
     b.classList.toggle('active', (!cat && b.textContent === 'Tout') || (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + cat + "'")));
   });
   var action = cat ? 'action=category&cat=' + encodeURIComponent(cat) : 'action=list';
-  var data = await apiFetch(action + '&limit=40');
+  var data = await apiFetch(action + '&limit=' + PAGE_SIZE + '&page=' + page);
+
+  PAGE_STATE.cat = cat;
+  PAGE_STATE.page = (data && data.page) || page;
+  PAGE_STATE.pages = (data && data.pages) || 1;
+  PAGE_STATE.total = (data && data.total != null) ? data.total : ((data && data.data) || []).length;
+
   if (data && data.data && data.data.length > 0) {
     allResults = data.data; currentResults = allResults.slice();
   renderFacets(); renderChips();
     renderResults(currentResults);
+    renderPagination();
   } else {
+    document.getElementById('paginationBar').innerHTML = '';
     document.getElementById('resultsContainer').innerHTML =
       '<div class="empty-state"><div class="empty-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></div><div class="empty-title">Aucun produit</div><div class="empty-sub">Aucun produit dans cette catégorie pour l\'instant</div></div>';
   }
@@ -2071,6 +2106,54 @@ async function renderSimilar(product){
     host.innerHTML = '<div class="pd-similar"><h2 class="pd-similar-head">Produits similaires</h2>'
       + '<div class="pgrid">' + items.map(function(x, i){ return cardHTML(x, i); }).join('') + '</div></div>';
   } catch(e) { host.innerHTML = ''; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   PAGINATION — état et rendu
+   ═══════════════════════════════════════════════════════════ */
+var PAGE_STATE = { cat: null, page: 1, pages: 1, total: 0 };
+var PAGE_SIZE = 40;
+
+function renderPagination(){
+  var bar = document.getElementById('paginationBar');
+  if (!bar) return;
+  var s = PAGE_STATE;
+  if (!s.pages || s.pages <= 1) { bar.innerHTML = ''; return; }
+
+  var parts = [];
+  parts.push('<div class="pg-info">' + s.total.toLocaleString('fr-FR') + ' produits &middot; page ' + s.page + ' sur ' + s.pages + '</div>');
+
+  var btn = function(p, label, disabled, active){
+    return '<button class="pg-btn' + (active ? ' on' : '') + '" '
+      + (disabled ? 'disabled' : 'onclick="goToPage(' + p + ')"')
+      + ' aria-label="Page ' + p + '"' + (active ? ' aria-current="page"' : '') + '>' + label + '</button>';
+  };
+
+  parts.push(btn(s.page - 1, '&larr;', s.page <= 1, false));
+
+  var windowSize = 2;
+  var pagesToShow = new Set([1, s.pages]);
+  for (var p = s.page - windowSize; p <= s.page + windowSize; p++) {
+    if (p >= 1 && p <= s.pages) pagesToShow.add(p);
+  }
+  var sorted = Array.from(pagesToShow).sort(function(a,b){ return a-b; });
+  var prev = null;
+  sorted.forEach(function(p){
+    if (prev !== null && p - prev > 1) parts.push('<span class="pg-ellipsis">&hellip;</span>');
+    parts.push(btn(p, String(p), false, p === s.page));
+    prev = p;
+  });
+
+  parts.push(btn(s.page + 1, '&rarr;', s.page >= s.pages, false));
+
+  bar.innerHTML = '<div style="width:100%">' + parts.shift() + '</div><div style="display:flex;gap:.35rem;flex-wrap:wrap;justify-content:center;width:100%">' + parts.join('') + '</div>';
+}
+
+function goToPage(p){
+  if (p < 1 || p > PAGE_STATE.pages || p === PAGE_STATE.page) return;
+  loadCategory(PAGE_STATE.cat, p);
+  document.getElementById('resultsContainer').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
 </script>
