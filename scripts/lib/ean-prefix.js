@@ -71,7 +71,14 @@ export function learnPrefixes(products) {
  * Ne touche jamais un produit deja classe : le texte prime toujours.
  * @returns {{reclasses:number, prefixes:number, parCategorie:object}}
  */
-const MAX_PER_PREFIX = 150;   // plafond dur, voir commentaire ci-dessus
+// Plafond recalibre : 150 etait trop bas et empechait de vrais gros
+// fabricants specialises (des dizaines de milliers de references chez
+// Michelin/Continental/Bosch-freinage) de beneficier de la propagation,
+// gonflant "autres" a plus d'un tiers du catalogue sans raison. 500 reste
+// tres loin de l'explosion initiale (un seul prefixe avait balaye 42 427
+// produits avant tout garde-fou) tout en laissant passer les fabricants
+// legitimes a fort volume.
+const MAX_PER_PREFIX = 500;
 
 export function applyPrefixes(products, learned) {
   let reclasses = 0, blocked = 0, capped = 0;
