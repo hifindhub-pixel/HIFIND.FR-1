@@ -1491,6 +1491,12 @@ function getFavicon(name) {
     'sandisk':'sandisk.com','ugreen':'ugreen.com','wd':'westerndigital.com',
     'stiga':'stigasports.com','babybjorn':'babybjorn.fr','printworks':'printworksmarket.com',
     'irobot':'irobot.fr','lexar':'lexar.com',
+    // CJ (nouveaux)
+    'notino':'notino.fr','first class watches':'firstclasswatches.co.uk',
+    'skechers':'skechers.fr','ecosupplements':'ecosupplements.fr',
+    'onebioshop':'onebioshop.com',
+    // Awin (nouveaux)
+    'velostore':'velostore.fr','foot store 2':'foot-store.fr',
     // Autres
     'bcd jeux':'bcdjeux.com'
   };
@@ -1772,6 +1778,9 @@ async function initHome() {
 
     fill(document.getElementById('dealsGrid'), deals, 12, true);
     fill(document.getElementById('trendingGrid'), popular, 16, false);
+
+    renderHeroCarousel(deals.length ? deals : popular);
+    renderMerchantMarquee(products);
   } catch (e) {
     console.error('initHome', e);
   }
@@ -1800,6 +1809,76 @@ document.addEventListener('click', function(e) {
   var slide = e.target.closest('.hero-slide[data-id]');
   if (slide) openDetail(slide.getAttribute('data-id'));
 });
+/* ── Carrousel héros : rempli avec de vrais produits, plus jamais vide ── */
+function renderHeroCarousel(list){
+  var slidesEl = document.getElementById('heroSlides');
+  var dotsEl = document.getElementById('heroDots');
+  if (!slidesEl) return;
+
+  var picks = [];
+  for (var i = 0; i < list.length && picks.length < 6; i++){
+    var p = list[i].p;
+    if (getImageUrl(p)) picks.push(p);
+  }
+  if (!picks.length) return;   // garde le spinner plutot qu'un carrousel vide
+
+  slidesEl.innerHTML = picks.map(function(p){
+    var offers = offersOf(p);
+    var lo = offers.length ? offers[0].price : (parseFloat(p.price) || 0);
+    var img = getImageUrl(p);
+    var sid = String(p.id).replace(/'/g, "\\'");
+    var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+    return '<div class="hero-slide" data-id="' + sid + '" style="min-width:100%;height:100%;display:flex;align-items:center;justify-content:center;gap:1.5rem;padding:1.5rem;cursor:pointer">'
+      + '<img src="' + img + '" alt="" loading="lazy" style="max-height:85%;max-width:45%;object-fit:contain;filter:drop-shadow(0 12px 24px rgba(0,0,0,.4))">'
+      + '<div style="max-width:48%">'
+        + (p.brand ? '<div style="font-family:var(--num);font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--coral);margin-bottom:.35rem">' + esc(p.brand) + '</div>' : '')
+        + '<div style="font-size:1.02rem;font-weight:700;line-height:1.32;margin-bottom:.6rem;color:#fff">' + esc(p.title).slice(0, 70) + '</div>'
+        + '<div style="font-family:var(--num);font-size:1.6rem;font-weight:900;color:var(--jade)">' + fmtEur(lo) + '</div>'
+        + (offers.length > 1 ? '<div style="font-size:.74rem;color:var(--sub);margin-top:.25rem">' + offers.length + ' marchands compar\u00e9s</div>' : '')
+      + '</div>'
+    + '</div>';
+  }).join('');
+
+  if (dotsEl) {
+    dotsEl.innerHTML = picks.map(function(_, i){
+      return '<span id="dot-' + i + '" onclick="goToSlide(' + i + ')" style="display:block;width:' + (i === 0 ? '18px' : '7px')
+        + ';height:7px;border-radius:4px;background:' + (i === 0 ? '#FF6B6B' : 'rgba(255,255,255,.4)')
+        + ';cursor:pointer;transition:all .3s"></span>';
+    }).join('');
+  }
+  carouselIdx = 0;
+  carouselTotal = picks.length;
+}
+
+/* ── Bande de marchands : construite depuis les offres reellement en base ── */
+function renderMerchantMarquee(products){
+  var track = document.querySelector('.marchands-track');
+  if (!track) return;
+
+  var seen = {}, names = [];
+  products.forEach(function(p){
+    offersOf(p).forEach(function(o){
+      if (!o.name || seen[o.name]) return;
+      seen[o.name] = 1;
+      names.push(o.name);
+    });
+  });
+  if (!names.length) return;   // garde la liste statique de secours si l'API ne repond rien
+
+  names.sort(function(a, b){ return a.localeCompare(b, 'fr'); });
+
+  var itemHTML = function(nm){
+    var fav = getFavicon(nm);
+    var logo = fav
+      ? '<img src="' + fav + '" alt="" loading="lazy" style="width:16px;height:16px;object-fit:contain;border-radius:3px;flex-shrink:0" onerror="this.remove()">'
+      : '';
+    return '<span class="marchand-item" style="display:inline-flex;align-items:center;gap:.45rem">' + logo + nm + '</span>';
+  };
+
+  var row = names.map(itemHTML).join('');
+  track.innerHTML = row + row;   // duplique : le CSS defile jusqu'a -50%, boucle invisible
+}
+
 function startCarousel() {
   if (carouselTimer) clearInterval(carouselTimer);
   carouselTimer = setInterval(function() { nextSlide(); }, 4000);
