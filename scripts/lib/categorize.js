@@ -34,6 +34,21 @@ const norm = s => (s || '')
 
 /** Regles fortes : un seul terme suffit, aucune ambiguite possible. */
 const STRONG = [
+  // Marques de pneus : quasi jamais utilisees seules dans un titre
+  // generique (contrairement a "watch" ou "casque"), donc sans risque de
+  // faux positif. Les titres de pneus se limitent souvent au nom de
+  // marque + modele commercial ("Quatrac", "Scorpion Winter"...) sans
+  // jamais le mot "pneu" lui-meme.
+  ['auto-moto', ['continental','bridgestone','goodyear','pirelli',
+    'dunlop','hankook','yokohama','falken','nexen','vredestein','uniroyal',
+    'firestone','kumho','toyo tires','nokian','cooper tires','sailun',
+    'landsail','laufenn','ecocontact','premiumcontact','sportcontact',
+    'wintercontact','allseasoncontact','primacy','pilot sport','energy saver',
+    'eagle f1','efficientgrip','vector 4seasons','cinturato','scorpion',
+    'p zero','winter sottozero','ventus','kinergy','dueler','turanza',
+    'ecopia','geolandar','wrangler','ice edge','snowmaster','wintrac',
+    'quatrac','snow max','winguard','roadian','all season 2','eurowinter',
+    'night dragon']],
   ['sport-outdoor', ['tapis de course','velo elliptique','rameur','halteres','kettlebell',
     'banc de musculation','tapis de yoga','raquette de tennis','ballon de football',
     'crampons football','maillot de football','sac de couchage','tente de camping',
