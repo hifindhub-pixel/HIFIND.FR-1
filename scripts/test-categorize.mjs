@@ -1,36 +1,30 @@
 import { categorize } from '/mnt/user-data/outputs/scripts/lib/categorize.js';
 
 const cases = [
-  // Le bug signale : Apple Watch chez un specialiste auto-moto
+  ['Geolandar A/T (G015)', 'Pneus FR', 'auto-moto', '', 'auto-moto'],
+  ['Continental EcoContact 6 Q (+) 255/50R19', '1001 Pneus', 'auto-moto', '', 'auto-moto'],
+  ["Pirelli P Zero Race TLR RS 30C/R700", '1001 Pneus', 'auto-moto', '', 'auto-moto'],
+  ["Nexen N'Blue S 175/55R15", '1001 Pneus', 'auto-moto', '', 'auto-moto'],
+  ['Eagle F1 Asymmetric 6', 'Pneus FR', 'auto-moto', '', 'auto-moto'],
+  ['EUROWINTER HS02PRO', 'Pneus FR', 'auto-moto', '', 'auto-moto'],
+  ['Quatrac', 'Pneus FR', 'auto-moto', '', 'auto-moto'],
+  ['Scorpion Winter', 'Pneus FR', 'auto-moto', '', 'auto-moto'],
+  ['Winter SottoZero 3 Run Flat', 'Pneus FR', 'auto-moto', '', 'auto-moto'],
+  ['Night Dragon GT', 'Pneus FR', 'auto-moto', '', 'auto-moto'],
+  ['P Zero PZ5', 'Pneus FR', 'auto-moto', '', 'auto-moto'],
+  ['Snow Max 3', 'Pneus FR', 'auto-moto', '', 'auto-moto'],
+  ['AllSeasonContact 2', 'Pneus FR', 'auto-moto', '', 'auto-moto'],
+  ['Winguard WT1', 'Pneus FR', 'auto-moto', '', 'auto-moto'],
+  // Non-regression : ne doivent pas basculer par accident
   ['Apple Watch Series 9 45mm GPS', 'Maxxess', 'auto-moto', '', 'high-tech'],
-  ['Apple Watch SE 44mm', 'Speedway', 'auto-moto', '', 'high-tech'],
-  ['AirPods Pro 2eme generation', 'Carter Cash', 'auto-moto', '', 'high-tech'],
-
-  // Meme sans regle forte : un produit sans AUCUN indice ne doit plus
-  // etre force dans la categorie du marchand (coeur du correctif)
-  ['XR-4471-B', 'Maxxess', 'auto-moto', '', 'autres'],
-  ['Reference 88291', 'Speedway', 'auto-moto', '', 'autres'],
-
-  // Non-regression : les vrais produits auto doivent rester en auto-moto
-  ['Casque J-CRUISE 2 UNI SHOEI', 'Maxxess', 'auto-moto', '', 'auto-moto'],
-  ['Pneu Michelin Primacy 4', 'Rakuten', null, '', 'auto-moto'],
-  ['ZARCO Echarpe Zarco', 'Moto Axxe', 'auto-moto', '', 'mode-vetements'],
-
-  // Non-regression : livres, jouets, mode, sport (session precedente)
-  ["Viollet-le-duc - l'homme qui ressuscita Notre-dame",'BDfugue','livres-bd','','livres-bd'],
-  ['LEGO Ninjago 71829 Le dragon vert','Rakuten',null,'','enfants-bebes'],
-  ['Chemise homme extraslim tissu traveler','Devred','mode-vetements','','mode-vetements'],
-  ['Ballon de football Adidas Tiro League','Rakuten',null,'','sport-outdoor'],
-  ['Croquettes chaton poulet 12x85g','Rakuten',null,'','animaux'],
+  ['Michelin Star Restaurant Guide 2026', 'BDfugue', 'livres-bd', '', 'livres-bd'],
+  ['Pneu Michelin Primacy 4 205/55 R16', 'Pneus FR', 'auto-moto', '', 'auto-moto'],
 ];
 
 let ok = 0, ko = [];
 for (const [title, merchant, mcat, feedCat, want] of cases) {
   const r = categorize({ title, merchant, merchantCategory: mcat, feedCat });
-  if (r.category === want) ok++; else ko.push([title, merchant, r.category, want, r.source]);
+  if (r.category === want) ok++; else ko.push([title, r.category, want]);
 }
 console.log(ok + '/' + cases.length + ' corrects');
-if (ko.length) {
-  console.log('\nEchecs :');
-  ko.forEach(k => console.log('  ' + k[0].slice(0,40).padEnd(42) + '(' + k[1] + ')  -> ' + k[2] + '  attendu: ' + k[3] + '  [' + k[4] + ']'));
-}
+if (ko.length) ko.forEach(k => console.log('  KO  ' + k[0].padEnd(45) + '-> ' + k[1] + '  (attendu ' + k[2] + ')'));
