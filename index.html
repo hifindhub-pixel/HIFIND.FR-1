@@ -1866,6 +1866,14 @@ function renderMerchantMarquee(names){
 
   var row = names.map(itemHTML).join('');
   track.innerHTML = row + row;   // duplique : le CSS defile jusqu'a -50%, boucle invisible
+
+  // Duree proportionnelle au nombre de marchands : sans ca, plus la liste
+  // s'allonge (elle vient desormais de tous les marchands actifs, pas
+  // d'une quinzaine figee), plus la vitesse APPARENTE augmente puisque le
+  // CSS parcourait la meme distance relative en un temps fixe (25s).
+  var SECONDS_PER_ITEM = 2.2;
+  var duration = Math.max(20, names.length * SECONDS_PER_ITEM);
+  track.style.animationDuration = duration + 's';
 }
 
 async function loadMerchantMarquee(){
