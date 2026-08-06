@@ -33,7 +33,8 @@ function makeTrackingUrl(product) {
     product.program_id.startsWith('rakuten_') ||
     product.program_id.startsWith('bcdjeux') ||
     product.program_id.startsWith('awin_') ||
-    product.program_id.startsWith('affilae_feed_')
+    product.program_id.startsWith('affilae_feed_') ||
+    product.program_id.startsWith('cj_')
   )) return product.url;
   if (product.program_id) {
     return 'https://track.affilae.com/' + product.program_id +
@@ -197,6 +198,21 @@ export default async function handler(req, res) {
         rows = r2.rows.map(p => ({...formatRow(p), ean_offers: null, offers_count: 1}));
         total = rows.length;
       }
+
+    } else if (action === 'merchants') {
+      // Liste complete des marchands actifs, independante de l'echantillon
+      // affiche en page d'accueil — pour la bande defilante notamment.
+      const r = await client.query(`
+        SELECT DISTINCT pr.title
+        FROM products p
+        JOIN programs pr ON p.program_id = pr.id
+        WHERE p.status = 'enabled'
+        AND p.program_id NOT LIKE '%darty%'
+        AND pr.title IS NOT NULL
+        ORDER BY pr.title
+      `);
+      rows = r.rows.map(row => ({ title: row.title }));
+      total = rows.length;
 
     } else if (action === 'product' && id) {
       const r = await client.query(`
