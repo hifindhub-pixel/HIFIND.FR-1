@@ -609,6 +609,7 @@ async function syncAwin() {
       if (feed.name.match(/^ManoMano [A-Z]/)) feedDisplayName = 'ManoMano';
       if (feed.name.match(/^Whirlpool [A-Z]/)) feedDisplayName = 'Whirlpool';
       if (feed.name.match(/^Velostore [A-Z]/)) feedDisplayName = 'Velostore';
+      if (feed.name === 'Foot Store 2') feedDisplayName = 'Footstore';
       const programId = 'awin_' + feedDisplayName.toLowerCase().replace(/[^a-z0-9]/g, '_');
       PROGRAM_META.set(programId, { title: feedDisplayName, category: feed.category });
       const writer = new HarvestWriter(programId);
