@@ -1484,7 +1484,7 @@ function getFavicon(name) {
     'geekbuying':'geekbuying.com','footstore':'foot-store.fr','foot store':'foot-store.fr',
     'acer':'acer.com','rakuten':'fr.shopping.rakuten.com','rue du commerce':'rueducommerce.fr',
     'joybuy':'joybuy.com','pixmania':'pixmania.com','electrolux':'electrolux.fr',
-    'aliexpress':'aliexpress.com','perfumeria comas':'perfumeriascomas.com',
+    'aliexpress':'aliexpress.com','perfumeria comas':'perfumeriacomas.com',
     'xiaomi':'mi.com','planet foot':'planetfoot.com','pneus fr':'pneus.fr',
     'manomano':'manomano.fr','whirlpool':'whirlpool.fr',
     // CJ
@@ -1780,7 +1780,6 @@ async function initHome() {
     fill(document.getElementById('trendingGrid'), popular, 16, false);
 
     renderHeroCarousel(deals.length ? deals : popular);
-    renderMerchantMarquee(products);
   } catch (e) {
     console.error('initHome', e);
   }
@@ -1850,22 +1849,12 @@ function renderHeroCarousel(list){
   carouselTotal = picks.length;
 }
 
-/* ── Bande de marchands : construite depuis les offres reellement en base ── */
-function renderMerchantMarquee(products){
+/* ── Bande de marchands : liste complete, independante de l'echantillon
+   affiche en page d'accueil (via action=merchants, tous les marchands
+   actifs, pas seulement ceux des ~120 produits tires au hasard) ── */
+function renderMerchantMarquee(names){
   var track = document.querySelector('.marchands-track');
-  if (!track) return;
-
-  var seen = {}, names = [];
-  products.forEach(function(p){
-    offersOf(p).forEach(function(o){
-      if (!o.name || seen[o.name]) return;
-      seen[o.name] = 1;
-      names.push(o.name);
-    });
-  });
-  if (!names.length) return;   // garde la liste statique de secours si l'API ne repond rien
-
-  names.sort(function(a, b){ return a.localeCompare(b, 'fr'); });
+  if (!track || !names || !names.length) return;
 
   var itemHTML = function(nm){
     var fav = getFavicon(nm);
@@ -1879,12 +1868,21 @@ function renderMerchantMarquee(products){
   track.innerHTML = row + row;   // duplique : le CSS defile jusqu'a -50%, boucle invisible
 }
 
+async function loadMerchantMarquee(){
+  try {
+    var data = await apiFetch('action=merchants');
+    var names = (data && data.data) ? data.data.map(function(m){ return m.title; }).filter(Boolean) : [];
+    renderMerchantMarquee(names);
+  } catch (e) { console.error('loadMerchantMarquee', e); }
+}
+
 function startCarousel() {
   if (carouselTimer) clearInterval(carouselTimer);
   carouselTimer = setInterval(function() { nextSlide(); }, 4000);
 }
 
 initHome().then(function(){ startCarousel(); });
+loadMerchantMarquee();
 
 // ══ FLIGHTS ══
 document.addEventListener('DOMContentLoaded', function() {
