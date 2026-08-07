@@ -760,6 +760,32 @@ async function syncCJ() {
   const CJ_PUBLISHER_ID = process.env.CJ_PUBLISHER_ID;
   if (!CJ_TOKEN || !CJ_PUBLISHER_ID) { console.log('  CJ_TOKEN/CJ_PUBLISHER_ID manquant'); return; }
 
+  // CJ ne fournit pas de lien tracke pret a l'emploi dans son API produits
+  // (le champ "link" est l'URL brute du marchand). Pour toucher une
+  // commission, chaque URL produit doit etre enveloppee dans un lien de
+  // clic CJ generique propre a l'annonceur : celui-ci se recupere une
+  // fois sur cj.com (fiche annonceur > Links > un lien texte generique)
+  // et se reutilise indefiniment pour n'importe quelle URL produit du
+  // meme annonceur via le parametre ?url=.
+  //
+  // Cle = feed.name normalise (minuscules, espaces->underscore) tel que
+  // genere plus bas pour construire le programId ('cj_' + cette cle).
+  const CJ_LINKS = {
+    notino: { domain: 'jdoqocy.com', linkId: '12907546' },
+    // A completer au fur et a mesure : sandisk, ugreen, wd, stiga_sports,
+    // babybjorn, printworks, irobot, first_class_watches, skechers,
+    // ecosupplements, onebioshop. Sans entree ici, l'URL brute (non
+    // trackee) est utilisee en repli plutot que de faire planter le sync.
+  };
+
+  function wrapCjLink(feedKey, rawUrl) {
+    if (!rawUrl) return '';
+    const cfg = CJ_LINKS[feedKey];
+    if (!cfg) return rawUrl;   // pas encore configure pour cet annonceur
+    return 'https://www.' + cfg.domain + '/click-' + CJ_PUBLISHER_ID + '-' + cfg.linkId +
+           '?url=' + encodeURIComponent(rawUrl);
+  }
+
   let feeds;
   try { feeds = JSON.parse(process.env.CJ_FEEDS || '[]'); }
   catch (e) { console.log('  CJ_FEEDS JSON invalide'); return; }
@@ -847,7 +873,7 @@ async function syncCJ() {
         title: cleanTitle(p.title || ''),
         price: price,
         currency: (priceObj && priceObj.currency) || 'EUR',
-        url: p.link || '',
+        url: wrapCjLink(feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_'), p.link || ''),
         image_url: p.imageLink || '',
         brand: p.brand || null,
         ean: extractEAN(p.gtin || p.mpn || ''),
