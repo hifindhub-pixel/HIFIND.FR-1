@@ -14,7 +14,7 @@ const AFFILAE_PROFILE_ID = '69c1bc52b682a8edf3205672';
 // simultanées basse) tout en permettant un peu de parallélisme réel.
 // ═══════════════════════════════════════════════════════════════
 let _pool = null;
-function getPool() {
+export function getPool() {
   if (!_pool) {
     _pool = new Pool({
       connectionString: process.env.NEON_URL,
@@ -26,7 +26,7 @@ function getPool() {
   return _pool;
 }
 
-function makeTrackingUrl(product) {
+export function makeTrackingUrl(product) {
   if (!product.url) return '#';
   if (product.program_id && (
     product.program_id.startsWith('effinity_') ||
@@ -43,7 +43,7 @@ function makeTrackingUrl(product) {
   return product.url;
 }
 
-function formatRow(p) {
+export function formatRow(p) {
   return {
     ...p,
     programs: p.program_title ? { title: p.program_title, countries: [] } : null,
@@ -104,7 +104,7 @@ function filterCompatibleOffers(mainCategory, offers) {
   return filtered;
 }
 
-async function getEanOffers(client, ean, mainCategory) {
+export async function getEanOffers(client, ean, mainCategory) {
   const r = await client.query(`
     SELECT DISTINCT ON (p.program_id) p.*, pr.title as program_title
     FROM products p
