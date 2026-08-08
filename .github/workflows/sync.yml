@@ -47,7 +47,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add categorie/ sitemap.xml
+          git add categorie/ sitemap.xml package-lock.json 2>/dev/null || git add categorie/ sitemap.xml
           git diff --staged --quiet || git commit -m "Mise a jour pages categorie [auto]"
           git pull --rebase origin main
           git push
