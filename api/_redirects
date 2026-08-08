@@ -1,4 +1,0 @@
-# Proxy transparent : les URL /produit/* restent sur hifind.fr pour Google
-# et les visiteurs, mais sont en realite servies par la fonction Vercel
-# api/produit.js (rendu HTML a la demande, pas de fichiers statiques).
-/produit/*  https://hifind-fr-1-fehz0vbhi-hifind.vercel.app/api/produit?slug=:splat  200
