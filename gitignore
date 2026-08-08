@@ -1,0 +1,13 @@
+# Dependances Node - jamais commitees, reinstallees a chaque run CI
+node_modules/
+
+# Fichiers d'environnement locaux (cles/secrets) - ne doivent jamais
+# etre commites, meme par accident
+.env
+.env.local
+.env.*.local
+
+# Divers
+.DS_Store
+npm-debug.log*
+*.log
