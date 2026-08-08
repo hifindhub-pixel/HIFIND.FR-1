@@ -172,6 +172,29 @@ async function groupWithOffers(client, products) {
  * construire une vraie pagination ("page 3 sur 47"). Requête légère :
  * juste un COUNT sur des EAN déjà indexés, pas de récupération de lignes.
  */
+const ACCESSORY_WORDS = [
+  'coque','etui','housse','protection','film','verre trempe','support',
+  'cable','chargeur','adaptateur','dock','sacoche','pochette','bandouliere',
+  'chargeur voiture','batterie externe','power bank','cordon',
+];
+
+function isAccessoryTitle(title) {
+  const t = String(title || '').toLowerCase();
+  return ACCESSORY_WORDS.some(w => t.includes(w));
+}
+
+/**
+ * Construit une requete tsquery a partir de la saisie utilisateur : chaque
+ * mot devient un prefixe (ex. "iphon:*") pour matcher une saisie partielle,
+ * les mots sont combines en ET logique.
+ */
+function buildTsQuery(q) {
+  return q.trim().split(/\s+/).filter(Boolean)
+    .map(w => w.replace(/[^\p{L}\p{N}]/gu, '') + ':*')
+    .filter(w => w !== ':*')
+    .join(' & ');
+}
+
 async function countDistinctEans(client, whereSql, params) {
   const r = await client.query(`
     SELECT COUNT(DISTINCT p.ean) AS total
@@ -200,26 +223,59 @@ export default async function handler(req, res) {
     let total = null;
 
     if (action === 'search' && q) {
-      const term = '%' + q + '%';
-      const searchWhere = MULTI_VENDOR_WHERE + ' AND (p.title ILIKE $1 OR p.brand ILIKE $1 OR p.description ILIKE $1)';
+      const tsQuery = buildTsQuery(q);
+      // Requete a mots-vides uniquement (ex: "de", "le") -> repli simple
+      const hasQuery = tsQuery.length > 0;
 
-      const [r, totalCount] = await Promise.all([
-        client.query(`
-          SELECT DISTINCT ON (p.ean) p.*, pr.title as program_title
-          FROM products p
-          LEFT JOIN programs pr ON p.program_id = pr.id
-          WHERE ${searchWhere}
-          ORDER BY p.ean, p.price ASC
-          LIMIT $2 OFFSET $3
-        `, [term, limitN * 3, offset]),
-        countDistinctEans(client, searchWhere, [term]),
-      ]);
+      let r, totalCount;
+      if (hasQuery) {
+        const searchWhere = MULTI_VENDOR_WHERE;
+        [r, totalCount] = await Promise.all([
+          client.query(`
+            WITH matched AS (
+              SELECT DISTINCT ON (p.ean) p.*, pr.title as program_title,
+                ts_rank(p.search_vector, query) AS rank,
+                similarity(p.title, $1) AS trgm_sim
+              FROM products p
+              LEFT JOIN programs pr ON p.program_id = pr.id,
+              to_tsquery('french', $2) query
+              WHERE ${searchWhere}
+              AND (p.search_vector @@ query OR p.title % $1)
+              ORDER BY p.ean, ts_rank(p.search_vector, query) DESC, p.price ASC
+            )
+            SELECT * FROM matched
+            ORDER BY rank DESC, trgm_sim DESC
+            LIMIT $3 OFFSET $4
+          `, [q, tsQuery, limitN * 4, offset]),
+          client.query(`
+            SELECT COUNT(DISTINCT p.ean) AS total
+            FROM products p, to_tsquery('french', $2) query
+            WHERE ${MULTI_VENDOR_WHERE}
+            AND (p.search_vector @@ query OR p.title % $1)
+          `, [q, tsQuery]).then(res => parseInt(res.rows[0]?.total || '0', 10)),
+        ]);
+      } else {
+        r = { rows: [] };
+        totalCount = 0;
+      }
       total = totalCount;
 
       if (r.rows.length > 0) {
-        rows = await groupWithOffers(client, r.rows);
+        // Penalite (pas exclusion) pour les accessoires quand la recherche
+        // elle-meme n'en demande pas : "iPhone 15" ne doit pas faire
+        // remonter une coque avant un vrai telephone, sans pour autant
+        // cacher les coques a qui les cherche explicitement.
+        const queryWantsAccessory = isAccessoryTitle(q);
+        const ranked = r.rows.map(row => ({
+          row,
+          score: parseFloat(row.rank) + parseFloat(row.trgm_sim || 0)
+                 - (!queryWantsAccessory && isAccessoryTitle(row.title) ? 0.5 : 0),
+        })).sort((a, b) => b.score - a.score).map(x => x.row);
+
+        rows = await groupWithOffers(client, ranked);
         rows = rows.slice(0, limitN);
       } else {
+        const term = '%' + q + '%';
         const r2 = await client.query(`
           SELECT p.*, pr.title as program_title
           FROM products p LEFT JOIN programs pr ON p.program_id = pr.id
