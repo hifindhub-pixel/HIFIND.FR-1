@@ -1,36 +1,32 @@
 name: Sync Products
-
 on:
   workflow_dispatch:
   schedule:
     # Tous les jours à 4h UTC (6h Paris)
     - cron: '0 4 * * *'
 
+permissions:
+  contents: write   # necessaire pour que le workflow puisse commit+push
+
 jobs:
   sync:
     runs-on: ubuntu-latest
     timeout-minutes: 180
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-
       - name: Install dependencies
         run: npm install pg
-
       - name: Run sync
         env:
           # Base
           NEON_URL: ${{ secrets.NEON_URL }}
-
           # Seuil de vendeurs distincts pour retenir un produit (defaut : 3)
           MIN_VENDORS: '3'
           # Marge memoire pour l'index EAN (plusieurs millions d'entrees)
           NODE_OPTIONS: '--max-old-space-size=6144'
-
           # Reseaux d'affiliation
           AFFILAE_TOKEN: ${{ secrets.AFFILAE_TOKEN }}
           AFFILAE_FEEDS: ${{ secrets.AFFILAE_FEEDS }}
@@ -41,3 +37,16 @@ jobs:
           CJ_PUBLISHER_ID: ${{ secrets.CJ_PUBLISHER_ID }}
           CJ_FEEDS: ${{ secrets.CJ_FEEDS }}
         run: node scripts/sync.js
+
+      - name: Generate category pages
+        env:
+          NEON_URL: ${{ secrets.NEON_URL }}
+        run: node scripts/generate-category-pages.js
+
+      - name: Commit and push generated pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add categorie/ sitemap.xml
+          git diff --staged --quiet || git commit -m "Mise a jour pages categorie [auto]"
+          git push
