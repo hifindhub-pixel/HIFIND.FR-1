@@ -1444,7 +1444,13 @@ function getImageUrl(p) {
     var m = url.match(/[?&]url=([^&]+)/);
     if (m) url = decodeURIComponent(m[1]);
   }
-  return url;
+  // Passe par le proxy image (meme domaine, protege contre le SSRF cote
+  // serveur) plutot que de pointer directement vers le CDN du marchand.
+  // Sans ca, chaque marchand de chaque reseau d'affiliation est un domaine
+  // d'image different et imprevisible, ce qui rend toute CSP img-src
+  // stricte impossible a ecrire -- c'est pour cette raison que la CSP
+  // actuelle utilise un wildcard "*" qui neutralise sa propre liste.
+  return '/api/img?url=' + encodeURIComponent(url);
 }
 
 function getFavicon(name) {
