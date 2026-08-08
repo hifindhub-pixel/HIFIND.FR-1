@@ -1,0 +1,8 @@
+# Proxy transparent : les URL /produit/* restent sur hifind.fr pour Google
+# et les visiteurs, mais sont en realite servies par la fonction Vercel
+# api/produit.js (rendu HTML a la demande, pas de fichiers statiques).
+#
+# IMPORTANT : remplace VOTRE-PROJET par le vrai nom de domaine de ton
+# deploiement Vercel (visible dans le tableau de bord Vercel, ressemble a
+# quelque-chose.vercel.app ou un domaine personnalise si tu en as configure un).
+/produit/*  https://VOTRE-PROJET.vercel.app/api/produit?slug=:splat  200
