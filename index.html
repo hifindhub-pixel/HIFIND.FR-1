@@ -1333,6 +1333,10 @@ async function runSearch(q) {
     renderResults(currentResults);
   renderFacets(); renderChips();
   } else {
+    allResults = []; currentResults = [];
+    document.getElementById('facetsPanel').innerHTML = '';
+    var pagBar = document.getElementById('paginationBar');
+    if (pagBar) pagBar.innerHTML = '';
     document.getElementById('resultsContainer').innerHTML =
       '<div class="empty-state"><div class="empty-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div><div class="empty-title">Aucun résultat</div><div class="empty-sub">Essayez avec d\'autres mots clés</div></div>';
   }
