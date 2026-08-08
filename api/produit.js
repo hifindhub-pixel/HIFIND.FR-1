@@ -41,7 +41,11 @@ function slugify(title) {
  * jamais pour la recherche elle-meme -- seul l'EAN fait foi.
  */
 function extractEanFromSlug(slug) {
-  const m = String(slug || '').match(/(\d{14}|\d{13}|\d{12}|\d{8})$/);
+  // Robuste a un slash final (le splat Netlify l'inclut souvent tel quel,
+  // ex: "test-3165140818421/" au lieu de "test-3165140818421") et a un
+  // eventuel espace ou point final residuel.
+  const cleaned = String(slug || '').trim().replace(/\/+$/, '');
+  const m = cleaned.match(/(\d{14}|\d{13}|\d{12}|\d{8})$/);
   return m ? m[1] : null;
 }
 
@@ -185,7 +189,7 @@ export default async function handler(req, res) {
     }
 
     const ref = product.offers[0];   // le moins cher sert de reference (titre/image/marque)
-    const canonical = `${SITE_URL}/produit/${slugify(ref.title)}-${ean}/`;
+    const canonical = `${SITE_URL}/produit/${slugify(ref.title)}-${ean}`;
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=86400');
