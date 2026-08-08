@@ -72,13 +72,33 @@ function fixEncoding(str) {
     .replace(/Ã¥/g, 'å').replace(/Ã/g, 'Â');
 }
 
+/**
+ * Verifie la cle de controle GS1 (algorithme officiel GTIN-8/12/13/14) :
+ * poids alternes 3/1 en partant du chiffre juste avant la cle, en
+ * remontant vers la gauche. Une valeur numerique de bonne longueur mais
+ * a cle invalide n'est quasiment jamais un vrai code-barres — le plus
+ * souvent une reference interne du marchand, un SKU ou une faute de
+ * frappe qui, laissee passer, peut fusionner deux produits sans rapport
+ * sous le meme "EAN" (voir l'audit : batterie de cuisine en tete de
+ * High-Tech, tres probablement cause par ce genre de collision).
+ */
+function isValidEanChecksum(code) {
+  const digits = code.split('').map(Number);
+  const check = digits.pop();
+  let sum = 0;
+  digits.reverse().forEach((d, i) => { sum += d * (i % 2 === 0 ? 3 : 1); });
+  return ((10 - (sum % 10)) % 10) === check;
+}
+
 function extractEAN(val) {
   if (!val) return null;
-  // Prend le premier code numérique valide (8-14 chiffres)
+  // Prend le premier code numerique de longueur GTIN valide (8, 12, 13
+  // ou 14 chiffres — 9/10/11 ne sont pas des longueurs GTIN standard)
+  // ET dont la cle de controle est correcte.
   const parts = String(val).split(/[\s,;|]+/);
   for (const part of parts) {
     const clean = part.trim().replace(/\.0$/, '');
-    if (/^\d{8,14}$/.test(clean)) return clean;
+    if (/^(?:\d{8}|\d{12}|\d{13}|\d{14})$/.test(clean) && isValidEanChecksum(clean)) return clean;
   }
   return null;
 }
