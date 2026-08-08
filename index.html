@@ -1600,22 +1600,22 @@ async function openDetail(id) {
   var sid = String(p.id).replace(/'/g, "\\'");
 
   var heroSub = hi > lo
-    ? 'chez ' + offers[0].merchant + ' &middot; jusqu\'\u00e0 ' + fmtEur(hi) + ' ailleurs'
-    : 'chez ' + offers[0].merchant;
+    ? 'chez ' + escHtml(offers[0].merchant) + ' &middot; jusqu\'\u00e0 ' + fmtEur(hi) + ' ailleurs'
+    : 'chez ' + escHtml(offers[0].merchant);
 
   document.getElementById('detailContent').innerHTML =
     '<div class="pd-layout">'
       + '<div class="pd-media">'
         + '<div class="pd-img-box">'
           + '<button class="pd-fav-btn' + (isFav ? ' on' : '') + '" id="detailFavBtn" onclick="toggleFav(\'' + sid + '\',this)" aria-label="Sauvegarder">' + ICO.heart(isFav) + '</button>'
-          + (img ? '<img src="' + img + '" alt="' + p.title.replace(/"/g,'&quot;') + '" onerror="this.style.display=\'none\'">' : '<span style="color:#cbd5e1">' + ICO.box + '</span>')
+          + (img ? '<img src="' + escHtml(img) + '" alt="' + escHtml(p.title) + '" onerror="this.style.display=\'none\'">' : '<span style="color:#cbd5e1">' + ICO.box + '</span>')
         + '</div>'
         + '<div class="pd-media-meta"><strong>' + offers.length + '</strong> marchand' + (offers.length > 1 ? 's' : '') + ' compar\u00e9' + (offers.length > 1 ? 's' : '') + '</div>'
       + '</div>'
       + '<div class="pd-info">'
-        + (p.brand ? '<div class="pd-brand">' + p.brand + '</div>' : '')
-        + '<h1 class="pd-title">' + p.title + '</h1>'
-        + (p.description ? '<p class="pd-specs">' + p.description.slice(0, 220) + '</p>' : '')
+        + (p.brand ? '<div class="pd-brand">' + escHtml(p.brand) + '</div>' : '')
+        + '<h1 class="pd-title">' + escHtml(p.title) + '</h1>'
+        + (p.description ? '<p class="pd-specs">' + escHtml(p.description.slice(0, 220)) + '</p>' : '')
         + '<div class="pd-hero">'
           + '<div>'
             + '<div class="pd-hero-label">Prix le plus bas</div>'
@@ -1943,6 +1943,12 @@ function offersOf(p){
 }
 
 /* ── Carte produit ── */
+function escHtml(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+  });
+}
+
 function cardHTML(p, rank){
   var offers = offersOf(p);
   var lo = offers.length ? offers[0].price : (parseFloat(p.price)||0);
@@ -2157,17 +2163,19 @@ function renderOfferRows(offers, minPrice){
   return offers.map(function(o){
     var isBest = o.price === minPrice;
     var fav = getFavicon(o.merchant);
+    var merchantSafe = escHtml(o.merchant);
+    var initials = escHtml(o.merchant.slice(0,2).toUpperCase());
     var logoEl = fav
-      ? '<img src="' + fav + '" class="offer-logo" alt="" loading="lazy" onerror="this.outerHTML=\'<div class=&quot;offer-logo-placeholder&quot;>' + o.merchant.slice(0,2).toUpperCase() + '</div>\'">'
-      : '<div class="offer-logo-placeholder">' + o.merchant.slice(0,2).toUpperCase() + '</div>';
+      ? '<img src="' + escHtml(fav) + '" class="offer-logo" alt="" loading="lazy" onerror="this.outerHTML=\'<div class=&quot;offer-logo-placeholder&quot;>' + initials + '</div>\'">'
+      : '<div class="offer-logo-placeholder">' + initials + '</div>';
     return '<div class="pd-offer-row' + (isBest ? ' best' : '') + '">'
       + '<div class="pd-offer-merchant">' + logoEl
-        + '<div><div class="pd-offer-name">' + o.merchant + '</div>'
+        + '<div><div class="pd-offer-name">' + merchantSafe + '</div>'
           + (isBest ? '<span class="pd-offer-tag">Meilleur prix</span>' : '')
         + '</div>'
       + '</div>'
       + '<div class="pd-offer-price">' + fmtEur(o.price) + '</div>'
-      + '<a class="pd-offer-btn ' + (isBest ? 'primary' : 'secondary') + '" href="' + o.url + '" target="_blank" rel="noopener sponsored">Voir l\'offre</a>'
+      + '<a class="pd-offer-btn ' + (isBest ? 'primary' : 'secondary') + '" href="' + escHtml(o.url) + '" target="_blank" rel="noopener sponsored">Voir l\'offre</a>'
     + '</div>';
   }).join('');
 }
