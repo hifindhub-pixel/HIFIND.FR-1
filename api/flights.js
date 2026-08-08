@@ -1,5 +1,4 @@
-// ESM — compatible "type": "module" dans package.json
-const TP_TOKEN = '22ac0b6e6ed865e0c673152376023db4';
+const TP_TOKEN = process.env.TRAVELPAYOUTS_TOKEN;
 
 const ROUTES = [
   { origin: 'CDG', destination: 'TUN' },
@@ -22,10 +21,13 @@ const ROUTES = [
   { origin: 'CDG', destination: 'IST' },
 ];
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=7200');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  if (!TP_TOKEN) {
+    return res.status(500).json({ error: 'TRAVELPAYOUTS_TOKEN manquant (variable d\'environnement non definie)' });
+  }
 
   const now = new Date();
   now.setMonth(now.getMonth() + 1);
@@ -40,19 +42,25 @@ export default async function handler(req, res) {
         '&depart_date=' + month +
         '&currency=eur&token=' + TP_TOKEN;
 
-      const r = await fetch(url, { headers: { 'x-access-token': TP_TOKEN } });
+      const r = await fetch(url, {
+        headers: { 'x-access-token': TP_TOKEN }
+      });
       if (!r.ok) continue;
       const data = await r.json();
 
       if (data.success && data.data && data.data[route.destination]) {
         const offers = Object.values(data.data[route.destination]);
         if (offers.length > 0) {
-          const minPrice = Math.min(...offers.map(o => o.price));
-          results.push({ origin: route.origin, destination: route.destination, price: minPrice });
+          const minPrice = Math.min(...offers.map(function(o) { return o.price; }));
+          results.push({
+            origin: route.origin,
+            destination: route.destination,
+            price: minPrice,
+          });
         }
       }
     } catch(e) {}
   }
 
   return res.status(200).json({ data: results });
-}
+};
