@@ -63,7 +63,48 @@ const MULTI_VENDOR_WHERE = `
   )
 `;
 
-async function getEanOffers(client, ean) {
+const INCOMPATIBLE = {
+  'auto-moto': ['beaute-bienetre','mode-vetements','enfants-bebes','alimentation-bio'],
+  'beaute-bienetre': ['auto-moto','sport-outdoor'],
+  'high-tech': ['auto-moto','beaute-bienetre','alimentation-bio'],
+};
+
+function normalizeBrand(b) {
+  return String(b || '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+/**
+ * Filtre les offres d'un meme EAN pour ne garder que celles compatibles
+ * avec le produit de reference : categorie non contradictoire (deja en
+ * place), et surtout marque non contradictoire. Un EAN mal saisi ou
+ * reutilise cote marchand peut faire "matcher" deux produits sans rapport
+ * (voir l'audit : une batterie de cuisine remontee en tete de High-Tech).
+ * Sans marque renseignee des deux cotes, aucun conflit n'est detectable —
+ * on ne filtre alors que sur la categorie.
+ */
+function filterCompatibleOffers(mainCategory, offers) {
+  const excluded = INCOMPATIBLE[mainCategory || ''] || [];
+  let filtered = offers.filter(o => !excluded.includes(o.category));
+
+  const brandCounts = new Map();
+  filtered.forEach(o => {
+    const nb = normalizeBrand(o.brand);
+    if (nb) brandCounts.set(nb, (brandCounts.get(nb) || 0) + 1);
+  });
+  if (brandCounts.size > 1) {
+    let refBrand = null, refCount = 0;
+    for (const [b, n] of brandCounts) if (n > refCount) { refBrand = b; refCount = n; }
+    filtered = filtered.filter(o => {
+      const nb = normalizeBrand(o.brand);
+      return !nb || nb === refBrand;
+    });
+  }
+  return filtered;
+}
+
+async function getEanOffers(client, ean, mainCategory) {
   const r = await client.query(`
     SELECT DISTINCT ON (p.program_id) p.*, pr.title as program_title
     FROM products p
@@ -72,16 +113,10 @@ async function getEanOffers(client, ean) {
     AND p.program_id NOT LIKE '%darty%'
     ORDER BY p.program_id, p.price ASC
   `, [ean]);
-  const rows = r.rows.map(formatRow);
+  const rows = filterCompatibleOffers(mainCategory, r.rows.map(formatRow));
   rows.sort((a,b) => (parseFloat(a.price)||0) - (parseFloat(b.price)||0));
   return rows;
 }
-
-const INCOMPATIBLE = {
-  'auto-moto': ['beaute-bienetre','mode-vetements','enfants-bebes','alimentation-bio'],
-  'beaute-bienetre': ['auto-moto','sport-outdoor'],
-  'high-tech': ['auto-moto','beaute-bienetre','alimentation-bio'],
-};
 
 // Récupère toutes les offres pour une liste d'EANs en UNE SEULE requête
 async function getAllOffersForEans(client, eans) {
@@ -117,9 +152,7 @@ async function groupWithOffers(client, products) {
     if (eanMap.has(key)) continue;
     const offers = offersByEan.get(p.ean) || [];
 
-    const mainCat = p.category || '';
-    const excluded = INCOMPATIBLE[mainCat] || [];
-    const filtered = offers.filter(o => !excluded.includes(o.category));
+    const filtered = filterCompatibleOffers(p.category, offers);
     const distinctVendors = [...new Set(filtered.map(o => o.program_id))];
     if (distinctVendors.length < 2) continue;
 
@@ -223,7 +256,7 @@ export default async function handler(req, res) {
       if (r.rows.length > 0) {
         const product = formatRow(r.rows[0]);
         if (product.ean) {
-          const offers = await getEanOffers(client, product.ean);
+          const offers = await getEanOffers(client, product.ean, product.category);
           product.ean_offers = offers;
           product.offers_count = offers.length;
         }
