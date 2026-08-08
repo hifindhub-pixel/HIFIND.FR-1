@@ -1897,6 +1897,14 @@ function startCarousel() {
 initHome().then(function(){ startCarousel(); });
 loadMerchantMarquee();
 
+// Arrivee depuis une page produit statique (SEO) : ouvre directement la
+// fiche interactive correspondante plutot que la page d'accueil.
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  var pid = params.get('openProduct');
+  if (pid) openDetail(pid);
+})();
+
 // ══ FLIGHTS ══
 document.addEventListener('DOMContentLoaded', function() {
   fetch('/api/flights').then(r => r.json()).then(json => {
