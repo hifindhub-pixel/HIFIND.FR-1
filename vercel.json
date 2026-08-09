@@ -5,7 +5,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "img-src 'self' data: https://www.google.com https://*.gstatic.com;"
+          "value": "img-src 'self' data: https://www.google.com https://*.gstatic.com https://images.unsplash.com;"
         }
       ]
     },
