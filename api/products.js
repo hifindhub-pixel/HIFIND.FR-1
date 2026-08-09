@@ -280,7 +280,25 @@ export default async function handler(req, res) {
         // sur les deux seules vraies consoles de l'echantillon, jamais
         // ailleurs -- signal fiable, contrairement a "edition standard"
         // ou la capacite de stockage, qui apparaissent aussi sur des jeux.
-        const isConsoleTitle = t => /\bconsole\b/i.test(t || '');
+        // "console" comme mot entier ne suffit pas : une facade de
+        // protection dit aussi "pour console PS5 Slim" sans etre elle-meme
+        // une console. Verifie sur donnees reelles (troisieme candidat de
+        // ce debug precis). Distinction : si un mot-accessoire apparait
+        // AVANT "console" dans le titre, l'accessoire est le sujet reel
+        // ("facade... pour console") ; sinon "console" est bien le sujet
+        // ("Sony Console... avec Manette..." -- une vraie console vendue
+        // en pack avec une manette reste une console).
+        const isConsoleTitle = title => {
+          const t = (title || '').toLowerCase();
+          const m = /\bconsole\b/.exec(t);
+          if (!m) return false;
+          const consolePos = m.index;
+          for (const w of ACCESSORY_WORDS) {
+            const idx = t.indexOf(w);
+            if (idx !== -1 && idx < consolePos) return false;
+          }
+          return true;
+        };
         const queryIsBarePlatform = !queryWantsAccessory;
 
         // Tri par PALIER, pas par score additionne. Un +0.8 fixe peut se
