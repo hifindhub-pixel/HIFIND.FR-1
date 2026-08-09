@@ -176,6 +176,11 @@ const ACCESSORY_WORDS = [
   'coque','etui','housse','protection','film','verre trempe','support',
   'cable','chargeur','adaptateur','dock','sacoche','pochette','bandouliere',
   'chargeur voiture','batterie externe','power bank','cordon',
+  // Peripheriques gaming : leur titre contient presque toujours le mot-type
+  // ("Manette DualSense PS5", "Casque Gaming PS5"), contrairement aux jeux
+  // dont le titre ne contient jamais le mot "jeu" -- seulement le nom propre
+  // du jeu. Meme mecanisme que les accessoires, meme fiabilite de detection.
+  'manette', 'controleur', 'volant de course', 'stand de recharge',
 ];
 
 function isAccessoryTitle(title) {
