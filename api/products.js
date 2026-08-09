@@ -290,6 +290,26 @@ export default async function handler(req, res) {
                  + (queryIsBarePlatform && isConsoleTitle(row.title) ? 0.8 : 0),
         })).sort((a, b) => b.score - a.score).map(x => x.row);
 
+        // Diagnostic temporaire : &debug=1 dans l'URL renvoie le detail du
+        // calcul de score pour les 15 premiers candidats, AVANT le
+        // regroupement par EAN. Ne s'active que sur demande explicite,
+        // aucun effet sur la reponse normale.
+        if (req.query.debug === '1') {
+          searchMeta.debug = r.rows.slice(0, 15).map(row => ({
+            title: row.title,
+            ean: row.ean,
+            program_id: row.program_id,
+            rank: parseFloat(row.rank),
+            trgm_sim: parseFloat(row.trgm_sim || 0),
+            isAccessory: isAccessoryTitle(row.title),
+            isConsole: isConsoleTitle(row.title),
+            finalScore: parseFloat(row.rank) + parseFloat(row.trgm_sim || 0)
+                        - (!queryWantsAccessory && isAccessoryTitle(row.title) ? 0.5 : 0)
+                        + (queryIsBarePlatform && isConsoleTitle(row.title) ? 0.8 : 0),
+          }));
+          searchMeta.totalCandidatesFetched = r.rows.length;
+        }
+
         rows = await groupWithOffers(client, ranked);
         rows = rows.slice(0, limitN);
 
