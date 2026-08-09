@@ -221,6 +221,7 @@ export default async function handler(req, res) {
   try {
     let rows = [];
     let total = null;
+    let searchMeta = {};
 
     if (action === 'search' && q) {
       const tsQuery = buildTsQuery(q);
@@ -274,6 +275,16 @@ export default async function handler(req, res) {
 
         rows = await groupWithOffers(client, ranked);
         rows = rows.slice(0, limitN);
+
+        // La penalite fait descendre les accessoires, mais s'il n'existe
+        // simplement AUCUN produit principal compare a 3 marchands ou
+        // plus, ils restent les seuls resultats disponibles -- ce n'est
+        // pas la meme chose que "le produit principal existe et gagne".
+        // Le signaler explicitement evite de laisser croire qu'une coque
+        // EST la reponse a "iPhone 15".
+        searchMeta.allAccessories = !queryWantsAccessory
+          && rows.length > 0
+          && rows.every(p => isAccessoryTitle(p.title));
       } else {
         const term = '%' + q + '%';
         const r2 = await client.query(`
@@ -409,6 +420,7 @@ export default async function handler(req, res) {
       page: pageN,
       pages,
       limit: limitN,
+      meta: searchMeta,
     });
 
   } catch(err) {
