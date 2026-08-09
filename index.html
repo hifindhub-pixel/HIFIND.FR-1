@@ -1534,13 +1534,13 @@ function pcardHTML(p) {
   }
   return '<div class="pcard" onclick="openDetail(\'' + safeId + '\')">'
     + '<div class="pcard-img-col">'
-      + (img ? '<img src="' + img + '" alt="' + p.title.replace(/"/g,'&quot;') + '" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem;color:#ccc"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></div>')
+      + (img ? '<img src="' + escHtml(img) + '" alt="' + escHtml(p.title) + '" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem;color:#ccc"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></div>')
       + (savePct ? '<div class="prod-card-badge" style="position:absolute;top:.5rem;left:.5rem">' + savePct + '</div>' : '')
       + '<button class="pcard-btn-fav" onclick="event.stopPropagation();toggleFav(\'' + safeId + '\',this)">' + (isFav ? ICO.heart(true) : ICO.heart(false)) + '</button>'
     + '</div>'
     + '<div class="pcard-body">'
-      + '<div class="pcard-brand">' + brand + '</div>'
-      + '<div class="pcard-name">' + p.title + '</div>'
+      + '<div class="pcard-brand">' + escHtml(brand) + '</div>'
+      + '<div class="pcard-name">' + escHtml(p.title) + '</div>'
       + (offers > 1 ? '<div class="pcard-offers-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> ' + offers + ' offres comparées</div>' : '')
       + '<div class="pcard-bottom">'
         + '<div class="pcard-price-block">'
@@ -1698,12 +1698,12 @@ function prodCardSmall(p, showBadge) {
   }
   return '<div class="prod-card" onclick="openDetail(\'' + safeId + '\')">'
     + '<div class="prod-card-img">'
-      + (img ? '<img src="' + img + '" alt="' + p.title.replace(/"/g,'') + '" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem;color:#ccc"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></div>')
+      + (img ? '<img src="' + escHtml(img) + '" alt="' + escHtml(p.title) + '" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem;color:#ccc"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></div>')
       + (savePct ? '<div class="prod-card-badge">-' + savePct + '%</div>' : '')
     + '</div>'
     + '<div class="prod-card-body">'
-      + '<div class="prod-card-brand">' + brand + '</div>'
-      + '<div class="prod-card-name">' + p.title + '</div>'
+      + '<div class="prod-card-brand">' + escHtml(brand) + '</div>'
+      + '<div class="prod-card-name">' + escHtml(p.title) + '</div>'
       + '<div class="prod-card-stars"><span class="stars"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.9 1.4 7L12 17.8 5.8 21.3l1.4-7L2 9.4l7-.8Z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.9 1.4 7L12 17.8 5.8 21.3l1.4-7L2 9.4l7-.8Z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.9 1.4 7L12 17.8 5.8 21.3l1.4-7L2 9.4l7-.8Z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.9 1.4 7L12 17.8 5.8 21.3l1.4-7L2 9.4l7-.8Z"/></svg></span><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.9 1.4 7L12 17.8 5.8 21.3l1.4-7L2 9.4l7-.8Z"/></svg> <span>4.5</span></div>'
       + '<div class="prod-card-price">'
         + '<span class="prod-card-from">Dès</span>'
