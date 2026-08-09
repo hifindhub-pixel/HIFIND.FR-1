@@ -272,10 +272,22 @@ export default async function handler(req, res) {
         // remonter une coque avant un vrai telephone, sans pour autant
         // cacher les coques a qui les cherche explicitement.
         const queryWantsAccessory = isAccessoryTitle(q);
+
+        // Boost (pas penalite sur les jeux, indetectables par mot-cle --
+        // "GTA V" ne contient jamais le mot "jeu") pour la console
+        // elle-meme quand la recherche est nue ("PS5", pas "manette PS5").
+        // Verifie sur 40 titres reels : "console" apparait litteralement
+        // sur les deux seules vraies consoles de l'echantillon, jamais
+        // ailleurs -- signal fiable, contrairement a "edition standard"
+        // ou la capacite de stockage, qui apparaissent aussi sur des jeux.
+        const isConsoleTitle = t => /\bconsole\b/i.test(t || '');
+        const queryIsBarePlatform = !queryWantsAccessory;
+
         const ranked = r.rows.map(row => ({
           row,
           score: parseFloat(row.rank) + parseFloat(row.trgm_sim || 0)
-                 - (!queryWantsAccessory && isAccessoryTitle(row.title) ? 0.5 : 0),
+                 - (!queryWantsAccessory && isAccessoryTitle(row.title) ? 0.5 : 0)
+                 + (queryIsBarePlatform && isConsoleTitle(row.title) ? 0.8 : 0),
         })).sort((a, b) => b.score - a.score).map(x => x.row);
 
         rows = await groupWithOffers(client, ranked);
