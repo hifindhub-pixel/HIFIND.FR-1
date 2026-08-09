@@ -94,12 +94,25 @@ function filterCompatibleOffers(mainCategory, offers) {
     if (nb) brandCounts.set(nb, (brandCounts.get(nb) || 0) + 1);
   });
   if (brandCounts.size > 1) {
-    let refBrand = null, refCount = 0;
-    for (const [b, n] of brandCounts) if (n > refCount) { refBrand = b; refCount = n; }
-    filtered = filtered.filter(o => {
-      const nb = normalizeBrand(o.brand);
-      return !nb || nb === refBrand;
-    });
+    // Ne filtre que s'il existe un LEADER CLAIR (strictement plus
+    // frequent que toute autre marque) -- sinon on risque d'exclure au
+    // hasard un marchand legitime. Cas reel qui a expose ce bug : une
+    // PS5 vendue par trois marchands sous trois libelles differents du
+    // MEME fabricant ("Sony", "Sony Interactive Entertainment",
+    // "Playstation") -- aucune majorite, le filtre en excluait deux sur
+    // trois au hasard et faisait tomber le produit sous le seuil de 2
+    // marchands necessaires a l'affichage. L'absence de majorite doit
+    // rendre le filtre neutre, pas trancher arbitrairement.
+    const counts = [...brandCounts.values()].sort((a, b) => b - a);
+    const hasClearLeader = counts.length > 1 && counts[0] > counts[1];
+    if (hasClearLeader) {
+      let refBrand = null, refCount = 0;
+      for (const [b, n] of brandCounts) if (n > refCount) { refBrand = b; refCount = n; }
+      filtered = filtered.filter(o => {
+        const nb = normalizeBrand(o.brand);
+        return !nb || nb === refBrand;
+      });
+    }
   }
   return filtered;
 }
