@@ -478,6 +478,18 @@ export default async function handler(req, res) {
     }
 
     const pages = total != null ? Math.max(1, Math.ceil(total / limitN)) : null;
+
+    // Le cache statique de vercel.json (5 min, par URL exacte) sert la
+    // MEME reponse en cache tant que l'URL exacte a deja ete appelee une
+    // fois -- ce qui inclut potentiellement des requetes anterieures a
+    // ce correctif de classement. Desactivation explicite pour la
+    // recherche pendant que le tri est encore en cours d'ajustement :
+    // mieux vaut recalculer a chaque fois que servir une reponse perimee
+    // sans aucun moyen de le detecter depuis le site lui-meme.
+    if (action === 'search') {
+      res.setHeader('Cache-Control', 'no-store');
+    }
+
     return res.status(200).json({
       data: rows,
       count: rows.length,
