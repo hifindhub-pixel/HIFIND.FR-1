@@ -283,19 +283,30 @@ export default async function handler(req, res) {
         const isConsoleTitle = t => /\bconsole\b/i.test(t || '');
         const queryIsBarePlatform = !queryWantsAccessory;
 
-        const ranked = r.rows.map(row => ({
-          row,
-          score: parseFloat(row.rank) + parseFloat(row.trgm_sim || 0)
-                 - (!queryWantsAccessory && isAccessoryTitle(row.title) ? 0.5 : 0)
-                 + (queryIsBarePlatform && isConsoleTitle(row.title) ? 0.8 : 0),
-        })).sort((a, b) => b.score - a.score).map(x => x.row);
+        // Tri par PALIER, pas par score additionne. Un +0.8 fixe peut se
+        // faire depasser par un titre de jeu court ("GTA V PS5" ~ 9
+        // caracteres tres denses en "PS5") dont la similarite textuelle
+        // (trgm_sim) est mecaniquement gonflee par la brievete du titre --
+        // verifie sur donnees reelles : ce jeu obtenait un score final
+        // superieur a celui de la vraie console. Le palier rend la
+        // comparaison impossible a perdre : une vraie console bat TOUJOURS
+        // un non-console pour une recherche nue, quel que soit l'ecart de
+        // pertinence textuelle brute. Le score ne depatage plus qu'a
+        // l'interieur d'un meme palier (deux consoles entre elles, etc).
+        const scoreOf = row => parseFloat(row.rank) + parseFloat(row.trgm_sim || 0)
+                 - (!queryWantsAccessory && isAccessoryTitle(row.title) ? 0.5 : 0);
+        const tierOf = row => (queryIsBarePlatform && isConsoleTitle(row.title)) ? 1 : 0;
 
-        // Diagnostic temporaire : &debug=1 dans l'URL renvoie le detail du
-        // calcul de score pour les 15 premiers candidats, AVANT le
-        // regroupement par EAN. Ne s'active que sur demande explicite,
-        // aucun effet sur la reponse normale.
+        const ranked = r.rows.map(row => ({ row, score: scoreOf(row), tier: tierOf(row) }))
+          .sort((a, b) => (b.tier - a.tier) || (b.score - a.score))
+          .map(x => x.row);
+
+        // Diagnostic temporaire : &debug=1 dans l'URL renvoie le classement
+        // FINAL (palier + score) des 15 premiers candidats, apres tri --
+        // plus utile que l'ordre SQL brut pour verifier qu'une console
+        // atterrit bien en tete. Ne s'active que sur demande explicite.
         if (req.query.debug === '1') {
-          searchMeta.debug = r.rows.slice(0, 15).map(row => ({
+          searchMeta.debug = ranked.slice(0, 15).map(row => ({
             title: row.title,
             ean: row.ean,
             program_id: row.program_id,
@@ -303,9 +314,8 @@ export default async function handler(req, res) {
             trgm_sim: parseFloat(row.trgm_sim || 0),
             isAccessory: isAccessoryTitle(row.title),
             isConsole: isConsoleTitle(row.title),
-            finalScore: parseFloat(row.rank) + parseFloat(row.trgm_sim || 0)
-                        - (!queryWantsAccessory && isAccessoryTitle(row.title) ? 0.5 : 0)
-                        + (queryIsBarePlatform && isConsoleTitle(row.title) ? 0.8 : 0),
+            tier: tierOf(row),
+            score: scoreOf(row),
           }));
           searchMeta.totalCandidatesFetched = r.rows.length;
         }
