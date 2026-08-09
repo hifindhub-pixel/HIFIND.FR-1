@@ -1333,14 +1333,16 @@ async function runSearch(q) {
     renderResults(currentResults);
     renderFacets(); renderChips();
 
-    // Aucun produit principal trouve, seulement des accessoires compatibles :
-    // le dire clairement plutot que de laisser une coque occuper la place
-    // d'un vrai telephone sans explication.
+    // Aucun produit du TYPE demande, seulement des resultats connexes
+    // (accessoires, jeux...) : le dire clairement plutot que de laisser
+    // un accessoire occuper la place d'un vrai produit principal sans
+    // explication. Generalise a n'importe quel type (LOT 1), plus
+    // seulement "coque vs telephone".
     var banner = document.getElementById('resultsContainer');
-    if (data.meta && data.meta.allAccessories && banner) {
+    if (data.meta && data.meta.noPrimaryTypeMatch && banner) {
       var notice = document.createElement('div');
       notice.style.cssText = 'background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:.9rem 1.1rem;margin-bottom:1rem;font-size:.85rem;color:var(--sub)';
-      notice.innerHTML = '<strong style="color:var(--text)">Aucun « ' + escHtml(q) + ' » compar\u00e9 chez au moins 3 marchands actuellement.</strong><br>Les r\u00e9sultats ci-dessous sont des accessoires compatibles.';
+      notice.innerHTML = '<strong style="color:var(--text)">Aucun « ' + escHtml(q) + ' » compar\u00e9 chez au moins 3 marchands actuellement.</strong><br>Les r\u00e9sultats ci-dessous sont des produits connexes (accessoires, variantes...).';
       banner.insertBefore(notice, banner.firstChild);
     }
   } else {
