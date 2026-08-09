@@ -853,9 +853,9 @@ async function syncCJ() {
   // Le champ gtin vit sur le type concret Shopping, pas sur l'interface Product.
   // On essaie plusieurs jeux de champs, du plus riche au plus minimal.
   const CJ_FIELD_SETS = [
-    'id title description link imageLink price { amount currency } salePrice { amount currency } brand availability shipping { amount currency } ... on Shopping { gtin mpn }',
-    'id title link imageLink price { amount currency } shipping { amount currency } ... on Shopping { gtin mpn brand availability salePrice { amount currency } }',
-    'id title link imageLink price { amount currency } shipping { amount currency } brand',
+    'id title description link imageLink price { amount currency } salePrice { amount currency } brand availability ... on Shopping { gtin mpn }',
+    'id title link imageLink price { amount currency } ... on Shopping { gtin mpn brand availability salePrice { amount currency } }',
+    'id title link imageLink price { amount currency } brand',
     'id title link imageLink price { amount currency }'
   ];
   let CJ_FIELDS = null;
