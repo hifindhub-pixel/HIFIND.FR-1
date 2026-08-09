@@ -57,12 +57,24 @@ export default async function handler(req, res) {
   const { url } = req.query;
   if (!url) return res.status(400).end();
 
-  let imageUrl;
+  // req.query.url est deja decode par Vercel a ce stade -- decoder une
+  // seconde fois corrompt toute URL contenant un caractere "%" dans sa
+  // forme finale (espaces encodes, "&" a l'interieur d'un parametre de
+  // requete du CDN marchand, etc.). C'etait le bug : chaque image dont
+  // l'URL source contenait un tel caractere echouait silencieusement.
+  let imageUrl = url;
   try {
-    imageUrl = decodeURIComponent(url);
-    // Extrait l'URL reelle depuis les redirects Effinity
-    const match = imageUrl.match(/[?&]url=([^&]+)/);
-    if (match) imageUrl = decodeURIComponent(match[1]);
+    // Extrait l'URL reelle depuis les redirects Effinity -- UNIQUEMENT
+    // si c'en est vraiment un. Sans cette garde, n'importe quelle URL
+    // marchand ayant son propre parametre "url=" legitime (ex: les
+    // services de redimensionnement d'image comme ProductServe, utilises
+    // par plusieurs marchands Awin) se faisait amputer de tout ce qui
+    // suit "url=" au profit d'une valeur interne non fetchable telle
+    // quelle -- exactement le bug qui cassait les images ProductServe.
+    if (imageUrl.includes('track.effiliation.com') || imageUrl.includes('effi.redir')) {
+      const match = imageUrl.match(/[?&]url=([^&]+)/);
+      if (match) imageUrl = decodeURIComponent(match[1]);
+    }
   } catch (e) { return res.status(400).end(); }
 
   let target = await safeUrl(imageUrl);
