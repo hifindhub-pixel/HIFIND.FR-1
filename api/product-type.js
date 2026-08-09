@@ -56,6 +56,17 @@ const GENERIC_ACCESSORY_WORDS = [
   'coque', 'etui', 'housse', 'protection', 'verre trempe', 'film protecteur',
   'chargeur', 'cable', 'adaptateur', 'dock', 'sacoche', 'pochette',
   'bandouliere', 'support', 'batterie externe', 'power bank',
+  // Beaucoup de fiches (Apple en tete) restent en anglais meme sur le
+  // marche francais : "Silicone Case", "Clear Case", "MagSafe Case".
+  // Sans ces equivalents, ces titres ne matchaient aucun mot-accessoire
+  // et retombaient a tort sur le type "smartphone" plein, comme si
+  // c'etait le telephone lui-meme. Verifie sur donnees reelles (Apple
+  // Silicone Case / Clear Case, iPhone 17 Pro / iPhone 16).
+  'case', 'cover', 'charger', 'sleeve', 'strap',
+  // Categorie d'accessoire non couverte : microphones/objectifs
+  // compatibles smartphone, vendus comme accessoire du telephone plutot
+  // que comme le telephone lui-meme.
+  'microphone', 'micro', 'objectif photo pour smartphone', 'trepied smartphone',
 ];
 
 /**
