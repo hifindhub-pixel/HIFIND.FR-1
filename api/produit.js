@@ -60,12 +60,41 @@ async function getProductByEan(client, ean) {
   return { ean, category: mainCategory, offers };
 }
 
-function offerRowHtml(o, isBest) {
+function totalCost(o) {
+  const price = parseFloat(o.price) || 0;
+  const shipping = o.shipping_cost != null ? parseFloat(o.shipping_cost) : null;
+  return { price, shipping, total: shipping != null ? price + shipping : null };
+}
+
+/**
+ * Trouve l'offre au meilleur cout total CONFIRME (prix + livraison
+ * connue), independamment du tri par prix affiche. Ne compare JAMAIS une
+ * offre a livraison inconnue contre une offre a livraison connue -- une
+ * offre sans donnee ne doit ni gagner ni perdre par rapport a une offre
+ * documentee, elle est simplement hors de cette comparaison precise.
+ */
+function bestKnownTotalId(offers) {
+  let best = null, bestTotal = Infinity;
+  offers.forEach(o => {
+    const c = totalCost(o);
+    if (c.total != null && c.total < bestTotal) { bestTotal = c.total; best = o; }
+  });
+  return best ? (best.id || best.product_id) : null;
+}
+
+function offerRowHtml(o, isBest, isBestTotal) {
   const dateTxt = fmtDate(o.updated_at);
+  const c = totalCost(o);
+  const shippingTxt = c.shipping == null
+    ? '<span class="unknown">livraison non communiqu\u00e9e</span>'
+    : (c.shipping === 0 ? 'livraison gratuite' : '+ ' + fmtEur(c.shipping) + ' livraison');
+  const totalTxt = c.total != null
+    ? '<div class="total">Total ' + fmtEur(c.total) + (isBestTotal ? ' \u2014 meilleur total' : '') + '</div>'
+    : '';
   return `
     <tr${isBest ? ' class="best"' : ''}>
       <td>${esc(o.programs?.title || o.program_id || 'Marchand')}</td>
-      <td class="price">${fmtEur(o.price)}</td>
+      <td class="price">${fmtEur(c.price)}<div class="shipping">${shippingTxt}</div>${totalTxt}</td>
       <td class="date">${dateTxt ? 'relev\u00e9 le ' + dateTxt : ''}</td>
       <td><a href="${esc(o.tracking_url)}" target="_blank" rel="noopener sponsored">Voir l'offre</a></td>
     </tr>`;
@@ -101,8 +130,9 @@ function structuredData(ref, offers, canonical) {
 function pageHtml({ ref, offers, canonical }) {
   const title = `${ref.title} : comparer les prix | HiFind`;
   const description = `Comparez le prix de ${ref.title} chez ${offers.length} marchands. ` +
-    `\u00c0 partir de ${fmtEur(offers[0].price)}. Mis \u00e0 jour quotidiennement.`;
-  const lo = offers[0].price, hi = offers[offers.length - 1].price;
+    `\u00c0 partir de ${fmtEur(ref.price)}. Mis \u00e0 jour quotidiennement.`;
+  const lo = ref.price, hi = offers[offers.length - 1].price;
+  const bestTotalId = bestKnownTotalId(offers);
 
   return `<!DOCTYPE html>
 <html lang="fr">
@@ -139,6 +169,9 @@ ${ref.image_url ? `<meta property="og:image" content="${esc(ref.image_url)}">` :
   tr.best td.price{ color:var(--jade); font-weight:800; }
   td.price{ font-weight:700; }
   td.date{ color:var(--sub); font-size:.78rem; }
+  td .shipping{ font-size:.74rem; color:var(--sub); font-weight:400; margin-top:.15rem; }
+  td .shipping .unknown{ font-style:italic; }
+  td .total{ font-size:.76rem; color:var(--jade); font-weight:700; margin-top:.15rem; }
   td a{ color:var(--coral); text-decoration:none; font-weight:700; }
   .cta{ display:inline-block; margin-top:2rem; padding:.8rem 1.4rem; background:var(--coral); color:#fff; border-radius:10px; text-decoration:none; font-weight:700; }
   footer{ text-align:center; padding:2rem; color:var(--sub); font-size:.8rem; }
@@ -161,7 +194,7 @@ ${ref.image_url ? `<meta property="og:image" content="${esc(ref.image_url)}">` :
   <table>
     <thead><tr><th>Marchand</th><th>Prix</th><th>Fra\u00eecheur</th><th></th></tr></thead>
     <tbody>
-      ${offers.map((o, i) => offerRowHtml(o, i === 0)).join('')}
+      ${offers.map((o, i) => offerRowHtml(o, i === 0, bestTotalId != null && (o.id || o.product_id) === bestTotalId)).join('')}
     </tbody>
   </table>
   <a class="cta" href="${SITE_URL}/?openProduct=${encodeURIComponent(offers[0].id || '')}">Ouvrir la fiche interactive \u2192</a>
@@ -188,7 +221,7 @@ export default async function handler(req, res) {
       return res.status(404).send('<h1>Produit introuvable ou plus disponible chez assez de marchands</h1>');
     }
 
-    const ref = product.offers[0];   // le moins cher sert de reference (titre/image/marque)
+    const ref = product.offers[0];   // le moins cher (prix affiche) sert de reference
     const canonical = `${SITE_URL}/produit/${slugify(ref.title)}-${ean}`;
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
