@@ -192,13 +192,36 @@ function scoreRules(text, rules, weight) {
  * @returns {{category:string, source:string, score:number}}
  */
 /**
+/**
+ * Certains mots-cles STRONG sont de vrais mots entiers dans des titres
+ * sans rapport avec la categorie visee -- "auto" est a la fois une piece
+ * automobile ET un mot entier de "Grand Theft Auto". Aucune limite de
+ * mot ne peut lever cette ambiguite seule : on neutralise les collisions
+ * CONNUES avant le matching, plutot que de retirer le mot-cle des regles
+ * STRONG (ce qui degraderait la vraie detection auto-moto partout ailleurs).
+ */
+const KNOWN_AMBIGUOUS_PHRASES = [
+  { phrase: 'grand theft auto', strip: 'auto' },
+];
+
+function stripKnownAmbiguity(title) {
+  let t = title;
+  for (const { phrase, strip } of KNOWN_AMBIGUOUS_PHRASES) {
+    if (t.includes(phrase)) {
+      t = (' ' + t + ' ').split(' ' + strip + ' ').join(' ').trim();
+    }
+  }
+  return t;
+}
+
+/*
  * Score TEXTE SEUL (titre + categorie de flux + description), sans jamais
  * consulter le marchand. Sert a la fois de base pour categorize() et de
  * verification independante dans ean-prefix.js (pour ne pas propager une
  * categorie qui contredirait ce que le produit dit lui-meme de son cote).
  */
 export function textSignal(p) {
-  const title = norm(p.title);
+  const title = stripKnownAmbiguity(norm(p.title));
   const desc  = norm(p.description).slice(0, 300);
   const feed  = norm(p.feedCat);
 
