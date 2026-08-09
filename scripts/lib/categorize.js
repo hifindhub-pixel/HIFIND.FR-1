@@ -86,7 +86,16 @@ const STRONG = [
     'apple watch','airpods','galaxy watch','galaxy buds','imac','ipod','apple tv',
     'kindle','liseuse kindle','playstation 5','xbox series','nintendo 3ds',
     'fitbit','disque dur externe','ssd externe','power bank','batterie externe',
-    'robot aspirateur','aspirateur robot','enceinte connectee']],
+    'robot aspirateur','aspirateur robot','enceinte connectee',
+    // Abreviations de plateformes : "playstation 5" est deja liste, mais
+    // c'est "ps5" qui apparait dans l'ecrasante majorite des vrais titres
+    // marchand ("GTA V PS5", "Rockstar Games Grand Theft Auto V - Neuf"
+    // n'a MEME PAS "PS5" mais releve du meme manque general). Sans ces
+    // abreviations, un titre de jeu video ne matchait litteralement
+    // aucun mot des trois listes et retombait sur "autres" faute de
+    // tout signal exploitable -- pas une erreur de classement, une
+    // absence totale de signal.
+    'ps5','ps4','xbox one','xbox series x','xbox series s']],
   ['beaute-bienetre', ['eau de parfum','eau de toilette','eau de cologne','rouge a levres',
     'fond de teint','mascara','vernis a ongles','anti rides','creme hydratante','serum visage',
     'shampooing','shampoing','apres shampoing','coloration cheveux','tondeuse cheveux',
