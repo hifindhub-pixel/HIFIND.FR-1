@@ -1,5 +1,6 @@
 import pkg from 'pg';
 const { Pool } = pkg;
+import { classifyProductType, parseQueryIntent } from './product-type.js';
 
 const AFFILAE_PROFILE_ID = '69c1bc52b682a8edf3205672';
 
@@ -185,22 +186,6 @@ async function groupWithOffers(client, products) {
  * construire une vraie pagination ("page 3 sur 47"). Requête légère :
  * juste un COUNT sur des EAN déjà indexés, pas de récupération de lignes.
  */
-const ACCESSORY_WORDS = [
-  'coque','etui','housse','protection','film','verre trempe','support',
-  'cable','chargeur','adaptateur','dock','sacoche','pochette','bandouliere',
-  'chargeur voiture','batterie externe','power bank','cordon',
-  // Peripheriques gaming : leur titre contient presque toujours le mot-type
-  // ("Manette DualSense PS5", "Casque Gaming PS5"), contrairement aux jeux
-  // dont le titre ne contient jamais le mot "jeu" -- seulement le nom propre
-  // du jeu. Meme mecanisme que les accessoires, meme fiabilite de detection.
-  'manette', 'controleur', 'volant de course', 'stand de recharge',
-];
-
-function isAccessoryTitle(title) {
-  const t = String(title || '').toLowerCase();
-  return ACCESSORY_WORDS.some(w => t.includes(w));
-}
-
 /**
  * Construit une requete tsquery a partir de la saisie utilisateur : chaque
  * mot devient un prefixe (ex. "iphon:*") pour matcher une saisie partielle,
@@ -280,62 +265,29 @@ export default async function handler(req, res) {
       total = totalCount;
 
       if (r.rows.length > 0) {
-        // Penalite (pas exclusion) pour les accessoires quand la recherche
-        // elle-meme n'en demande pas : "iPhone 15" ne doit pas faire
-        // remonter une coque avant un vrai telephone, sans pour autant
-        // cacher les coques a qui les cherche explicitement.
-        const queryWantsAccessory = isAccessoryTitle(q);
+        // LOT 1 : classification generique par product_type, en
+        // remplacement du systeme construit specifiquement pour PS5.
+        // Le principe reste identique (palier avant score, jamais
+        // l'inverse -- verifie a de multiples reprises sur des donnees
+        // reelles le 09/08 : un score textuel plus eleve pour un jeu
+        // court comme "GTA V PS5" ne doit jamais faire perdre une vraie
+        // console), mais s'applique desormais a n'importe quelle
+        // famille de produits (smartphone, casque, electromenager...)
+        // au lieu d'etre code en dur pour une seule.
+        const queryIntent = parseQueryIntent(q);
 
-        // Boost (pas penalite sur les jeux, indetectables par mot-cle --
-        // "GTA V" ne contient jamais le mot "jeu") pour la console
-        // elle-meme quand la recherche est nue ("PS5", pas "manette PS5").
-        // Verifie sur 40 titres reels : "console" apparait litteralement
-        // sur les deux seules vraies consoles de l'echantillon, jamais
-        // ailleurs -- signal fiable, contrairement a "edition standard"
-        // ou la capacite de stockage, qui apparaissent aussi sur des jeux.
-        // "console" comme mot entier ne suffit pas : une facade de
-        // protection dit aussi "pour console PS5 Slim" sans etre elle-meme
-        // une console. Verifie sur donnees reelles (troisieme candidat de
-        // ce debug precis). Distinction : si un mot-accessoire apparait
-        // AVANT "console" dans le titre, l'accessoire est le sujet reel
-        // ("facade... pour console") ; sinon "console" est bien le sujet
-        // ("Sony Console... avec Manette..." -- une vraie console vendue
-        // en pack avec une manette reste une console).
-        const isConsoleTitle = title => {
-          const t = (title || '').toLowerCase();
-          const m = /\bconsole\b/.exec(t);
-          if (!m) return false;
-          const consolePos = m.index;
-          for (const w of ACCESSORY_WORDS) {
-            const idx = t.indexOf(w);
-            if (idx !== -1 && idx < consolePos) return false;
-          }
-          return true;
+        const scoreOf = row => parseFloat(row.rank) + parseFloat(row.trgm_sim || 0);
+        const tierOf = row => {
+          if (!queryIntent.primaryType) return 0;   // requete generique : pas de tri par type
+          return classifyProductType(row.title) === queryIntent.primaryType ? 1 : 0;
         };
-        const queryIsBarePlatform = !queryWantsAccessory;
-
-        // Tri par PALIER, pas par score additionne. Un +0.8 fixe peut se
-        // faire depasser par un titre de jeu court ("GTA V PS5" ~ 9
-        // caracteres tres denses en "PS5") dont la similarite textuelle
-        // (trgm_sim) est mecaniquement gonflee par la brievete du titre --
-        // verifie sur donnees reelles : ce jeu obtenait un score final
-        // superieur a celui de la vraie console. Le palier rend la
-        // comparaison impossible a perdre : une vraie console bat TOUJOURS
-        // un non-console pour une recherche nue, quel que soit l'ecart de
-        // pertinence textuelle brute. Le score ne depatage plus qu'a
-        // l'interieur d'un meme palier (deux consoles entre elles, etc).
-        const scoreOf = row => parseFloat(row.rank) + parseFloat(row.trgm_sim || 0)
-                 - (!queryWantsAccessory && isAccessoryTitle(row.title) ? 0.5 : 0);
-        const tierOf = row => (queryIsBarePlatform && isConsoleTitle(row.title)) ? 1 : 0;
 
         const ranked = r.rows.map(row => ({ row, score: scoreOf(row), tier: tierOf(row) }))
           .sort((a, b) => (b.tier - a.tier) || (b.score - a.score))
           .map(x => x.row);
 
         // Diagnostic temporaire : &debug=1 dans l'URL renvoie le classement
-        // FINAL (palier + score) des 15 premiers candidats, apres tri --
-        // plus utile que l'ordre SQL brut pour verifier qu'une console
-        // atterrit bien en tete. Ne s'active que sur demande explicite.
+        // FINAL (palier + score) des 15 premiers candidats, apres tri.
         if (req.query.debug === '1') {
           searchMeta.debug = ranked.slice(0, 15).map(row => ({
             title: row.title,
@@ -343,26 +295,26 @@ export default async function handler(req, res) {
             program_id: row.program_id,
             rank: parseFloat(row.rank),
             trgm_sim: parseFloat(row.trgm_sim || 0),
-            isAccessory: isAccessoryTitle(row.title),
-            isConsole: isConsoleTitle(row.title),
+            productType: classifyProductType(row.title),
             tier: tierOf(row),
             score: scoreOf(row),
           }));
+          searchMeta.queryIntent = queryIntent;
           searchMeta.totalCandidatesFetched = r.rows.length;
         }
 
         rows = await groupWithOffers(client, ranked);
         rows = rows.slice(0, limitN);
 
-        // La penalite fait descendre les accessoires, mais s'il n'existe
-        // simplement AUCUN produit principal compare a 3 marchands ou
-        // plus, ils restent les seuls resultats disponibles -- ce n'est
-        // pas la meme chose que "le produit principal existe et gagne".
-        // Le signaler explicitement evite de laisser croire qu'une coque
-        // EST la reponse a "iPhone 15".
-        searchMeta.allAccessories = !queryWantsAccessory
+        // La recherche demande un type precis (ex: "console" pour "PS5")
+        // mais AUCUN resultat de ce type n'existe : le dire explicitement
+        // plutot que de laisser croire qu'un accessoire ou un jeu EST la
+        // reponse a la recherche. Correspond au critere d'acceptation
+        // "afficher Aucun iPhone 15 comparable actuellement".
+        searchMeta.noPrimaryTypeMatch = !!queryIntent.primaryType
           && rows.length > 0
-          && rows.every(p => isAccessoryTitle(p.title));
+          && !rows.some(p => classifyProductType(p.title) === queryIntent.primaryType);
+        searchMeta.requestedType = queryIntent.primaryType;
       } else {
         const term = '%' + q + '%';
         const r2 = await client.query(`
