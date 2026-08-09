@@ -90,6 +90,25 @@ function isValidEanChecksum(code) {
   return ((10 - (sum % 10)) % 10) === check;
 }
 
+/**
+ * Interprete une valeur de frais de livraison, quel que soit son format
+ * source : nombre simple ("4.90"), valeur composee style Google Merchant
+ * ("FR::Standard:4.90 EUR"), ou mention textuelle ("Gratuit"/"Free").
+ * Retourne null si rien d'exploitable -- jamais 0 par defaut, pour ne
+ * pas fabriquer une gratuite qui n'a jamais ete confirmee par la source.
+ */
+function parseShippingCost(val) {
+  if (val == null || val === '') return null;
+  const s = String(val).trim();
+  if (/^(gratuit|free|offert)/i.test(s)) return 0;
+  // Valeur composee Google Merchant : le montant est le dernier segment
+  // numerique avant un eventuel code devise (ex: "4.90 EUR", "4,90€").
+  const m = s.match(/(-?\d+(?:[.,]\d+)?)\s*(?:eur|€|\$|usd)?\s*$/i);
+  if (!m) return null;
+  const n = parseFloat(m[1].replace(',', '.'));
+  return Number.isFinite(n) ? n : null;
+}
+
 function extractEAN(val) {
   if (!val) return null;
   // Prend le premier code numerique de longueur GTIN valide (8, 12, 13
@@ -139,8 +158,8 @@ async function supabaseUpsert(table, rows) {
 
     } else if (table === 'products') {
       const vals = batch.map((row, j) => {
-        const b = j * 16;
-        return `($${b+1},$${b+2},$${b+3},$${b+4},$${b+5},$${b+6},$${b+7},$${b+8},$${b+9},$${b+10},$${b+11},$${b+12},$${b+13},$${b+14},$${b+15},$${b+16})`;
+        const b = j * 17;
+        return `($${b+1},$${b+2},$${b+3},$${b+4},$${b+5},$${b+6},$${b+7},$${b+8},$${b+9},$${b+10},$${b+11},$${b+12},$${b+13},$${b+14},$${b+15},$${b+16},$${b+17})`;
       }).join(',');
       const params = batch.flatMap(row => [
         row.id, row.affilae_id||row.id, row.program_id,
@@ -148,12 +167,13 @@ async function supabaseUpsert(table, rows) {
         row.currency||'EUR', row.url||null, row.tracking_id||null,
         row.image_url||null, row.category||'autres', row.lang||'fr',
         row.status||'enabled', row.ean||null, row.brand||null,
-        row.updated_at||new Date().toISOString()
+        row.updated_at||new Date().toISOString(),
+        row.shipping_cost != null ? row.shipping_cost : null,
       ]);
       await client.query(`
-        INSERT INTO products (id,affilae_id,program_id,title,description,price,currency,url,tracking_id,image_url,category,lang,status,ean,brand,updated_at)
+        INSERT INTO products (id,affilae_id,program_id,title,description,price,currency,url,tracking_id,image_url,category,lang,status,ean,brand,updated_at,shipping_cost)
         VALUES ${vals}
-        ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,price=EXCLUDED.price,ean=EXCLUDED.ean,brand=EXCLUDED.brand,category=EXCLUDED.category,image_url=EXCLUDED.image_url,url=EXCLUDED.url,updated_at=EXCLUDED.updated_at
+        ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,price=EXCLUDED.price,ean=EXCLUDED.ean,brand=EXCLUDED.brand,category=EXCLUDED.category,image_url=EXCLUDED.image_url,url=EXCLUDED.url,updated_at=EXCLUDED.updated_at,shipping_cost=EXCLUDED.shipping_cost
       `, params);
     }
   }
@@ -261,6 +281,7 @@ async function syncEffinity() {
           feed_cat:    get('category_level2')||get('category_level1')||get('category')||get('rayon')||get('categorie')||'',
           product_id:  get('id')||get('item_id')||get('idproduit')||get('codebarre')||'',
           ean:         extractEAN(get('gtin')||get('ean')||get('barcode')||get('codebarre')),
+          shipping_cost: parseShippingCost(get('shipping_cost')||get('shipping')||''),
         };
       };
 
@@ -282,7 +303,8 @@ async function syncEffinity() {
           feed_cat: obj.category_level2 || obj.category_level1 || obj.category || obj.categorie || obj.product_type || '',
           product_id: obj.id || obj.item_id || obj.reference || obj.sku || '',
           ean: extractEAN(obj.gtin || obj.ean || obj.ean13 || obj.barcode || obj.code_barre || obj.mpn || ''),
-          brand: obj.brand || obj.marque || obj.fabricant || obj.brand_name || ''
+          brand: obj.brand || obj.marque || obj.fabricant || obj.brand_name || '',
+          shipping_cost: parseShippingCost(obj.shipping_cost || obj.shipping || obj.frais_livraison || ''),
         };
       };
 
@@ -547,6 +569,7 @@ async function syncAffilaeFeeds() {
           ean: extractEAN(get('gtin')||get('ean')||get('EAN')||get('g:gtin')||''),
           brand: get('brand')||get('Marque')||get('g:brand')||'',
           product_id: get('id')||get('g:id')||get('item_id')||'',
+          shipping_cost: parseShippingCost(get('shipping_cost')||get('frais_livraison')||get('shipping')||''),
         };
       };
 
@@ -561,6 +584,7 @@ async function syncAffilaeFeeds() {
           ean: extractEAN(obj.ean||obj.gtin||obj.ean13||obj.code_barre||''),
           brand: obj.brand||obj.marque||obj.fabricant||'',
           product_id: obj.id||obj.product_id||obj.reference||'',
+          shipping_cost: parseShippingCost(obj.frais_livraison||obj.shipping_cost||obj.shipping||''),
         };
       };
 
@@ -653,12 +677,14 @@ async function syncAwin() {
           const ean = extractEAN(obj.ean || obj.gtin || obj.product_gtin || obj.upc || obj.isbn || '');
           const brand = obj.brand_name || obj.brand || '';
           const productId = obj.aw_product_id || obj.id || obj.merchant_product_id || '';
+          const shippingCost = parseShippingCost(obj.delivery_cost || obj.shipping_cost || '');
 
           if (!title || !url || !(price > 0) || !ean) return true;
           const key = ean + '_' + price;
           if (seen.has(key)) return true;
           seen.add(key);
           const p = { title, url, price, image_url: image, ean, brand, product_id: productId,
+                      shipping_cost: shippingCost,
                       program_id: programId, feed_name: feedDisplayName,
                       feed_category: feed.category || null };
           if (!firstSample) firstSample = p;
@@ -827,9 +853,9 @@ async function syncCJ() {
   // Le champ gtin vit sur le type concret Shopping, pas sur l'interface Product.
   // On essaie plusieurs jeux de champs, du plus riche au plus minimal.
   const CJ_FIELD_SETS = [
-    'id title description link imageLink price { amount currency } salePrice { amount currency } brand availability ... on Shopping { gtin mpn }',
-    'id title link imageLink price { amount currency } ... on Shopping { gtin mpn brand availability salePrice { amount currency } }',
-    'id title link imageLink price { amount currency } brand',
+    'id title description link imageLink price { amount currency } salePrice { amount currency } brand availability shipping { amount currency } ... on Shopping { gtin mpn }',
+    'id title link imageLink price { amount currency } shipping { amount currency } ... on Shopping { gtin mpn brand availability salePrice { amount currency } }',
+    'id title link imageLink price { amount currency } shipping { amount currency } brand',
     'id title link imageLink price { amount currency }'
   ];
   let CJ_FIELDS = null;
@@ -888,6 +914,10 @@ async function syncCJ() {
     const mapped = all.slice(0, limit).map(function (p, i) {
       const priceObj = p.salePrice && p.salePrice.amount ? p.salePrice : p.price;
       const price = parseFloat((priceObj && priceObj.amount) || 0);
+      // p.shipping peut etre un objet {amount,currency} comme price, ou une
+      // valeur simple selon le jeu de champs retenu -- parseShippingCost
+      // gere les deux formats sans distinction.
+      const shippingRaw = p.shipping && p.shipping.amount != null ? p.shipping.amount : p.shipping;
       return {
         product_id: p.id || String(i),
         title: cleanTitle(p.title || ''),
@@ -897,7 +927,8 @@ async function syncCJ() {
         image_url: p.imageLink || '',
         brand: p.brand || null,
         ean: extractEAN(p.gtin || p.mpn || ''),
-        description: p.description || ''
+        description: p.description || '',
+        shipping_cost: parseShippingCost(shippingRaw),
       };
     }).filter(function (p) {
       return p.title && p.url && p.price > 0 && p.currency === 'EUR';
