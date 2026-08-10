@@ -72,4 +72,17 @@ async function countDistinctMerchants(client, offers) {
   return new Set(offers.map(o => canonicalMerchantId(aliasMap, o.program_id))).size;
 }
 
-export { loadMerchantAliases, canonicalMerchantId, countDistinctMerchants };
+/**
+ * Reinitialise le cache. Reserve aux tests -- en production, le cache
+ * doit vivre aussi longtemps que possible (c'est tout son interet).
+ * Sans cette fonction, deux tests successifs dans le meme fichier ne
+ * peuvent pas s'isoler l'un de l'autre : le second heriterait du cache
+ * deja rempli par le premier, faussant silencieusement le resultat.
+ */
+function resetCacheForTests() {
+  cache = null;
+  cacheLoadedAt = 0;
+  pendingLoad = null;
+}
+
+export { loadMerchantAliases, canonicalMerchantId, countDistinctMerchants, resetCacheForTests };
