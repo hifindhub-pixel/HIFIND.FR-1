@@ -18,6 +18,7 @@
     }
   ],
   "rewrites": [
-    { "source": "/produit/:slug*", "destination": "/api/produit?slug=:slug*" }
+    { "source": "/produit/:slug*", "destination": "/api/produit?slug=:slug*" },
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" }
   ]
 }
