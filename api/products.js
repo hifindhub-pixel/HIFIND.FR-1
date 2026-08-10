@@ -2,6 +2,7 @@ import pkg from 'pg';
 const { Pool } = pkg;
 import { classifyProductType, parseQueryIntent } from './product-type.js';
 import { countDistinctMerchants } from '../scripts/lib/merchants.js';
+import { filterByCondition } from '../scripts/lib/condition.js';
 
 const AFFILAE_PROFILE_ID = '69c1bc52b682a8edf3205672';
 
@@ -116,6 +117,14 @@ function filterCompatibleOffers(mainCategory, offers) {
       });
     }
   }
+
+  // LOT 2 : separe neuf, occasion et reconditionne au sein d'un meme
+  // regroupement EAN -- comparer le prix d'un exemplaire neuf a celui
+  // d'un reconditionne comme s'il s'agissait de la meme offre serait
+  // trompeur. Meme principe de leader clair que le filtre de marque
+  // ci-dessus : n'exclut jamais sur une simple egalite.
+  filtered = filterByCondition(filtered);
+
   return filtered;
 }
 
