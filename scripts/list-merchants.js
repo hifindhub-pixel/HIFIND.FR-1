@@ -16,15 +16,18 @@
 // Effinity le temps qu'une meilleure solution soit trouvee.
 //
 // Usage : node scripts/list-merchants.js
-// Variables d'environnement necessaires :
-//   AWIN_API_KEY, AWIN_PUBLISHER_ID
-//   CJ_TOKEN, CJ_CID
+// Variables d'environnement necessaires (memes noms que sync.yml) :
+//   AWIN_API_KEY
+//   CJ_TOKEN, CJ_PUBLISHER_ID
 
 async function listAwinMerchants() {
   const apiKey = process.env.AWIN_API_KEY;
-  const publisherId = process.env.AWIN_PUBLISHER_ID;
-  if (!apiKey || !publisherId) {
-    console.log('⚠️  Awin : AWIN_API_KEY ou AWIN_PUBLISHER_ID manquant, etape ignoree');
+  // Identifiant publisher Awin : non sensible, deja visible en clair dans
+  // chaque URL de tracking generee par sync.js (?...&a=2855063&...). Pas
+  // besoin d'un secret dedie pour une valeur deja publique par ailleurs.
+  const publisherId = '2855063';
+  if (!apiKey) {
+    console.log('⚠️  Awin : AWIN_API_KEY manquant, etape ignoree');
     return [];
   }
 
@@ -51,9 +54,9 @@ function parseXmlTag(xml, tag) {
 
 async function listCjMerchants() {
   const token = process.env.CJ_TOKEN;
-  const cid = process.env.CJ_CID;
+  const cid = process.env.CJ_PUBLISHER_ID;   // meme secret que sync.js, nom confirme le 09/08
   if (!token || !cid) {
-    console.log('⚠️  CJ : CJ_TOKEN ou CJ_CID manquant, etape ignoree');
+    console.log('⚠️  CJ : CJ_TOKEN ou CJ_PUBLISHER_ID manquant, etape ignoree');
     return [];
   }
 
