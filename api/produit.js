@@ -197,6 +197,7 @@ ${ref.image_url ? `<meta property="og:image" content="${esc(ref.image_url)}">` :
       ${offers.map((o, i) => offerRowHtml(o, i === 0, bestTotalId != null && (o.id || o.product_id) === bestTotalId)).join('')}
     </tbody>
   </table>
+  <p class="verify-notice">V\u00e9rifiez le prix, la disponibilit\u00e9 et les frais de livraison sur le site du marchand avant de finaliser votre achat \u2014 ces informations peuvent avoir chang\u00e9 depuis notre dernier relev\u00e9.</p>
   <a class="cta" href="${SITE_URL}/?openProduct=${encodeURIComponent(offers[0].id || '')}">Ouvrir la fiche interactive \u2192</a>
 </main>
 <footer>&copy; ${new Date().getFullYear()} HiFind \u00b7 Prix relev\u00e9s quotidiennement, sous r\u00e9serve de disponibilit\u00e9 chez le marchand.</footer>
