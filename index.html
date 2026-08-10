@@ -1545,11 +1545,11 @@ function pcardHTML(p) {
       if (pct > 0) savePct = '-' + pct + '%';
     }
   }
-  return '<div class="pcard" onclick="openDetail(\'' + safeId + '\')">'
+  return '<a class="pcard" href="' + escHtml(productUrl(p)) + '" onclick="return handleCardClick(event,\'' + safeId + '\')">'
     + '<div class="pcard-img-col">'
       + (img ? '<img src="' + escHtml(img) + '" alt="' + escHtml(p.title) + '" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem;color:#ccc"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></div>')
       + (savePct ? '<div class="prod-card-badge" style="position:absolute;top:.5rem;left:.5rem">' + savePct + '</div>' : '')
-      + '<button class="pcard-btn-fav" onclick="event.stopPropagation();toggleFav(\'' + safeId + '\',this)">' + (isFav ? ICO.heart(true) : ICO.heart(false)) + '</button>'
+      + '<button class="pcard-btn-fav" onclick="event.stopPropagation();event.preventDefault();toggleFav(\'' + safeId + '\',this)">' + (isFav ? ICO.heart(true) : ICO.heart(false)) + '</button>'
     + '</div>'
     + '<div class="pcard-body">'
       + '<div class="pcard-brand">' + escHtml(brand) + '</div>'
@@ -1561,11 +1561,11 @@ function pcardHTML(p) {
           + '<div class="pcard-price">' + price.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €</div>'
         + '</div>'
         + '<div class="pcard-actions">'
-          + '<button class="pcard-btn" onclick="event.stopPropagation();openDetail(\'' + safeId + '\')">Comparer →</button>'
+          + '<button class="pcard-btn" onclick="event.stopPropagation();event.preventDefault();openDetail(\'' + safeId + '\')">Comparer →</button>'
         + '</div>'
       + '</div>'
     + '</div>'
-  + '</div>';
+  + '</a>';
 }
 
 // ══ DETAIL ══
@@ -1709,7 +1709,7 @@ function prodCardSmall(p, showBadge) {
       if (pct > 0) savePct = pct;
     }
   }
-  return '<div class="prod-card" onclick="openDetail(\'' + safeId + '\')">'
+  return '<a class="prod-card" href="' + escHtml(productUrl(p)) + '" onclick="return handleCardClick(event,\'' + safeId + '\')">'
     + '<div class="prod-card-img">'
       + (img ? '<img src="' + escHtml(img) + '" alt="' + escHtml(p.title) + '" onerror="this.style.display=\'none\'">' : '<div style="font-size:2.5rem;color:#ccc"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></div>')
       + (savePct ? '<div class="prod-card-badge">-' + savePct + '%</div>' : '')
@@ -1724,7 +1724,7 @@ function prodCardSmall(p, showBadge) {
       + '</div>'
       + '<div class="prod-card-offers"><span>' + offers + ' offre' + (offers > 1 ? 's' : '') + '</span> comparée' + (offers > 1 ? 's' : '') + '</div>'
     + '</div>'
-  + '</div>';
+  + '</a>';
 }
 
 // ══ SUGGESTIONS ══
@@ -1981,6 +1981,36 @@ function escHtml(s){
   });
 }
 
+// LOT 6 (SEO) : URL permanente et indexable par produit, meme format que
+// celui deja construit par api/produit.js (slugify identique cote
+// serveur et cote client -- toute divergence casserait le lien).
+function productUrl(p) {
+  if (!p || !p.ean) return '#';
+  var slug = String(p.title || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+  return '/produit/' + slug + '-' + p.ean;
+}
+
+// Intercepte un clic GAUCHE simple pour garder la transition SPA rapide
+// (pas de rechargement de page) tout en mettant a jour l'URL affichee.
+// Un clic modifie (Ctrl/Cmd/Shift/molette) laisse le navigateur agir
+// normalement (nouvel onglet...) -- c'est justement ce que garantit un
+// vrai <a href>, contrairement a un onclick seul sur un <div>.
+function handleCardClick(event, id) {
+  if (event.ctrlKey || event.metaKey || event.shiftKey || event.button === 1) return true;
+  event.preventDefault();
+  openDetail(id);
+  var p = currentResults.find(function(x){ return x.id === id; })
+       || favorites.find(function(x){ return x.id === id; })
+       || homeProductsCache[id];
+  if (p) { try { history.pushState({ id: id }, '', productUrl(p)); } catch(e) {} }
+  return false;
+}
+
 function cardHTML(p, rank){
   var offers = offersOf(p);
   var lo = offers.length ? offers[0].price : (parseFloat(p.price)||0);
@@ -1997,7 +2027,7 @@ function cardHTML(p, rank){
 
   var media = '<div class="card-media">' + flag
     + '<button class="card-fav' + (isFav?' on':'') + '" aria-label="Suivre ce produit"'
-    + ' onclick="event.stopPropagation();toggleFav(\'' + sid + '\',this)">' + ICO.heart(isFav) + '</button>'
+    + ' onclick="event.stopPropagation();event.preventDefault();toggleFav(\'' + sid + '\',this)">' + ICO.heart(isFav) + '</button>'
     + (img ? '<img src="' + esc(img) + '" alt="' + esc(p.title) + '" loading="lazy" onerror="this.style.display=\'none\'">'
            : '<span style="color:#cbd5e1">' + ICO.box + '</span>')
     + '</div>';
@@ -2019,8 +2049,8 @@ function cardHTML(p, rank){
     + (p.description ? '<p class="card-specs">' + esc(p.description) + '</p>' : '')
   + '</div>';
 
-  return '<article class="card" onclick="openDetail(\'' + sid + '\')">' + media
-    + '<div class="card-body">' + main + spread + '</div></article>';
+  return '<a class="card" href="' + escHtml(productUrl(p)) + '" onclick="return handleCardClick(event,\'' + sid + '\')">' + media
+    + '<div class="card-body">' + main + spread + '</div></a>';
 }
 
 /* ── Construction des facettes à partir des résultats ── */
