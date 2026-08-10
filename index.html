@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HiFind — Comparateur de Prix N°1 en France</title>
-<meta name="description" content="Comparez les prix de milliers de produits sur tous les grands marchands français. Économisez jusqu'à 40% sur vos achats.">
+<title>HiFind — Comparateur de Prix</title>
+<meta name="description" content="Comparez les prix chez nos marchands partenaires. Prix mis à jour quotidiennement, produits disponibles chez plusieurs marchands.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FF6B6B'/%3E%3Ctext x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' font-size='17' fill='white'%3EHi%3C/text%3E%3C/svg%3E">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -935,7 +935,7 @@ nav {
       <div class="hero-left">
         <div class="hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.9 1.4 7L12 17.8 5.8 21.3l1.4-7L2 9.4l7-.8Z"/></svg> La plateforme qui vous fait économiser</div>
         <h1 class="barlow">Les <span class="accent">meilleurs prix</span>,<br>un seul endroit.</h1>
-        <p class="hero-sub">Comparez en temps réel des milliers d'offres chez vos marchands préférés. Économisez jusqu'à 40% sur vos produits.</p>
+        <p class="hero-sub">Comparez les prix chez nos marchands partenaires. Prix mis à jour quotidiennement.</p>
         <div class="hero-search">
           <input type="text" id="heroInput" placeholder="Que cherchez-vous au meilleur prix ?"
             onkeydown="if(event.key==='Enter') doHeroSearch()"
@@ -1078,7 +1078,7 @@ nav {
   <div style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:3rem 0">
     <div class="section" style="padding-top:0;padding-bottom:0">
       <div class="section-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3.5-1.5 4.5-1.5 7A3.5 3.5 0 0 0 14 12c1.5 0 2-1 2-1s1.5 2 1.5 4.5A5.5 5.5 0 0 1 12 21a5.5 5.5 0 0 1-5.5-5.5C6.5 10 12 8.5 12 2Z"/></svg> Tendances du moment</div>
-      <h2 class="section-title barlow">Ce que les Français achètent</h2>
+      <h2 class="section-title barlow">Sélection du moment</h2>
       <div class="prod-grid" id="trendingGrid">
         <div class="spinner"><div class="spin"></div></div>
       </div>
@@ -2022,8 +2022,8 @@ function cardHTML(p, rank){
   var esc = function(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); };
 
   var flag = '';
-  if (rank === 0 && offers.length >= 4) flag = '<span class="card-flag top">N°1 des offres</span>';
-  else if (pct >= 25) flag = '<span class="card-flag deal">−' + pct + '&nbsp;%</span>';
+  if (rank === 0 && offers.length >= 4) flag = '<span class="card-flag top">' + offers.length + ' marchands comparés</span>';
+  else if (pct >= 25) flag = '<span class="card-flag deal">' + pct + '&nbsp;% d\'écart</span>';
 
   var media = '<div class="card-media">' + flag
     + '<button class="card-fav' + (isFav?' on':'') + '" aria-label="Suivre ce produit"'
