@@ -3,6 +3,7 @@ const { Pool } = pkg;
 import { classifyProductType, parseQueryIntent } from './product-type.js';
 import { countDistinctMerchants } from '../scripts/lib/merchants.js';
 import { filterByCondition } from '../scripts/lib/condition.js';
+import { writeQuarantine } from '../scripts/lib/quarantine.js';
 
 const AFFILAE_PROFILE_ID = '69c1bc52b682a8edf3205672';
 
@@ -177,6 +178,18 @@ async function groupWithOffers(client, products) {
     const offers = offersByEan.get(p.ean) || [];
 
     const filtered = filterCompatibleOffers(p.category, offers);
+
+    // LOT 2 : quarantaine des regroupements EAN contradictoires. Verifie
+    // sur les offres BRUTES (avant filtrage marque/categorie), sinon on
+    // ne verrait jamais rien -- le filtre a deja neutralise ce qu'il
+    // pouvait neutraliser. Ecrit en base pour revue humaine et EXCLUT le
+    // produit de l'affichage (plus sur de ne rien montrer que de montrer
+    // une fausse comparaison) plutot que de le laisser passer tel quel.
+    if (offers.length >= 2) {
+      const issues = await writeQuarantine(client, p.ean, offers);
+      if (issues.length > 0) continue;
+    }
+
     // Compte les marchands DISTINCTS en fusionnant ceux qui pointent vers
     // le meme marchand reel (LOT 2 -- scripts/lib/merchants.js). Avant ce
     // branchement, deux program_id du meme marchand (ex: Foot Store 2 /
