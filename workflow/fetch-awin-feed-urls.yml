@@ -1,0 +1,17 @@
+name: Récupérer les URLs de flux Awin (nouveaux marchands)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fetch-feeds:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Interroge l'API legacy Awin
+        env:
+          AWIN_API_KEY: ${{ secrets.AWIN_API_KEY }}
+        run: node scripts/fetch-awin-feed-urls.js
