@@ -204,12 +204,40 @@ ${ref.image_url ? `<meta property="og:image" content="${esc(ref.image_url)}">` :
 </html>`;
 }
 
+/**
+ * Page 404 complete, coherente avec l'identite du site -- pas un simple
+ * <h1> isole. `noindex` explicite bien que le code HTTP 404 suffise deja
+ * a la plupart des crawlers, en double securite. Deux messages distincts
+ * selon la cause : une URL invalide (fautee, ancien format) n'est pas la
+ * meme situation qu'un produit qui existait mais est repasse sous le
+ * seuil de 2 marchands -- utile pour un visiteur qui suivait un vieux
+ * lien Google.
+ */
+function notFoundHtml(message) {
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Produit introuvable | HiFind</title>
+<meta name="robots" content="noindex, follow">
+</head>
+<body style="font-family:system-ui,sans-serif;background:#0f1420;color:#e8eaf0;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:2rem;text-align:center">
+<div>
+<h1 style="font-size:1.4rem;margin-bottom:.75rem">${esc(message)}</h1>
+<p style="color:#9aa3b5;margin-bottom:1.5rem">Ce produit n'est plus disponible \u00e0 la comparaison, ou le lien n'est plus valide.</p>
+<a href="/" style="color:#ff6b5e;text-decoration:none;font-weight:600">Retour \u00e0 l'accueil HiFind &rarr;</a>
+</div>
+</body>
+</html>`;
+}
+
 export default async function handler(req, res) {
   const { slug } = req.query;
   const ean = extractEanFromSlug(slug);
   if (!ean) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    return res.status(404).send('<h1>Produit introuvable</h1>');
+    return res.status(404).send(notFoundHtml('Produit introuvable'));
   }
 
   const pool = getPool();
@@ -218,7 +246,7 @@ export default async function handler(req, res) {
     const product = await getProductByEan(client, ean);
     if (!product) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      return res.status(404).send('<h1>Produit introuvable ou plus disponible chez assez de marchands</h1>');
+      return res.status(404).send(notFoundHtml('Ce produit n\'est plus compar\u00e9 actuellement'));
     }
 
     const ref = product.offers[0];   // le moins cher (prix affiche) sert de reference
