@@ -50,9 +50,14 @@ async function main() {
   const res = await fetch(url);
 
   if (!res.ok) {
+    const body = await res.text().catch(() => '');
     console.log(`❌ HTTP ${res.status} -- verifier que AWIN_FEED_LIST_KEY est correcte.`);
     console.log('   Cette cle se recupere sur Awin : Toolbox > Create-a-Feed,');
     console.log('   encadre "Feed List Download" en haut de la page.');
+    if (body) {
+      console.log('\n   Reponse brute d\'Awin (peut contenir le vrai motif de l\'echec) :');
+      console.log('   ' + body.slice(0, 500));
+    }
     process.exit(1);
   }
 
