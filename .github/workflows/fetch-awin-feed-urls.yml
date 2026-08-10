@@ -13,5 +13,5 @@ jobs:
           node-version: 20
       - name: Interroge l'API legacy Awin
         env:
-          AWIN_API_KEY: ${{ secrets.AWIN_API_KEY }}
+          AWIN_FEED_LIST_KEY: ${{ secrets.AWIN_FEED_LIST_KEY }}
         run: node scripts/fetch-awin-feed-urls.js
