@@ -14,7 +14,6 @@ jobs:
       - name: Liste les marchands Awin + CJ
         env:
           AWIN_API_KEY: ${{ secrets.AWIN_API_KEY }}
-          AWIN_PUBLISHER_ID: ${{ secrets.AWIN_PUBLISHER_ID }}
           CJ_TOKEN: ${{ secrets.CJ_TOKEN }}
-          CJ_CID: ${{ secrets.CJ_CID }}
+          CJ_PUBLISHER_ID: ${{ secrets.CJ_PUBLISHER_ID }}
         run: node scripts/list-merchants.js
