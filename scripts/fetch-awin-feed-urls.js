@@ -3,19 +3,23 @@
 // Tente de recuperer les URLs de flux (datafeeds) pour les nouveaux
 // marchands Awin acceptes aujourd'hui, via l'API historique Awin
 // (productdata.awin.com), DIFFERENTE de l'API moderne api.awin.com deja
-// utilisee par list-merchants.js. Incertitude assumee : cette API plus
-// ancienne accepte peut-etre une cle differente de AWIN_API_KEY -- ce
-// script le dira clairement (echec HTTP propre) plutot que de deviner
-// silencieusement un succes.
+// utilisee par list-merchants.js.
 //
-// Source verifiee le 09/08 : format d'URL confirme via un SDK tiers
-// documente publiquement (ckilb/awin-product-sdk) --
+// Confirme le 09/08 via la doc officielle Awin (help.awin.com/docs/
+// product-feed-list-download) : "the API key used to access the
+// product feed list file is different to the API key used to access
+// the Publisher API" -- deux cles distinctes, pas une seule reutilisable
+// partout. D'ou AWIN_FEED_LIST_KEY, separee de AWIN_API_KEY.
+//
+// Source du format d'URL : meme doc officielle, confirmee independamment
+// par un SDK tiers documente publiquement (ckilb/awin-product-sdk) --
 //   https://productdata.awin.com/datafeed/list/apikey/{apiKey}
 // Retourne un CSV listant tous les flux disponibles pour ce publisher,
 // avec Advertiser ID, Advertiser Name, et l'URL du flux lui-meme.
 //
 // Usage : node scripts/fetch-awin-feed-urls.js
-// Variable d'environnement necessaire : AWIN_API_KEY (meme secret que sync.yml)
+// Variable d'environnement necessaire : AWIN_FEED_LIST_KEY (recuperee
+// sur Awin -- Toolbox > Create-a-Feed > encadre "Feed List Download")
 
 // Les 36 marchands Awin identifies comme nouveaux et pertinents le
 // 09/08, apres relecture manuelle (VIP Cars, Free2move, Alison et
@@ -35,9 +39,9 @@ function parseCSVLine(line) {
 }
 
 async function main() {
-  const apiKey = process.env.AWIN_API_KEY;
+  const apiKey = process.env.AWIN_FEED_LIST_KEY;
   if (!apiKey) {
-    console.log('⚠️  AWIN_API_KEY manquant, arret.');
+    console.log('⚠️  AWIN_FEED_LIST_KEY manquant, arret.');
     process.exit(1);
   }
 
@@ -46,11 +50,9 @@ async function main() {
   const res = await fetch(url);
 
   if (!res.ok) {
-    console.log(`❌ HTTP ${res.status} -- la cle AWIN_API_KEY existante ne fonctionne`);
-    console.log('   probablement pas pour cette API plus ancienne (productdata.awin.com).');
-    console.log('   Une cle "legacy" separee doit sans doute etre generee sur Awin');
-    console.log('   (Compte > API Credentials > API v.2), distincte de la cle OAuth');
-    console.log('   utilisee par api.awin.com.');
+    console.log(`❌ HTTP ${res.status} -- verifier que AWIN_FEED_LIST_KEY est correcte.`);
+    console.log('   Cette cle se recupere sur Awin : Toolbox > Create-a-Feed,');
+    console.log('   encadre "Feed List Download" en haut de la page.');
     process.exit(1);
   }
 
