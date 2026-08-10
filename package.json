@@ -2,6 +2,9 @@
   "name": "hifind-sync",
   "version": "1.0.0",
   "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
   "dependencies": {
     "pg": "^8.11.0"
   }
