@@ -109,6 +109,20 @@ function parseShippingCost(val) {
   return Number.isFinite(n) ? n : null;
 }
 
+/**
+ * Interprete une valeur de disponibilite, quel que soit son vocabulaire
+ * source. Retourne null (pas false) si la valeur est absente ou
+ * inexploitable -- ne jamais inventer une rupture de stock qui n'a pas
+ * ete confirmee par la source, meme logique que parseShippingCost().
+ */
+function parseInStock(val) {
+  if (val == null || val === '') return null;
+  const s = String(val).trim().toLowerCase();
+  if (/^(1|true|yes|in.?stock|en.?stock|disponible|available)$/.test(s)) return true;
+  if (/^(0|false|no|out.?of.?stock|rupture|indisponible|unavailable)$/.test(s)) return false;
+  return null;
+}
+
 function extractEAN(val) {
   if (!val) return null;
   // Prend le premier code numerique de longueur GTIN valide (8, 12, 13
@@ -158,8 +172,8 @@ async function supabaseUpsert(table, rows) {
 
     } else if (table === 'products') {
       const vals = batch.map((row, j) => {
-        const b = j * 17;
-        return `($${b+1},$${b+2},$${b+3},$${b+4},$${b+5},$${b+6},$${b+7},$${b+8},$${b+9},$${b+10},$${b+11},$${b+12},$${b+13},$${b+14},$${b+15},$${b+16},$${b+17})`;
+        const b = j * 19;   // 17 -> 19 : +delivery_time +in_stock (LOT 3)
+        return `($${b+1},$${b+2},$${b+3},$${b+4},$${b+5},$${b+6},$${b+7},$${b+8},$${b+9},$${b+10},$${b+11},$${b+12},$${b+13},$${b+14},$${b+15},$${b+16},$${b+17},$${b+18},$${b+19})`;
       }).join(',');
       const params = batch.flatMap(row => [
         row.id, row.affilae_id||row.id, row.program_id,
@@ -169,11 +183,13 @@ async function supabaseUpsert(table, rows) {
         row.status||'enabled', row.ean||null, row.brand||null,
         row.updated_at||new Date().toISOString(),
         row.shipping_cost != null ? row.shipping_cost : null,
+        row.delivery_time || null,
+        row.in_stock != null ? row.in_stock : null,
       ]);
       await client.query(`
-        INSERT INTO products (id,affilae_id,program_id,title,description,price,currency,url,tracking_id,image_url,category,lang,status,ean,brand,updated_at,shipping_cost)
+        INSERT INTO products (id,affilae_id,program_id,title,description,price,currency,url,tracking_id,image_url,category,lang,status,ean,brand,updated_at,shipping_cost,delivery_time,in_stock)
         VALUES ${vals}
-        ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,price=EXCLUDED.price,ean=EXCLUDED.ean,brand=EXCLUDED.brand,category=EXCLUDED.category,image_url=EXCLUDED.image_url,url=EXCLUDED.url,updated_at=EXCLUDED.updated_at,shipping_cost=EXCLUDED.shipping_cost
+        ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,price=EXCLUDED.price,ean=EXCLUDED.ean,brand=EXCLUDED.brand,category=EXCLUDED.category,image_url=EXCLUDED.image_url,url=EXCLUDED.url,updated_at=EXCLUDED.updated_at,shipping_cost=EXCLUDED.shipping_cost,delivery_time=EXCLUDED.delivery_time,in_stock=EXCLUDED.in_stock
       `, params);
     }
   }
@@ -264,7 +280,7 @@ async function syncEffinity() {
       const products = [];
       const seen = new Set();
 
-      // Mapping XML → produit (inchangé)
+      // Mapping XML → produit
       const mapXmlItem = (item) => {
         const get = tag => {
           const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -282,10 +298,14 @@ async function syncEffinity() {
           product_id:  get('id')||get('item_id')||get('idproduit')||get('codebarre')||'',
           ean:         extractEAN(get('gtin')||get('ean')||get('barcode')||get('codebarre')),
           shipping_cost: parseShippingCost(get('shipping_cost')||get('shipping')||''),
+          // LOT 3 -- noms de colonnes non confirmes sur un flux Effinity
+          // reel (contrairement a Awin), devines par convention courante.
+          delivery_time: get('delivery_time')||get('delai_livraison')||get('livraison')||'',
+          in_stock: parseInStock(get('in_stock')||get('stock')||get('disponible')||''),
         };
       };
 
-      // Mapping CSV → produit (inchangé)
+      // Mapping CSV → produit
       const mapCsvRow = (obj) => {
         const rawUrl = obj.link || obj.url || obj.product_url || obj.deeplink || obj.tracking_url
                      || obj.lien || obj.url_produit || obj.producturl || obj.landing_page
@@ -305,6 +325,9 @@ async function syncEffinity() {
           ean: extractEAN(obj.gtin || obj.ean || obj.ean13 || obj.barcode || obj.code_barre || obj.mpn || ''),
           brand: obj.brand || obj.marque || obj.fabricant || obj.brand_name || '',
           shipping_cost: parseShippingCost(obj.shipping_cost || obj.shipping || obj.frais_livraison || ''),
+          // LOT 3 -- meme reserve que ci-dessus, noms devines
+          delivery_time: obj.delivery_time || obj.delai_livraison || obj.livraison || '',
+          in_stock: parseInStock(obj.in_stock || obj.stock || obj.disponible || ''),
         };
       };
 
@@ -570,6 +593,10 @@ async function syncAffilaeFeeds() {
           brand: get('brand')||get('Marque')||get('g:brand')||'',
           product_id: get('id')||get('g:id')||get('item_id')||'',
           shipping_cost: parseShippingCost(get('shipping_cost')||get('frais_livraison')||get('shipping')||''),
+          // LOT 3 -- noms de colonnes non confirmes sur un flux Affilae
+          // reel, devines par convention courante.
+          delivery_time: get('delivery_time')||get('delai_livraison')||get('livraison')||'',
+          in_stock: parseInStock(get('in_stock')||get('stock')||get('disponible')||''),
         };
       };
 
@@ -585,6 +612,9 @@ async function syncAffilaeFeeds() {
           brand: obj.brand||obj.marque||obj.fabricant||'',
           product_id: obj.id||obj.product_id||obj.reference||'',
           shipping_cost: parseShippingCost(obj.frais_livraison||obj.shipping_cost||obj.shipping||''),
+          // LOT 3 -- meme reserve que ci-dessus, noms devines
+          delivery_time: obj.delivery_time || obj.delai_livraison || obj.livraison || '',
+          in_stock: parseInStock(obj.in_stock || obj.stock || obj.disponible || ''),
         };
       };
 
@@ -678,6 +708,12 @@ async function syncAwin() {
           const brand = obj.brand_name || obj.brand || '';
           const productId = obj.aw_product_id || obj.id || obj.merchant_product_id || '';
           const shippingCost = parseShippingCost(obj.delivery_cost || obj.shipping_cost || '');
+          // LOT 3 : vu directement dans de vrais flux Awin aujourd'hui
+          // (colonnes delivery_time / in_stock confirmees sur plusieurs
+          // marchands), contrairement a Affilae/Effinity ou ces noms
+          // sont devines par convention.
+          const deliveryTime = obj.delivery_time || obj.delivery_time_text || '';
+          const inStock = parseInStock(obj.in_stock);
 
           if (!title || !url || !(price > 0) || !ean) return true;
           const key = ean + '_' + price;
@@ -685,6 +721,8 @@ async function syncAwin() {
           seen.add(key);
           const p = { title, url, price, image_url: image, ean, brand, product_id: productId,
                       shipping_cost: shippingCost,
+                      delivery_time: deliveryTime,
+                      in_stock: inStock,
                       program_id: programId, feed_name: feedDisplayName,
                       feed_category: feed.category || null };
           if (!firstSample) firstSample = p;
@@ -1033,6 +1071,9 @@ async function ingestHarvest() {
           image_url: p.image_url || null,
           brand: p.brand || null,
           ean: p.ean,
+          shipping_cost: p.shipping_cost != null ? p.shipping_cost : null,
+          delivery_time: p.delivery_time || null,
+          in_stock: p.in_stock != null ? p.in_stock : null,
           category: categorize({
             title: p.title,
             description: p.description || '',
