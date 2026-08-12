@@ -1118,7 +1118,7 @@ nav {
     <div class="cat-head-top">
       <div>
         <h1 class="cat-title" id="catTitle">Résultats<span class="cat-count" id="resCountNum">0</span></h1>
-        <p class="cat-lede" id="catLede">Chaque produit ci-dessous est vendu par au moins trois marchands. Le prix affiché est le plus bas relevé lors de la dernière actualisation.</p>
+        <p class="cat-lede" id="catLede">Chaque produit ci-dessous est comparé chez plusieurs marchands. Le prix affiché est le plus bas relevé lors de la dernière actualisation.</p>
       </div>
       <div class="cat-tools">
         <select class="sort-select" id="sortSelect" onchange="sortResults()" aria-label="Trier les résultats">
@@ -1601,20 +1601,38 @@ async function openDetail(id) {
     p.ean_offers.forEach(function(o) {
       var pr = parseFloat(o.price);
       if (!(pr > 0)) return;
+      var shipping = (o.shipping_cost != null && o.shipping_cost !== '') ? parseFloat(o.shipping_cost) : null;
       offers.push({
         merchant: normalizeMerchant(o.program_title || (o.programs && o.programs.title) || 'Partenaire'),
         price: pr,
+        shipping: (shipping != null && !isNaN(shipping)) ? shipping : null,
+        total: (shipping != null && !isNaN(shipping)) ? pr + shipping : null,
         url: o.tracking_url || o.url,
+        updatedAt: o.updated_at || null,
+        condition: extractConditionClient(o.title || p.title),
       });
     });
   } else {
+    var shippingSingle = (p.shipping_cost != null && p.shipping_cost !== '') ? parseFloat(p.shipping_cost) : null;
     offers.push({
       merchant: normalizeMerchant(p.program_title || p.brand || 'Partenaire'),
       price: parseFloat(p.price) || 0,
+      shipping: (shippingSingle != null && !isNaN(shippingSingle)) ? shippingSingle : null,
+      total: (shippingSingle != null && !isNaN(shippingSingle)) ? (parseFloat(p.price) || 0) + shippingSingle : null,
       url: p.tracking_url || p.url,
+      updatedAt: p.updated_at || null,
+      condition: extractConditionClient(p.title),
     });
   }
-  offers.sort(function(a,b){ return a.price - b.price; });
+  // Trie par prix TOTAL quand il est connu pour toutes les offres -- sinon
+  // par prix produit seul, pour ne pas melanger deux bases de comparaison
+  // differentes dans le meme classement.
+  var allTotalsKnown = offers.every(function(o){ return o.total != null; });
+  offers.sort(function(a,b){
+    var av = allTotalsKnown ? a.total : a.price;
+    var bv = allTotalsKnown ? b.total : b.price;
+    return av - bv;
+  });
   CURRENT_OFFERS = offers;
 
   var img = getImageUrl(p);
@@ -1658,7 +1676,7 @@ async function openDetail(id) {
           + '<option value="name">Marchand A-Z</option>'
         + '</select>'
       + '</div>'
-      + '<div class="pd-offers-list" id="pdOffersList">' + renderOfferRows(offers, lo) + '</div>'
+      + '<div class="pd-offers-list" id="pdOffersList">' + renderOfferRows(offers) + '</div>'
     + '</div>'
     + '<div id="pdSimilar"></div>';
 
@@ -1975,6 +1993,30 @@ function offersOf(p){
 }
 
 /* ── Carte produit ── */
+// LOT 3 : etat neuf/occasion/reconditionne, meme logique que
+// scripts/lib/condition.js -- dupliquee ici car ce fichier est un script
+// classique sans modules ES, aucun import possible depuis le navigateur.
+function extractConditionClient(title) {
+  var t = String(title || '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  if (/\breconditionn/.test(t) || /\brefurbished\b/.test(t) || /\bremis a neuf\b/.test(t)) return 'reconditionne';
+  if (/\boccasion\b|\bseconde main\b|\bused\b|\bbon etat\b|\bexcellent etat\b|\betat correct\b|\btres bon etat\b/.test(t)) return 'occasion';
+  return 'neuf';
+}
+var CONDITION_LABELS = { neuf: 'Neuf', occasion: 'Occasion', reconditionne: 'Reconditionné' };
+
+// "il y a 2h" / "hier" / "12 août" -- lisible sans etre une horloge precise
+function fmtRelativeDate(iso) {
+  if (!iso) return null;
+  var d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  var diffH = Math.floor((Date.now() - d.getTime()) / 3600000);
+  if (diffH < 1) return "à l'instant";
+  if (diffH < 24) return 'il y a ' + diffH + 'h';
+  if (diffH < 48) return 'hier';
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
+
 function escHtml(s){
   return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
     return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
@@ -2221,23 +2263,46 @@ function setView(v){
    ═══════════════════════════════════════════════════════════ */
 var CURRENT_OFFERS = [];
 
-function renderOfferRows(offers, minPrice){
+function renderOfferRows(offers){
+  // "Meilleur prix total" ne peut etre attribue qu'a une offre dont les
+  // frais de port sont CONNUS -- jamais a une offre dont on ignore le
+  // total reel, meme si son prix produit seul est le plus bas affiche.
+  // Meme regle que bestKnownTotalId() dans api/produit.js.
+  var knownTotals = offers.filter(function(o){ return o.total != null; });
+  var bestTotal = knownTotals.length ? Math.min.apply(null, knownTotals.map(function(o){ return o.total; })) : null;
+
   return offers.map(function(o){
-    var isBest = o.price === minPrice;
+    var isBestTotal = bestTotal != null && o.total === bestTotal;
     var fav = getFavicon(o.merchant);
     var merchantSafe = escHtml(o.merchant);
     var initials = escHtml(o.merchant.slice(0,2).toUpperCase());
     var logoEl = fav
       ? '<img src="' + escHtml(fav) + '" class="offer-logo" alt="" loading="lazy" onerror="this.outerHTML=\'<div class=&quot;offer-logo-placeholder&quot;>' + initials + '</div>\'">'
       : '<div class="offer-logo-placeholder">' + initials + '</div>';
-    return '<div class="pd-offer-row' + (isBest ? ' best' : '') + '">'
+
+    var shippingLine = o.shipping != null
+      ? (o.shipping === 0 ? 'Livraison gratuite' : '+ ' + fmtEur(o.shipping) + ' livraison')
+      : 'Livraison non communiquée';
+    var totalLine = o.total != null
+      ? '<div class="pd-offer-total">Total : <strong>' + fmtEur(o.total) + '</strong></div>'
+      : '';
+    var freshness = fmtRelativeDate(o.updatedAt);
+    var conditionBadge = '<span class="pd-offer-condition pd-cond-' + o.condition + '">' + CONDITION_LABELS[o.condition] + '</span>';
+
+    return '<div class="pd-offer-row' + (isBestTotal ? ' best' : '') + '">'
       + '<div class="pd-offer-merchant">' + logoEl
         + '<div><div class="pd-offer-name">' + merchantSafe + '</div>'
-          + (isBest ? '<span class="pd-offer-tag">Meilleur prix</span>' : '')
+          + (isBestTotal ? '<span class="pd-offer-tag">Meilleur prix total</span>' : '')
+          + conditionBadge
         + '</div>'
       + '</div>'
-      + '<div class="pd-offer-price">' + fmtEur(o.price) + '</div>'
-      + '<a class="pd-offer-btn ' + (isBest ? 'primary' : 'secondary') + '" href="' + escHtml(o.url) + '" target="_blank" rel="noopener sponsored">Voir l\'offre</a>'
+      + '<div class="pd-offer-price">'
+        + fmtEur(o.price)
+        + totalLine
+        + '<div class="pd-offer-shipping">' + shippingLine + '</div>'
+        + (freshness ? '<div class="pd-offer-freshness">Relevé ' + freshness + '</div>' : '')
+      + '</div>'
+      + '<a class="pd-offer-btn ' + (isBestTotal ? 'primary' : 'secondary') + '" href="' + escHtml(o.url) + '" target="_blank" rel="noopener sponsored">Voir l\'offre</a>'
     + '</div>';
   }).join('');
 }
@@ -2245,10 +2310,19 @@ function renderOfferRows(offers, minPrice){
 function sortOffers(mode){
   var arr = CURRENT_OFFERS.slice();
   if (mode === 'name') arr.sort(function(a,b){ return a.merchant.localeCompare(b.merchant, 'fr'); });
-  else arr.sort(function(a,b){ return a.price - b.price; });
-  var minPrice = Math.min.apply(null, CURRENT_OFFERS.map(function(o){ return o.price; }));
+  else {
+    // Trie par prix total quand TOUTES les offres l'ont connu, sinon par
+    // prix produit seul -- meme regle que le tri initial dans openDetail,
+    // pour ne jamais comparer un total a un prix produit brut.
+    var allTotalsKnown = arr.every(function(o){ return o.total != null; });
+    arr.sort(function(a,b){
+      var av = allTotalsKnown ? a.total : a.price;
+      var bv = allTotalsKnown ? b.total : b.price;
+      return av - bv;
+    });
+  }
   var el = document.getElementById('pdOffersList');
-  if (el) el.innerHTML = renderOfferRows(arr, minPrice);
+  if (el) el.innerHTML = renderOfferRows(arr);
 }
 
 var SIMILAR_STOPWORDS = ['de','du','des','le','la','les','un','une','et','pour','avec','en','sur','a','au','aux','sans','ou','ce','cette','dans','par'];
