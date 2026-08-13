@@ -1610,6 +1610,8 @@ async function openDetail(id) {
         url: o.tracking_url || o.url,
         updatedAt: o.updated_at || null,
         condition: extractConditionClient(o.title || p.title),
+        deliveryTime: fmtDeliveryTime(o.delivery_time),
+        inStock: o.in_stock,   // true / false / null (null = non communique par le marchand)
       });
     });
   } else {
@@ -1622,6 +1624,8 @@ async function openDetail(id) {
       url: p.tracking_url || p.url,
       updatedAt: p.updated_at || null,
       condition: extractConditionClient(p.title),
+      deliveryTime: fmtDeliveryTime(p.delivery_time),
+      inStock: p.in_stock,
     });
   }
   // Trie par prix TOTAL quand il est connu pour toutes les offres -- sinon
@@ -2017,6 +2021,22 @@ function fmtRelativeDate(iso) {
   return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 }
 
+// LOT 3 : delai de livraison, format tres heterogene selon les marchands
+// -- confirme sur donnees reelles le 09/08. Pixmania donne un chiffre nu
+// ("1", "12"), les autres des phrases deja lisibles ("Entre 2 et 3
+// jours", "48H"...). Normalise uniquement le cas chiffre nu, laisse le
+// reste tel quel plutot que de risquer de casser une phrase correcte.
+function fmtDeliveryTime(raw) {
+  if (!raw) return null;
+  var s = String(raw).trim();
+  if (!s) return null;
+  if (/^\d+$/.test(s)) {
+    var n = parseInt(s, 10);
+    return n + ' jour' + (n > 1 ? 's' : '');
+  }
+  return s;
+}
+
 function escHtml(s){
   return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
     return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
@@ -2289,17 +2309,30 @@ function renderOfferRows(offers){
     var freshness = fmtRelativeDate(o.updatedAt);
     var conditionBadge = '<span class="pd-offer-condition pd-cond-' + o.condition + '">' + CONDITION_LABELS[o.condition] + '</span>';
 
+    // Disponibilite : n'affiche RIEN si le marchand ne l'a pas communiquee
+    // (in_stock null) -- ne jamais afficher "en stock" par defaut, exactement
+    // le meme principe que "Livraison non communiquee" pour les frais de port.
+    var stockBadge = '';
+    if (o.inStock === true) stockBadge = '<span class="pd-offer-stock in">En stock</span>';
+    else if (o.inStock === false) stockBadge = '<span class="pd-offer-stock out">Rupture de stock</span>';
+
+    var deliveryLine = o.deliveryTime
+      ? '<div class="pd-offer-delivery">Livraison : ' + escHtml(o.deliveryTime) + '</div>'
+      : '';
+
     return '<div class="pd-offer-row' + (isBestTotal ? ' best' : '') + '">'
       + '<div class="pd-offer-merchant">' + logoEl
         + '<div><div class="pd-offer-name">' + merchantSafe + '</div>'
           + (isBestTotal ? '<span class="pd-offer-tag">Meilleur prix total</span>' : '')
           + conditionBadge
+          + stockBadge
         + '</div>'
       + '</div>'
       + '<div class="pd-offer-price">'
         + fmtEur(o.price)
         + totalLine
         + '<div class="pd-offer-shipping">' + shippingLine + '</div>'
+        + deliveryLine
         + (freshness ? '<div class="pd-offer-freshness">Relevé ' + freshness + '</div>' : '')
       + '</div>'
       + '<a class="pd-offer-btn ' + (isBestTotal ? 'primary' : 'secondary') + '" href="' + escHtml(o.url) + '" target="_blank" rel="noopener sponsored">Voir l\'offre</a>'
