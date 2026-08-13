@@ -2358,17 +2358,6 @@ function sortOffers(mode){
   if (el) el.innerHTML = renderOfferRows(arr);
 }
 
-var SIMILAR_STOPWORDS = ['de','du','des','le','la','les','un','une','et','pour','avec','en','sur','a','au','aux','sans','ou','ce','cette','dans','par'];
-
-function significantWords(title){
-  var norm = String(title || '').toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, ' ');
-  return norm.split(' ').filter(function(w){
-    return w.length >= 3 && SIMILAR_STOPWORDS.indexOf(w) === -1;
-  });
-}
-
 async function renderSimilar(product){
   var host = document.getElementById('pdSimilar');
   if (!host || !product.category) return;
@@ -2376,21 +2365,28 @@ async function renderSimilar(product){
     var data = await apiFetch('action=category&cat=' + encodeURIComponent(product.category) + '&limit=60');
     var candidates = (data && data.data ? data.data : []).filter(function(x){ return x.id !== product.id; });
 
-    // Meme grande categorie ne suffit pas ("maison-jardin" mélange outils
-    // de jardin, services a the et peluches) : on exige au moins un mot
-    // significatif commun avec le titre de reference, ou la meme marque.
-    // Mieux vaut une section courte, voire absente, qu'une section pleine
-    // de produits sans rapport reel.
-    var refWords = significantWords(product.title);
-    var refBrand = (product.brand || '').toLowerCase().trim();
+    // LOT 4 : similarite fondee sur le meme product_type (calcule cote
+    // serveur, voir api/products.js/formatRow) plutot que sur un simple
+    // chevauchement de mots -- l'ancien systeme pouvait recommander
+    // n'importe quoi partageant un mot avec le titre de reference.
+    // "Meme type" est une condition STRICTE, non negociable : jamais de
+    // casque audio en similaire d'une console, jamais de jeu Switch en
+    // similaire d'une PS5, quel que soit le score par ailleurs.
+    var refType = product.product_type;
+    if (!refType || refType === 'other') { host.innerHTML = ''; return; }
 
-    var scored = candidates.map(function(x){
-      var xWords = significantWords(x.title);
-      var overlap = refWords.filter(function(w){ return xWords.indexOf(w) !== -1; }).length;
+    var sameType = candidates.filter(function(x){ return x.product_type === refType; });
+    if (!sameType.length) { host.innerHTML = ''; return; }
+
+    // Au sein du meme type, la marque partagee fait remonter en premier
+    // (une PS5 similaire a une autre PS5 avant une console d'une autre
+    // marque), mais ne conditionne jamais l'inclusion elle-meme -- le
+    // filtre dur reste le product_type, pas la marque.
+    var refBrand = (product.brand || '').toLowerCase().trim();
+    var scored = sameType.map(function(x){
       var sameBrand = refBrand && (x.brand || '').toLowerCase().trim() === refBrand;
-      return { item: x, score: overlap + (sameBrand ? 1 : 0), overlap: overlap };
-    }).filter(function(s){ return s.overlap >= 1; })
-      .sort(function(a, b){ return b.score - a.score; });
+      return { item: x, score: sameBrand ? 1 : 0 };
+    }).sort(function(a, b){ return b.score - a.score; });
 
     var items = scored.slice(0, 8).map(function(s){ return s.item; });
     if (!items.length) { host.innerHTML = ''; return; }
