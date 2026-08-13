@@ -51,7 +51,12 @@ export function formatRow(p) {
   return {
     ...p,
     programs: p.program_title ? { title: p.program_title, countries: [] } : null,
-    tracking_url: makeTrackingUrl(p)
+    tracking_url: makeTrackingUrl(p),
+    // LOT 4 : calcule une seule fois ici, au point le plus central --
+    // formatRow() est appele par tous les chemins de reponse (recherche,
+    // categorie, fiche produit), garantit que product_type est toujours
+    // present sans avoir a l'ajouter endpoint par endpoint.
+    product_type: classifyProductType(p.title),
   };
 }
 
@@ -203,6 +208,9 @@ async function groupWithOffers(client, products) {
       price: best.price,
       ean_offers: filtered,
       offers_count: distinctVendorCount
+      // product_type deja present sur "best" : filtered vient d'offres
+      // deja passees par formatRow() (getAllOffersForEans), qui le
+      // calcule desormais de facon centrale -- inutile de le recalculer ici.
     });
   }
   return Array.from(eanMap.values());
