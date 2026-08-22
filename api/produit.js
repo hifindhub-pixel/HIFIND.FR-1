@@ -201,6 +201,12 @@ ${ref.image_url ? `<meta property="og:image" content="${esc(ref.image_url)}">` :
   <a class="cta" href="${SITE_URL}/?openProduct=${encodeURIComponent(offers[0].id || '')}">Ouvrir la fiche interactive \u2192</a>
 </main>
 <footer>&copy; ${new Date().getFullYear()} HiFind \u00b7 Prix relev\u00e9s quotidiennement, sous r\u00e9serve de disponibilit\u00e9 chez le marchand.</footer>
+<!-- CJ Auto Deep Link : monetise automatiquement les liens vers les
+     annonceurs CJ pour lesquels HiFind est valide, uniquement au clic
+     (pas de tracking d'impression -- verifie le 09/08, option "joined"
+     + "click only" confirmees). Sans lien avec le mecanisme CJ_LINKS de
+     sync.js (celui-la reste pour les autres reseaux/cas). -->
+<script src="https://www.anrdoezrs.net/am/101723456/include/joined/impressions/page/am.js"></script>
 </body>
 </html>`;
 }
