@@ -746,6 +746,91 @@ async function syncAwin() {
   console.log('🎉 Awin done');
 }
 
+/**
+ * Noms de colonnes CONFIRMES le 09/08 directement depuis le
+ * configurateur de flux Kwanko (Oscaro FR) -- aucune supposition,
+ * contrairement a Affilae/Effinity. url_product est deja etiquetee
+ * "Tracking URL" par Kwanko lui-meme : aucun enveloppement manuel
+ * necessaire, contrairement a CJ.
+ */
+async function syncKwanko() {
+  console.log('🔄 Kwanko sync...');
+  const KWANKO_FEEDS_JSON = process.env.KWANKO_FEEDS;
+  if (!KWANKO_FEEDS_JSON) { console.log('⚠️ KWANKO_FEEDS missing'); return; }
+
+  let feeds;
+  try { feeds = JSON.parse(KWANKO_FEEDS_JSON); } catch(e) { console.log('❌ KWANKO_FEEDS JSON invalide'); return; }
+
+  for (const feed of feeds) {
+    try {
+      const feedLimit = feed.limit || 2000;
+      console.log('  →', feed.name, '(limit:', feedLimit, ')');
+
+      const programId = 'kwanko_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      PROGRAM_META.set(programId, { title: feed.name, category: feed.category });
+      const writer = new HarvestWriter(programId);
+      const seen = new Set();
+      let firstSample = null;
+
+      const stat = await streamFeed(feed.url, {
+        label: feed.name,
+        normalizeHeader: h => h.trim().replace(/^"|"$/g,'').toLowerCase().replace(/\s+/g,'_'),
+        onHeaders: (headers, sep) => console.log('  Colonnes:', headers.length, '| sep:', JSON.stringify(sep)),
+        onRecord: (obj) => {
+          const title = cleanTitle(obj.name || '');
+          const url = obj.url_product || '';
+          const price = parseFloat(String(obj.price || '0').replace(',', '.'));
+          const image = obj.url_image || '';
+          const ean = extractEAN(obj.ean || '');
+          const brand = obj.brand || '';
+          const productId = obj.sku || obj.reference || '';
+          const shippingCost = parseShippingCost(obj.shipping_cost || '');
+          const deliveryTime = obj.delivery_time || '';
+          const inStock = parseInStock(obj.availability);
+
+          if (!title || !url || !(price > 0) || !ean) return true;
+          const key = ean + '_' + price;
+          if (seen.has(key)) return true;
+          seen.add(key);
+          const p = { title, url, price, image_url: image, ean, brand, product_id: productId,
+                      shipping_cost: shippingCost,
+                      delivery_time: deliveryTime,
+                      in_stock: inStock,
+                      description: obj.description || '',
+                      // product_type Kwanko sert de piste de categorie
+                      // (feed_cat), meme role que dans syncEffinity --
+                      // a ne pas confondre avec le product_type HiFind
+                      // (classifyProductType, LOT 1), notion differente.
+                      feed_cat: obj.product_type || '',
+                      program_id: programId, feed_name: feed.name,
+                      feed_category: feed.category || null };
+          if (!firstSample) firstSample = p;
+          writer.write(p);
+          EAN_INDEX.add(ean, programId);
+          return true;
+        },
+      });
+
+      console.log('  Format:', stat.format, '| encodage:', stat.encoding,
+                  '|', Math.round(stat.bytes/1e6*10)/10, 'Mo lus',
+                  stat.stopped ? '(arret anticipe)' : '');
+      if (firstSample) {
+        console.log('  Echantillon -> title=' + JSON.stringify((firstSample.title||'').slice(0,50))
+          + ' | link=' + JSON.stringify((firstSample.url||'').slice(0,60))
+          + ' | price=' + firstSample.price);
+      } else {
+        console.log('  \u26a0\ufe0f aucune ligne exploitable');
+      }
+      await writer.close();
+      console.log('  📦', feed.name, ':', writer.count, 'lignes recoltees ('
+                  + writer.skippedNoEan + ' sans EAN ignorees)');
+      reportFeed(feed.name, writer.count);
+
+    } catch(e) { console.log('  ⚠️', feed.name, ':', e.message); }
+  }
+  console.log('🎉 Kwanko done');
+}
+
 async function syncAliExpress() {
   console.log('🔄 AliExpress sync...');
   const APP_KEY = '532344';
@@ -1149,6 +1234,7 @@ async function main() {
     await syncEffinity();
     await syncAffilaeFeeds();
     await syncAwin();
+    await syncKwanko();
     await syncCJ();   // API paginee : reste en phase A pour beneficier du croisement 3-marchands
 
     // ── PHASE B : on n'insère que les EAN présents chez 3+ marchands ──
