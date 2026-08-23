@@ -341,8 +341,11 @@ nav {
   padding-bottom:.4rem; margin:0 -.1rem; scrollbar-width:none;
 }
 .carousel-row::-webkit-scrollbar { display:none; }
-.carousel-row > .prod-card {
-  flex:0 0 220px; scroll-snap-align:start;
+.carousel-row > .card {
+  flex:0 0 226px; scroll-snap-align:start;
+}
+@media(max-width:600px){
+  .carousel-row > .card { flex:0 0 180px; }
 }
 
 /* ── Bande de confiance : element signature, remplace une bannière
