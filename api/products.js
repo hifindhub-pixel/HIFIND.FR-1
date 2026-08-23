@@ -395,6 +395,22 @@ export default async function handler(req, res) {
         rows = [product];
       }
 
+    } else if (action === 'stats') {
+      // LOT design : compteurs reels par categorie pour la grille de la
+      // page d'accueil -- une seule requete groupee plutot que 11 appels
+      // separes, meme WHERE que les autres endpoints (2+ marchands,
+      // hors darty, EAN present) pour rester coherent avec ce que
+      // l'utilisateur verra reellement en cliquant sur la categorie.
+      const r = await client.query(`
+        SELECT p.category, COUNT(DISTINCT p.ean) AS total
+        FROM products p
+        WHERE ${MULTI_VENDOR_WHERE}
+        GROUP BY p.category
+      `);
+      const byCategory = {};
+      r.rows.forEach(row => { byCategory[row.category] = parseInt(row.total, 10); });
+      return res.status(200).json({ data: byCategory });
+
     } else if (action === 'category' && cat) {
       const catWhere = MULTI_VENDOR_WHERE + ' AND p.category = $1';
 
