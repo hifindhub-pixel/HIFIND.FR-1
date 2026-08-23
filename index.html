@@ -323,6 +323,66 @@ nav {
   grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
   gap:1rem;
 }
+
+/* ── Carrousel horizontal (refonte accueil, inspire du rythme Idealo
+   mais peuple avec les vraies categories/volumes HiFind) ── */
+.carousel-head {
+  display:flex; align-items:flex-end; justify-content:space-between;
+  gap:1rem; margin-bottom:1.1rem;
+}
+.carousel-seeall {
+  font-size:.82rem; font-weight:700; color:var(--coral);
+  white-space:nowrap; text-decoration:none; cursor:pointer;
+  display:flex; align-items:center; gap:.3rem;
+}
+.carousel-seeall:hover { color:var(--coral-h); }
+.carousel-row {
+  display:flex; gap:1rem; overflow-x:auto; scroll-snap-type:x proximity;
+  padding-bottom:.4rem; margin:0 -.1rem; scrollbar-width:none;
+}
+.carousel-row::-webkit-scrollbar { display:none; }
+.carousel-row > .prod-card {
+  flex:0 0 220px; scroll-snap-align:start;
+}
+
+/* ── Bande de confiance : element signature, remplace une bannière
+   lifestyle generique par une affirmation vraie et verifiable,
+   ancree dans le vrai fonctionnement du site (LOT 2). ── */
+.trust-band {
+  background:var(--bg2); border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+  padding:2.6rem 0;
+}
+.trust-band-inner {
+  max-width:1200px; margin:0 auto; padding:0 1.5rem;
+  display:grid; grid-template-columns:repeat(3,1fr); gap:2rem;
+}
+.trust-item { display:flex; gap:.9rem; align-items:flex-start; }
+.trust-icon {
+  flex:0 0 auto; width:38px; height:38px; border-radius:10px;
+  background:rgba(255,107,107,.12); color:var(--coral);
+  display:flex; align-items:center; justify-content:center;
+}
+.trust-text h4 { font-size:.92rem; font-weight:800; margin-bottom:.2rem; }
+.trust-text p { font-size:.8rem; color:var(--sub); line-height:1.45; }
+@media(max-width:820px){ .trust-band-inner{ grid-template-columns:1fr; gap:1.4rem; } }
+
+/* ── Grille de categories avec vrais compteurs (action=stats) ── */
+.cat-tile-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:.9rem;
+}
+.cat-tile {
+  background:var(--bg2); border:1px solid var(--border); border-radius:12px;
+  padding:1.2rem 1rem; cursor:pointer; text-align:center;
+  transition:border-color .2s, transform .2s;
+}
+.cat-tile:hover { border-color:var(--coral); transform:translateY(-2px); }
+.cat-tile-icon {
+  width:40px; height:40px; margin:0 auto .6rem; color:var(--coral);
+  display:flex; align-items:center; justify-content:center;
+}
+.cat-tile-label { font-size:.84rem; font-weight:700; margin-bottom:.15rem; }
+.cat-tile-count { font-size:.72rem; color:var(--sub); }
+
 .prod-card {
   background:var(--bg2); border:1px solid var(--border);
   border-radius:12px; overflow:hidden; cursor:pointer;
@@ -1074,15 +1134,67 @@ nav {
     </div>
   </div>
 
-  <!-- TENDANCES -->
-  <div style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:3rem 0">
-    <div class="section" style="padding-top:0;padding-bottom:0">
-      <div class="section-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3.5-1.5 4.5-1.5 7A3.5 3.5 0 0 0 14 12c1.5 0 2-1 2-1s1.5 2 1.5 4.5A5.5 5.5 0 0 1 12 21a5.5 5.5 0 0 1-5.5-5.5C6.5 10 12 8.5 12 2Z"/></svg> Tendances du moment</div>
-      <h2 class="section-title barlow">Sélection du moment</h2>
-      <div class="prod-grid" id="trendingGrid">
-        <div class="spinner"><div class="spin"></div></div>
+  <!-- CARROUSEL 1 : plus grosse categorie reelle -->
+  <div class="section">
+    <div class="carousel-head">
+      <div>
+        <div class="section-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 17H3V7l2-4h11l3 5h2v9h-2M5 17h8m4 0h0"/></svg> Le plus comparé</div>
+        <h2 class="section-title barlow">Auto &amp; Moto</h2>
+      </div>
+      <a class="carousel-seeall" onclick="goCategory('auto-moto')">Tout voir <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></a>
+    </div>
+    <div class="carousel-row" id="carAutoMoto"><div class="spinner"><div class="spin"></div></div></div>
+  </div>
+
+  <!-- BANDE DE CONFIANCE -->
+  <div class="trust-band">
+    <div class="trust-band-inner">
+      <div class="trust-item">
+        <div class="trust-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg></div>
+        <div class="trust-text"><h4>Aucun classement payant</h4><p>Le prix le plus bas apparaît toujours en premier — aucun marchand ne peut acheter sa position.</p></div>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a4 4 0 0 1 8 0v2"/></svg></div>
+        <div class="trust-text"><h4>2 marchands minimum</h4><p>Chaque produit affiché est comparé chez au moins deux vendeurs distincts, jamais un seul.</p></div>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg></div>
+        <div class="trust-text"><h4>Prix mis à jour quotidiennement</h4><p>Nos relevés tournent chaque jour pour refléter les prix réels chez chaque marchand.</p></div>
       </div>
     </div>
+  </div>
+
+  <!-- CARROUSEL 2 -->
+  <div class="section">
+    <div class="carousel-head">
+      <div>
+        <div class="section-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg> High-tech</div>
+        <h2 class="section-title barlow">Électronique &amp; gadgets</h2>
+      </div>
+      <a class="carousel-seeall" onclick="goCategory('high-tech')">Tout voir</a>
+    </div>
+    <div class="carousel-row" id="carHighTech"><div class="spinner"><div class="spin"></div></div></div>
+  </div>
+
+  <!-- GRILLE DE CATEGORIES (vrais compteurs) -->
+  <div style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:3rem 0">
+    <div class="section" style="padding-top:0;padding-bottom:0">
+      <div class="section-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg> Explorer</div>
+      <h2 class="section-title barlow">Toutes les catégories</h2>
+      <div class="cat-tile-grid" id="catTileGrid" style="margin-top:1.3rem"><div class="spinner"><div class="spin"></div></div></div>
+    </div>
+  </div>
+
+  <!-- CARROUSEL 3 -->
+  <div class="section">
+    <div class="carousel-head">
+      <div>
+        <div class="section-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9Z"/></svg> Beauté &amp; bien-être</div>
+        <h2 class="section-title barlow">Soin &amp; parfums</h2>
+      </div>
+      <a class="carousel-seeall" onclick="goCategory('beaute-bienetre')">Tout voir</a>
+    </div>
+    <div class="carousel-row" id="carBeaute"><div class="spinner"><div class="spin"></div></div></div>
   </div>
 
   <!-- MEILLEURES AFFAIRES -->
@@ -1799,10 +1911,6 @@ async function initHome() {
       return { p: p, n: offers.length, spread: spread, lo: lo };
     }).filter(function(x){ return x.n >= 2 && x.lo > 0; });
 
-    // Les plus distribues d'abord, l'ecart departage a nombre egal
-    var popular = scored.slice().sort(function(a,b){
-      return (b.n - a.n) || (b.spread - a.spread);
-    });
     // Les plus gros ecarts, parmi ceux vendus par 3 marchands ou plus
     var deals = scored.filter(function(x){ return x.n >= 3; })
                       .sort(function(a,b){ return b.spread - a.spread; });
@@ -1823,11 +1931,74 @@ async function initHome() {
     };
 
     fill(document.getElementById('dealsGrid'), deals, 12, true);
-    fill(document.getElementById('trendingGrid'), popular, 16, false);
 
-    renderHeroCarousel(deals.length ? deals : popular);
+    renderHeroCarousel(deals.length ? deals : scored);
+
+    // Nouvelles sections bas de page -- independantes du tri deals/scored
+    // ci-dessus, chacune interroge sa propre categorie directement.
+    renderCategoryCarousel('auto-moto', 'carAutoMoto');
+    renderCategoryCarousel('high-tech', 'carHighTech');
+    renderCategoryCarousel('beaute-bienetre', 'carBeaute');
+    renderCategoryTileGrid();
   } catch (e) {
     console.error('initHome', e);
+  }
+}
+
+// LOT design : icones simples par categorie, meme langage visuel que ICO
+// (trait 2px, coins arrondis) -- pas de nouvelle bibliotheque d'icones.
+var CAT_ICONS = {
+  'high-tech': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></svg>',
+  'auto-moto': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 17H3V7l2-4h11l3 5h2v9h-2"/></svg>',
+  'maison-jardin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
+  'mode-vetements': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4l3 3-3 3M8 4 5 7l3 3M8 4h8M6 8v13h12V8"/></svg>',
+  'beaute-bienetre': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9Z"/></svg>',
+  'sante-nutrition': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
+  'enfants-bebes': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a6 6 0 0 1 12 0v2"/></svg>',
+  'sport-outdoor': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 3 3M17.5 17.5 21 21M18 6 6 18"/><circle cx="4.5" cy="4.5" r="1.5"/><circle cx="19.5" cy="19.5" r="1.5"/></svg>',
+  'animaux': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="8" r="1.6"/><circle cx="12" cy="5.5" r="1.6"/><circle cx="17" cy="8" r="1.6"/><path d="M12 12c-3 0-5 2-5 4.5S9 21 12 21s5-1.8 5-4.5S15 12 12 12Z"/></svg>',
+  'alimentation-bio': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-12A8 8 0 0 0 4 10c0 8 8 12 8 12Z"/><path d="M12 22V10"/></svg>',
+  'livres-bd': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13Z"/></svg>',
+  'autres': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>',
+};
+
+// Carrousel horizontal pour UNE categorie -- reutilise cardHTML() tel quel,
+// simplement affiche en ligne au lieu d'une grille.
+async function renderCategoryCarousel(cat, elId){
+  var host = document.getElementById(elId);
+  if (!host) return;
+  try {
+    var data = await apiFetch('action=category&cat=' + encodeURIComponent(cat) + '&limit=14');
+    var items = (data && data.data) ? data.data : [];
+    if (!items.length) { host.parentElement.parentElement.style.display = 'none'; return; }
+    host.innerHTML = items.map(function(p,i){ return cardHTML(p, i); }).join('');
+  } catch(e) {
+    host.innerHTML = '<p style="color:var(--sub);padding:1rem">Indisponible pour le moment.</p>';
+  }
+}
+
+// Grille de categories avec VRAIS compteurs (action=stats, une seule
+// requete groupee cote serveur) -- jamais de chiffre invente.
+async function renderCategoryTileGrid(){
+  var host = document.getElementById('catTileGrid');
+  if (!host) return;
+  try {
+    var data = await apiFetch('action=stats');
+    var counts = (data && data.data) ? data.data : {};
+    var order = Object.keys(CAT_LABELS).filter(function(c){ return c !== 'autres'; });
+    order.push('autres'); // "Autres" toujours en dernier, quel que soit son volume
+    var tiles = order.map(function(cat){
+      var n = counts[cat] || 0;
+      if (!n) return ''; // pas de categorie fantome a 0 produit
+      return '<div class="cat-tile" onclick="goCategory(\'' + cat + '\')">'
+        + '<div class="cat-tile-icon">' + (CAT_ICONS[cat] || CAT_ICONS['autres']) + '</div>'
+        + '<div class="cat-tile-label">' + CAT_LABELS[cat] + '</div>'
+        + '<div class="cat-tile-count">' + n.toLocaleString('fr-FR') + ' produits</div>'
+      + '</div>';
+    }).filter(Boolean);
+    host.innerHTML = tiles.join('') || '<p style="color:var(--sub)">Catégories indisponibles.</p>';
+  } catch(e) {
+    host.innerHTML = '<p style="color:var(--sub)">Catégories indisponibles pour le moment.</p>';
   }
 }
 
