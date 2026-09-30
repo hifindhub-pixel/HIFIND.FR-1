@@ -331,7 +331,7 @@ async function syncEffinity() {
         };
       };
 
-      const programId = 'effinity_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
+      const programId = feed.programId || 'effinity_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
       PROGRAM_META.set(programId, { title: feed.name, category: feed.category });
       const writer = new HarvestWriter(programId);
 
@@ -684,7 +684,7 @@ async function syncAwin() {
       if (feed.name.match(/^Whirlpool [A-Z]/)) feedDisplayName = 'Whirlpool';
       if (feed.name.match(/^Velostore [A-Z]/)) feedDisplayName = 'Velostore';
       if (feed.name === 'Foot Store 2') feedDisplayName = 'Footstore';
-      const programId = 'awin_' + feedDisplayName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      const programId = feed.programId || 'awin_' + feedDisplayName.toLowerCase().replace(/[^a-z0-9]/g, '_');
       PROGRAM_META.set(programId, { title: feedDisplayName, category: feed.category });
       const writer = new HarvestWriter(programId);
 
@@ -1004,7 +1004,7 @@ async function syncCJ() {
     const partnerId = feed.advertiserId || feed.adId;
     console.log('  \u2192 ' + feed.name + ' (partnerId ' + partnerId + ', limit ' + limit + ')');
 
-    const programId = 'cj_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const programId = feed.programId || 'cj_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
     PROGRAM_META.set(programId, { title: feed.name, category: feed.category });
 
     const all = [];

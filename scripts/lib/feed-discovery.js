@@ -164,6 +164,7 @@ export function mergeFeeds(existing, discovered, approvals = []) {
     const otherIdentity = merged.some(f => f.name !== approval.name && ((candidate.url && f.url === candidate.url) || (candidate.network === 'cj' && String(f.advertiserId) === candidate.advertiserId)));
     if (otherIdentity) throw new Error('merchant_identity_conflict');
     const entry = { ...(match < 0 ? {} : merged[match]), name: approval.name };
+    if (match < 0 && approval.programId) entry.programId = approval.programId;
     if (candidate.network === 'cj') entry.advertiserId = candidate.advertiserId;
     else entry.url = candidate.url;
     if (approval.category) entry.category = approval.category;

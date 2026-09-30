@@ -1,0 +1,46 @@
+name: Validate Feed Automation
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/lib/*feed*'
+      - 'scripts/sync-with-discovery.js'
+      - '*feeds.test.js'
+      - 'feed-discovery.test.js'
+      - '.github/workflows/validate-feed-automation.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Test discovery and automatic selection
+        run: node --test auto-feeds.test.js feed-discovery.test.js
+      - name: Read-only catalogue validation
+        env:
+          AUTO_DISCOVER_FEEDS: 'true'
+          FEED_DISCOVERY_DRY_RUN: 'true'
+          FEED_DISCOVERY_APPROVALS: ${{ vars.FEED_DISCOVERY_APPROVALS }}
+          AWIN_API_KEY: ${{ secrets.AWIN_API_KEY }}
+          EFFINITY_API_KEY: ${{ secrets.EFFINITY_API_KEY }}
+          CJ_TOKEN: ${{ secrets.CJ_TOKEN }}
+          CJ_PUBLISHER_ID: ${{ secrets.CJ_PUBLISHER_ID }}
+          AWIN_FEEDS: ${{ secrets.AWIN_FEEDS }}
+          EFFINITY_FEEDS: ${{ secrets.EFFINITY_FEEDS }}
+          CJ_FEEDS: ${{ secrets.CJ_FEEDS }}
+          AFFILAE_FEEDS: ${{ secrets.AFFILAE_FEEDS }}
+        run: node scripts/sync-with-discovery.js
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: feed-automation-validation
+          path: feed-discovery-report.json
+          retention-days: 7
+          if-no-files-found: ignore

@@ -17,6 +17,7 @@ jobs:
         run: npm install pg
       - name: Run sync
         env:
+          AUTO_DISCOVER_FEEDS: 'true'
           FEED_DISCOVERY_APPROVALS: ${{ vars.FEED_DISCOVERY_APPROVALS }}
           EFFINITY_API_KEY: ${{ secrets.EFFINITY_API_KEY }}
           # Base
