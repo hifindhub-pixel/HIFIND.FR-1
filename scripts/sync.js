@@ -7,6 +7,7 @@ const AFFILAE_BASE        = 'https://rest.affilae.com';
 import { streamFeed, parseCSVLine } from './lib/stream-feed.js';
 import { EanIndex, HarvestWriter, resetHarvest, harvestedPrograms, selectMatching, harvestDiskUsage } from './lib/ean-index.js';
 import { categorize } from './lib/categorize.js';
+import { persistHarvest } from './lib/persist-harvest.js';
 import { learnPrefixes, applyPrefixes } from './lib/ean-prefix.js';
 import pkg from 'pg';
 const { Client } = pkg;
@@ -1195,32 +1196,21 @@ async function ingestHarvest() {
       .forEach(function(e){ console.log('     ' + e[0].padEnd(20) + e[1]); });
   }
 
-  // ── Insertion ──
-  for (const b of PENDING) {
-    try {
-      await supabaseUpsert('programs', [{
-        id: b.programId, title: b.meta.title, categories: [], countries: ['FR'],
-        updated_at: new Date().toISOString()
-      }]);
-      for (let i = 0; i < b.rows.length; i += 50) {
-        await supabaseUpsert('products', b.rows.slice(i, i + 50));
-      }
-    } catch (e) { console.log('  \u26a0\ufe0f ' + b.meta.title + ' : ' + e.message); }
-  }
-  allRows.forEach(function(r){ CAT_STATS[r.category] = (CAT_STATS[r.category] || 0) + 1; });
-
-  console.log('\n\ud83c\udf89 Ingestion : ' + totalKept.toLocaleString('fr-FR')
-              + ' produits comparables sur ' + totalScanned.toLocaleString('fr-FR') + ' recoltes');
+  // Une transaction par marchand : une erreur ne laisse pas un demi-catalogue.
+  const persisted = await persistHarvest(PENDING, await getNeon(), supabaseUpsert);
+  Object.assign(CAT_STATS, persisted.categories);
+  console.log('Offres preparees : ' + totalKept.toLocaleString('fr-FR'));
+  console.log('Offres ecrites et validees en base : ' + persisted.committed.toLocaleString('fr-FR'));
 
   const cats = Object.entries(CAT_STATS).sort(function(a,b){ return b[1]-a[1]; });
   if (cats.length) {
     console.log('\nRepartition par categorie :');
     cats.forEach(function(e){
-      const pct = Math.round(1000 * e[1] / totalKept) / 10;
+      const pct = persisted.committed ? Math.round(1000 * e[1] / persisted.committed) / 10 : 0;
       console.log('  ' + e[0].padEnd(20) + String(e[1]).padStart(7) + '  (' + pct + '%)');
     });
   }
-  return totalKept;
+  return persisted.committed;
 }
 
 async function main() {
@@ -1276,9 +1266,11 @@ async function main() {
     console.log('🎉 All done!');
   } catch(e) {
     console.error('❌ Failed:', e.message);
-    if (_neonClient) await _neonClient.end();
+    if (e.report) console.error('Bilan ecritures : ' + JSON.stringify(e.report));
+    if (_neonClient) await _neonClient.end().catch(() => {});
     process.exit(1);
   }
 }
 
 main();
+
