@@ -1,6 +1,8 @@
 import { Worker } from 'node:worker_threads';
 
-export const merchantKey = name => String(name).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\b(france|fr)\b/g, '').replace(/[^a-z0-9]/g, '');
+const merchantName = name => String(name).split(/\s+-\s+/)[0]
+  .replace(/\baffiliate\s+program\b/ig, '').replace(/\b(france|fr|eu|emea)\b/ig, '').trim().replace(/[.\s]+$/, '');
+export const merchantKey = name => merchantName(name).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
 export function validSample(row) {
   const ean = String(row.ean ?? row.gtin ?? row.product_gtin ?? '').trim();
@@ -84,7 +86,7 @@ export async function autoSelect(results, existingByNetwork, manual = {}, probe 
       if (selected.some(a => merchantKey(a.name) === key)) { decision.status = 'same_merchant'; continue; }
       const validation = validations.get(candidate) || { ok: false, reason: 'probe_failed' };
       if (!validation.ok) { decision.status = validation.reason; continue; }
-      const name = matches[0]?.name || candidate.name;
+      const name = matches[0]?.name || merchantName(candidate.name);
       selected.push({ key: candidate.key, name, ...(matches.length ? {} : { programId: network + '_auto_' + candidate.advertiserId }) });
       owners.set(key, new Set([network])); used.add(candidate.advertiserId);
       decision.status = 'auto_selected';

@@ -22,8 +22,10 @@ remplace pas un référentiel exhaustif des enseignes : des noms très différen
 pour la même enseigne nécessitent toujours un alias. Les nouveaux programmes
 ont un identifiant stable basé sur le réseau et l'annonceur.
 
-Le workflow `Validate Feed Automation` teste la PR et sonde les comptes sans
-connexion à Neon et sans import. Son rapport indique les motifs de rejet.
+Le workflow `Validate Feed Automation` teste la PR. La sonde des comptes est
+réservée à son lancement manuel (`workflow_dispatch`) pour ne pas multiplier
+les appels aux API à chaque commit. Elle ne se connecte pas à Neon et ne fait
+aucun import. Son rapport indique les motifs de rejet.
 Les contrôles d'échantillons ne garantissent pas la qualité de chaque ligne ;
 le filtrage de l'import reste appliqué. Les 50 lignes sont uniquement un
 échantillon de validation, pas une limite de catalogue pour l'import.
@@ -70,7 +72,11 @@ URL fonctionne encore : le rapport des imports reste à contrôler.
   contrôles automatiques portent sur un échantillon ; les imports
   continuent d'appliquer leur filtrage EAN existant et le seuil courant.
 - Les tests sont exécutés avec des réponses simulées. Les formats réels du
-  compte, notamment la requête GraphQL CJ héritée du projet, restent à valider.
+  compte ont aussi été sondés le 30 septembre 2026 : découverte Effinity et CJ
+  fonctionnelle au premier essai, 11 sélections sur échantillon. Au second essai,
+  Awin renvoie 401 sur le secours Darwin après 500 sur son endpoint classique,
+  et Effinity renvoie 429 (limitation de fréquence). Les appels répétés ont
+  été arrêtés ; vérifier l'accès Awin avant activation des trois réseaux.
   Une réponse inattendue est signalée, jamais présentée comme un succès.
 - Pas de remplacement automatique approximatif d'un flux par un autre, pas
   d'inférence d'URL manquante ni de suppression sur échec de découverte.

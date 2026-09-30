@@ -23,6 +23,7 @@ jobs:
       - name: Test discovery and automatic selection
         run: node --test auto-feeds.test.js feed-discovery.test.js
       - name: Read-only catalogue validation
+        if: github.event_name == 'workflow_dispatch'
         env:
           AUTO_DISCOVER_FEEDS: 'true'
           AWIN_PUBLISHER_ID: ${{ vars.AWIN_PUBLISHER_ID || '2855063' }}

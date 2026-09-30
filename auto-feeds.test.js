@@ -1,12 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { autoSelect, validSample, probeFeed } from './scripts/lib/auto-feeds.js';
+import { autoSelect, validSample, probeFeed, merchantKey } from './scripts/lib/auto-feeds.js';
 import { createServer } from 'node:http';
 import { mergeFeeds } from './scripts/lib/feed-discovery.js';
 const row = { ean: '4006381333931', price: '12.50', currency: 'EUR', title: 'Produit', link: 'https://shop.example/item' };
 const feed = (network, key, name, advertiserId = key) => ({ network, key, name, advertiserId, url: `https://feed.example/${network}/${key}` });
 const result = (network, feeds) => ({ network, status: 'ok', feeds });
 const good = async () => ({ ok: true });
+
+test('real network programme labels resolve to existing merchant names', () => {
+  for (const [label, name] of [['Norauto.fr - Affinitaires', 'Norauto'], ['Electrodepot - Guides et Comparateurs', 'Electro Dépôt'], ['Mademoiselle-bio - Standard', 'Mademoiselle Bio'], ['iRobot EU Affiliate Program', 'iRobot']]) assert.equal(merchantKey(label), merchantKey(name));
+});
 
 test('samples require checked GTIN, usable price, currency and link; HT is rejected', () => {
   assert.equal(validSample(row), true);
