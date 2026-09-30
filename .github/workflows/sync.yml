@@ -17,6 +17,8 @@ jobs:
         run: npm install pg
       - name: Run sync
         env:
+          FEED_DISCOVERY_APPROVALS: ${{ vars.FEED_DISCOVERY_APPROVALS }}
+          EFFINITY_API_KEY: ${{ secrets.EFFINITY_API_KEY }}
           # Base
           NEON_URL: ${{ secrets.NEON_URL }}
           # Seuil de vendeurs distincts pour retenir un produit (defaut : 3)
@@ -32,4 +34,12 @@ jobs:
           CJ_TOKEN: ${{ secrets.CJ_TOKEN }}
           CJ_PUBLISHER_ID: ${{ secrets.CJ_PUBLISHER_ID }}
           CJ_FEEDS: ${{ secrets.CJ_FEEDS }}
-        run: node scripts/sync.js
+        run: node scripts/sync-with-discovery.js
+      - name: Upload discovery report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: feed-discovery-report
+          path: feed-discovery-report.json
+          retention-days: 7
+          if-no-files-found: ignore

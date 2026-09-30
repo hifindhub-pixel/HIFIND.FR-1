@@ -8,6 +8,7 @@ on:
 jobs:
   discover:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
 
@@ -17,9 +18,8 @@ jobs:
 
       - name: Discover feeds
         env:
+          FEED_DISCOVERY_APPROVALS: ${{ vars.FEED_DISCOVERY_APPROVALS }}
           AWIN_API_KEY: ${{ secrets.AWIN_API_KEY }}
-          AWIN_OAUTH_TOKEN: ${{ secrets.AWIN_OAUTH_TOKEN }}
-          AWIN_PUBLISHER_ID: '2855063'
           EFFINITY_API_KEY: ${{ secrets.EFFINITY_API_KEY }}
           CJ_TOKEN: ${{ secrets.CJ_TOKEN }}
           CJ_PUBLISHER_ID: ${{ secrets.CJ_PUBLISHER_ID }}
@@ -29,6 +29,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: awin-feeds
-          path: awin-feeds.json
+          name: feed-discovery-report
+          path: feed-discovery-report.json
+          retention-days: 7
           if-no-files-found: ignore
