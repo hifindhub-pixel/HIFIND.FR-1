@@ -25,6 +25,7 @@ jobs:
       - name: Read-only catalogue validation
         env:
           AUTO_DISCOVER_FEEDS: 'true'
+          AWIN_PUBLISHER_ID: ${{ vars.AWIN_PUBLISHER_ID || '2855063' }}
           FEED_DISCOVERY_DRY_RUN: 'true'
           FEED_DISCOVERY_APPROVALS: ${{ vars.FEED_DISCOVERY_APPROVALS }}
           AWIN_API_KEY: ${{ secrets.AWIN_API_KEY }}

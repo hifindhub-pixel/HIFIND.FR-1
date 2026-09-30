@@ -176,7 +176,7 @@ export async function streamFeed(url, opts) {
       buf += decoder.write(chunk);
 
       // ── Détection du format sur les premiers octets ──
-      if (!format && buf.length > 200) {
+      if (!format && buf.trimStart().length > 0) {
         format = buf.trimStart().startsWith('<') ? 'xml' : 'csv';
       }
       if (!format) continue;

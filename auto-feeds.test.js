@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { autoSelect, validSample } from './scripts/lib/auto-feeds.js';
+import { autoSelect, validSample, probeFeed } from './scripts/lib/auto-feeds.js';
+import { createServer } from 'node:http';
 import { mergeFeeds } from './scripts/lib/feed-discovery.js';
 const row = { ean: '4006381333931', price: '12.50', currency: 'EUR', title: 'Produit', link: 'https://shop.example/item' };
 const feed = (network, key, name, advertiserId = key) => ({ network, key, name, advertiserId, url: `https://feed.example/${network}/${key}` });
@@ -65,4 +66,17 @@ test('all candidates are considered with at most four concurrent probes', async 
   });
   assert.equal(out.approvals.awin.length, 35);
   assert.ok(max <= 4);
+});
+
+test('real probe worker reads CSV and rejects malformed product records', async () => {
+  const server = createServer((req, res) => {
+    res.setHeader('Content-Type', 'text/csv');
+    res.end('ean,price,currency,title,link\n' + (req.url === '/good' ? '4006381333931,12.50,EUR,Produit,https://shop.example/item\n' : 'invalid,0,USD,Produit,https://shop.example/item\n'));
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const root = 'http://127.0.0.1:' + server.address().port;
+    assert.equal((await probeFeed({ network: 'awin', url: root + '/good' }, {})).ok, true);
+    assert.equal((await probeFeed({ network: 'awin', url: root + '/bad' }, {})).ok, false);
+  } finally { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
 });

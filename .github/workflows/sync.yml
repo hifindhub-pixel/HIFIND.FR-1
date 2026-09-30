@@ -18,6 +18,7 @@ jobs:
       - name: Run sync
         env:
           AUTO_DISCOVER_FEEDS: 'true'
+          AWIN_PUBLISHER_ID: ${{ vars.AWIN_PUBLISHER_ID || '2855063' }}
           FEED_DISCOVERY_APPROVALS: ${{ vars.FEED_DISCOVERY_APPROVALS }}
           EFFINITY_API_KEY: ${{ secrets.EFFINITY_API_KEY }}
           # Base

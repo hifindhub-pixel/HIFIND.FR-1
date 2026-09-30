@@ -77,3 +77,14 @@ test('metadata size limit prevents an accidental catalogue download', async () =
   const fetcher = async () => new Response(new Uint8Array(10 * 1024 * 1024 + 1));
   await assert.rejects(requestMetadata('https://example.com', {}, fetcher), /metadata_too_large/);
 });
+
+test('Awin switches to the existing Darwin endpoint on classic service failure', async () => {
+  const urls = [];
+  const results = await discoverFeeds({ AWIN_API_KEY: 'fake', AWIN_PUBLISHER_ID: '123' }, async url => {
+    urls.push(url);
+    return url.includes('productdata.awin.com') ? new Response('', { status: 500 }) : new Response(JSON.stringify([awin]));
+  });
+  assert.equal(results[0].status, 'ok');
+  assert.equal(results[0].feeds.length, 1);
+  assert.equal(urls.length, 2);
+});

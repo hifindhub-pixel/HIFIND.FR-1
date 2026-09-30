@@ -20,6 +20,7 @@ jobs:
         env:
           FEED_DISCOVERY_APPROVALS: ${{ vars.FEED_DISCOVERY_APPROVALS }}
           AWIN_API_KEY: ${{ secrets.AWIN_API_KEY }}
+          AWIN_PUBLISHER_ID: ${{ vars.AWIN_PUBLISHER_ID || '2855063' }}
           EFFINITY_API_KEY: ${{ secrets.EFFINITY_API_KEY }}
           CJ_TOKEN: ${{ secrets.CJ_TOKEN }}
           CJ_PUBLISHER_ID: ${{ secrets.CJ_PUBLISHER_ID }}

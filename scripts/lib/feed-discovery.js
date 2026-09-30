@@ -105,7 +105,12 @@ export async function discoverFeeds(env = process.env, fetchImpl = fetch) {
       let rows;
       if (network === 'awin') {
         if (!env.AWIN_API_KEY) return { network, status: 'missing_credentials', feeds: [] };
-        rows = parseFeedList(await requestMetadata('https://productdata.awin.com/datafeed/list/apikey/' + encodeURIComponent(env.AWIN_API_KEY), {}, fetchImpl));
+        try {
+          rows = parseFeedList(await requestMetadata('https://productdata.awin.com/datafeed/list/apikey/' + encodeURIComponent(env.AWIN_API_KEY), {}, fetchImpl));
+        } catch (error) {
+          if (!id(env.AWIN_PUBLISHER_ID)) throw error;
+          rows = parseFeedList(await requestMetadata('https://ui.awin.com/productdata-darwin-download/publisher/' + env.AWIN_PUBLISHER_ID + '/' + encodeURIComponent(env.AWIN_API_KEY) + '/1/feedList', {}, fetchImpl));
+        }
       } else if (network === 'effinity') {
         if (!env.EFFINITY_API_KEY) return { network, status: 'missing_credentials', feeds: [] };
         rows = parseFeedList(await requestMetadata('https://apiv2.effiliation.com/apiv2/productfeeds.json?key=' + encodeURIComponent(env.EFFINITY_API_KEY) + '&filter=mines&country=fr&type=7,33', {}, fetchImpl));
