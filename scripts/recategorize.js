@@ -2,16 +2,18 @@
 // Writes a reversible change manifest before any UPDATE, then commits atomically.
 import pg from 'pg';
 import { writeFile, mkdir } from 'node:fs/promises';
+import { reconcileCategories } from './lib/category-consensus.js';
 import { categorize } from './lib/categorize.js';
 const client = new pg.Client({connectionString:process.env.NEON_URL,connectionTimeoutMillis:15000});
 await mkdir('category-report',{recursive:true});
 let transaction = false;
 try {
   await client.connect();
-  const {rows} = await client.query('SELECT id,title,description,category FROM products ORDER BY id');
+  const {rows} = await client.query('SELECT id,title,description,category,ean,brand FROM products ORDER BY id');
   const changes=[], unresolved=[], transitions={};
-  for(const p of rows){
-    const result=categorize(p);
+  const decisions=reconcileCategories(rows, rows.map(categorize));
+  for(const [i,p] of rows.entries()){
+    const result=decisions[i];
     if(result.category==='autres'){unresolved.push({id:p.id,title:p.title,category:p.category});continue;}
     if(result.category===p.category)continue;
     changes.push({id:p.id,title:p.title,previous:p.category,category:result.category,source:result.source});

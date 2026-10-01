@@ -27,3 +27,13 @@ for (const [title,category] of [
  ['BISSELL Détergent naturel multisurface pour animaux','maison-jardin'],
  ['Nintendo Animal Crossing Série 5 Paquet de cartes','high-tech']
 ]) test('catalogue: '+title,()=>assert.equal(categorize({title}).category,category));
+for(const [title,category] of [
+ ['Mortelle Adèle Tome 11 Ça sent la croquette','livres-bd'],['Marie-Lune tome 6 Ne me laisse pas tomber','livres-bd'],
+ ['Yves Saint Laurent Mascara Tome 2','beaute-bienetre'],['Jouet à tirer Toby le chien','enfants-bebes'],
+ ['Peluche chien jouet premier âge','enfants-bebes'],['Commode 2 tiroirs 1 niche','maison-jardin'],
+ ['Désodorisant voiture parfum pêche','auto-moto'],['Parfum d’intérieur thé blanc','maison-jardin'],
+ ['Festool Bague de copiage','maison-jardin'],['Colle à bois biberon 250g','maison-jardin'],
+ ['Couche-culotte Pampers','enfants-bebes'],['Trottinette électrique pneus 10 pouces','sport-outdoor'],
+ ['HORI sac banane pour Switch 2','high-tech'],['LEGO Serre-livres Disney','enfants-bebes'],
+ ['Valise avec serrure TSA','mode-vetements']
+])test('audit: '+title,()=>assert.equal(categorize({title}).category,category));

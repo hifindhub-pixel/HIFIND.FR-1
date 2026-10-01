@@ -6,6 +6,7 @@ const AFFILAE_BASE        = 'https://rest.affilae.com';
 
 import { streamFeed, parseCSVLine } from './lib/stream-feed.js';
 import { EanIndex, HarvestWriter, resetHarvest, harvestedPrograms, selectMatching, harvestDiskUsage } from './lib/ean-index.js';
+import { reconcileCategories } from './lib/category-consensus.js';
 import { categorize } from './lib/categorize.js';
 import pkg from 'pg';
 const { Client } = pkg;
@@ -1159,6 +1160,7 @@ async function ingestHarvest() {
           delivery_time: p.delivery_time || null,
           in_stock: p.in_stock != null ? p.in_stock : null,
           category: categorize({
+            ean: p.ean,
             title: p.title,
             description: p.description || '',
             feedCat: p.feed_cat || '',
@@ -1179,7 +1181,13 @@ async function ingestHarvest() {
     }
   }
 
-  // No category propagation from manufacturer EAN prefixes.
+  // Reconcile only exact barcodes with unanimous product evidence.
+  const categoryRows = PENDING.flatMap(batch => batch.rows);
+  const decisions = reconcileCategories(categoryRows, categoryRows.map(row => {
+    const signal = categorize(row);
+    return signal.category !== 'autres' ? signal : {category:row.category,score:10};
+  }));
+  categoryRows.forEach((row,i) => { row.category = decisions[i].category; });
 
   // ── Insertion ──
   for (const b of PENDING) {
