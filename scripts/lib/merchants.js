@@ -41,11 +41,15 @@ async function loadMerchantAliases(client) {
     );
     cache = new Map(rows.map(r => [r.raw_program_id, r.merchant_id]));
     cacheLoadedAt = Date.now();
-    pendingLoad = null;
     return cache;
   })();
 
-  return pendingLoad;
+  try {
+    return await pendingLoad;
+  } finally {
+    // A failed load must be retryable on the next request.
+    pendingLoad = null;
+  }
 }
 
 /**

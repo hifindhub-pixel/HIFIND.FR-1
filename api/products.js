@@ -3,7 +3,7 @@ const { Pool } = pkg;
 import { classifyProductType, parseQueryIntent } from './product-type.js';
 import { countDistinctMerchants } from '../scripts/lib/merchants.js';
 import { filterByCondition } from '../scripts/lib/condition.js';
-import { writeQuarantine } from '../scripts/lib/quarantine.js';
+import { detectContradictions } from '../scripts/lib/quarantine.js';
 
 const AFFILAE_PROFILE_ID = '69c1bc52b682a8edf3205672';
 
@@ -172,7 +172,7 @@ async function getAllOffersForEans(client, eans) {
   return byEan;
 }
 
-async function groupWithOffers(client, products) {
+export async function groupWithOffers(client, products) {
   const eans = [...new Set(products.map(p => p.ean).filter(Boolean))];
   const offersByEan = await getAllOffersForEans(client, eans);
 
@@ -184,16 +184,10 @@ async function groupWithOffers(client, products) {
 
     const filtered = filterCompatibleOffers(p.category, offers);
 
-    // LOT 2 : quarantaine des regroupements EAN contradictoires. Verifie
-    // sur les offres BRUTES (avant filtrage marque/categorie), sinon on
-    // ne verrait jamais rien -- le filtre a deja neutralise ce qu'il
-    // pouvait neutraliser. Ecrit en base pour revue humaine et EXCLUT le
-    // produit de l'affichage (plus sur de ne rien montrer que de montrer
-    // une fausse comparaison) plutot que de le laisser passer tel quel.
-    if (offers.length >= 2) {
-      const issues = await writeQuarantine(client, p.ean, offers);
-      if (issues.length > 0) continue;
-    }
+    // A public read must not depend on a database write: Neon can keep
+    // serving SELECTs after reaching its storage quota. Keep excluding
+    // contradictory groups, without appending observations on every visit.
+    if (offers.length >= 2 && detectContradictions(p.ean, offers).length > 0) continue;
 
     // Compte les marchands DISTINCTS en fusionnant ceux qui pointent vers
     // le meme marchand reel (LOT 2 -- scripts/lib/merchants.js). Avant ce
@@ -254,9 +248,10 @@ export default async function handler(req, res) {
   const offset = (pageN - 1) * limitN;
 
   const pool = getPool();
-  const client = await pool.connect();
+  let client;
 
   try {
+    client = await pool.connect();
     let rows = [];
     let total = null;
     let searchMeta = {};
@@ -517,9 +512,10 @@ export default async function handler(req, res) {
     });
 
   } catch(err) {
+    res.setHeader('Cache-Control', 'no-store');
     console.error('API error:', err.message);
     return res.status(500).json({ error: 'Erreur interne du serveur' });
   } finally {
-    client.release();   // rend la connexion au pool, ne la ferme pas
+    if (client) client.release();   // rend la connexion au pool, ne la ferme pas
   }
 }
