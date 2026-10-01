@@ -2055,6 +2055,7 @@ function renderHeroCarousel(list, unavailable) {
   var slides = document.getElementById('heroSlides');
   var dots = document.getElementById('heroDots');
   var picks = list.map(function(item) { return item.p; }).filter(function(p) { return getImageUrl(p) && offersOf(p).length >= 2; }).slice(0, 6);
+  document.getElementById('heroCarousel').classList.toggle('has-products', picks.length > 0);
   carouselTotal = picks.length;
   carouselIdx = 0;
   slides.style.transform = '';
@@ -2074,7 +2075,7 @@ function renderHeroCarousel(list, unavailable) {
     var slide = document.createElement('article'); slide.className = 'hero-slide';
     slide.setAttribute('aria-roledescription', 'diapositive'); slide.setAttribute('aria-label', (i + 1) + ' sur ' + picks.length);
     var img = document.createElement('img'); img.src = getImageUrl(p); img.alt = p.title || 'Produit'; img.loading = i ? 'lazy' : 'eager';
-    img.addEventListener('error', function() { img.hidden = true; });
+    img.addEventListener('error', function() { img.hidden = true; slide.classList.add('image-unavailable'); });
     var info = document.createElement('div'); info.className = 'hero-slide-info';
     var title = document.createElement('h3'); title.className = 'hero-slide-title'; title.textContent = p.title;
     var price = document.createElement('div'); price.className = 'hero-slide-price'; price.textContent = fmtEur(offers[0].price);

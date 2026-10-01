@@ -42,3 +42,14 @@ Rétablir l’API du catalogue puis rejouer un parcours complet avec images, pri
 - [ ] Validation de bout en bout avec le catalogue rétabli.
 
 final result: passed
+
+
+## Évolution validée — carte immersive (1er octobre 2026)
+
+À la demande de l’utilisateur, l’image occupe désormais toute la surface du carrousel, en conservant ses proportions. Le titre, le prix et le bouton sont superposés sur un dégradé sombre ; le badge, le favori et les commandes restent accessibles. Le fond clair accueille les photos marchands sur fond blanc. Un fond sombre est conservé si une image échoue.
+
+Capture actualisée : docs/qa/home-immersive.jpg. La comparaison précédente documente la première version et non cette évolution demandée.
+
+Contrôles effectués dans Chrome : bureau 1348 × 926, rendu mobile dans une iframe de 390 px, pause, sélection du deuxième produit et ouverture de la fiche correspondante via le bouton superposé. Aucun débordement ni chevauchement bloquant constaté. Console : seules des erreurs d’extension navigateur ont été observées. Syntaxe JavaScript et git diff --check valides.
+
+Les produits et prix de la capture sont des données de démonstration ; les pages temporaires correspondantes ont été retirées. La validation avec le catalogue réel reste à effectuer après résolution de l’erreur API constatée précédemment. Aucun déploiement en production effectué.
