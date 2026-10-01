@@ -9,7 +9,7 @@
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,600;0,700;0,800;0,900;1,800&family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;600&family=Outfit:wght@900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,600;0,700;0,800;0,900;1,800&family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;600;700&family=Outfit:wght@900&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════
    VARIABLES & RESET
@@ -1000,9 +1000,8 @@ nav {
   <div class="hero">
     <div class="hero-inner">
       <div class="hero-left">
-        <div class="hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.9 1.4 7L12 17.8 5.8 21.3l1.4-7L2 9.4l7-.8Z"/></svg> Comparez. Choisissez. Économisez.</div>
         <h1 class="barlow">Les <span class="accent">meilleurs prix</span>,<br>un seul endroit.</h1>
-        <p class="hero-sub">Comparez les offres de nos marchands partenaires et trouvez le prix qui vous convient.</p>
+        <p class="hero-sub">Comparez les offres de plusieurs vendeurs. Choisissez le meilleur prix.</p>
         <div class="hero-search">
           <input type="text" id="heroInput" placeholder="Quel produit recherchez-vous ?" aria-label="Rechercher un produit"
             onkeydown="if(event.key==='Enter') doHeroSearch()"
@@ -1033,7 +1032,7 @@ nav {
   </div>
 
   <!-- MARCHANDS SCROLL -->
-  <section class="marchands-bar" aria-label="Marchands partenaires"><div class="marchands-heading"><span>Les marchands à comparer</span><button class="motion-toggle" id="merchantPause" aria-pressed="false" onclick="toggleMerchantMotion()">Pause</button></div><div class="marchands-window">
+  <section class="marchands-bar" aria-label="Marchands partenaires"><button class="motion-toggle" id="merchantPause" aria-label="Mettre en pause le défilement des vendeurs" aria-pressed="false" onclick="toggleMerchantMotion()">Pause</button><div class="marchands-window">
     <div class="marchands-track">
       <span class="marchand-item">Beauty Success</span>
       <span class="marchand-item">News Parfums</span>
@@ -1155,7 +1154,7 @@ nav {
     <div class="trust-band-inner">
       <div class="trust-item">
         <div class="trust-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg></div>
-        <div class="trust-text"><h4>Aucun classement payant</h4><p>Le prix le plus bas apparaît toujours en premier — aucun marchand ne peut acheter sa position.</p></div>
+        <div class="trust-text"><h4>Prix classés par ordre croissant</h4><p>Comparez les offres et accédez directement à celle qui vous convient.</p></div>
       </div>
       <div class="trust-item">
         <div class="trust-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a4 4 0 0 1 8 0v2"/></svg></div>
@@ -1163,7 +1162,7 @@ nav {
       </div>
       <div class="trust-item">
         <div class="trust-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg></div>
-        <div class="trust-text"><h4>Prix mis à jour quotidiennement</h4><p>Nos relevés tournent chaque jour pour refléter les prix réels chez chaque marchand.</p></div>
+        <div class="trust-text"><h4>Achat chez le vendeur</h4><p>Consultez les frais de livraison et le prix final sur le site du marchand.</p></div>
       </div>
     </div>
   </div>
@@ -1901,12 +1900,11 @@ function hideSugg(id) { var el=document.getElementById(id); if(el) el.style.disp
 async function initHome() {
   try {
     // On demande large : le tri se fait ensuite sur la distribution reelle
-    var data = await apiFetch('action=list&limit=120');
+    var data = await apiFetch('action=list&limit=30');
     var products = (data && data.data) ? data.data : [];
     products.forEach(function(p){ homeProductsCache[p.id] = p; });
 
-    // Score de "best-seller" : un produit reference par beaucoup de marchands
-    // est, de fait, un produit que le marche distribue largement.
+    // Selection by merchant coverage and price spread, not sales volume.
     var scored = products.map(function(p){
       var offers = offersOf(p);
       var lo = offers.length ? offers[0].price : (parseFloat(p.price) || 0);
@@ -1974,7 +1972,8 @@ async function renderCategoryCarousel(cat, elId){
   try {
     var data = await apiFetch('action=category&cat=' + encodeURIComponent(cat) + '&limit=14');
     var items = (data && data.data) ? data.data : [];
-    if (!items.length) { host.parentElement.parentElement.style.display = 'none'; return; }
+    if (!items.length) { host.closest('.section').hidden = true; return; }
+    host.closest('.section').hidden = false;
     host.innerHTML = items.map(function(p,i){ return cardHTML(p, i); }).join('');
   } catch(e) {
     host.innerHTML = '<p style="color:var(--sub);padding:1rem">Indisponible pour le moment.</p>';
@@ -2065,7 +2064,7 @@ function renderHeroCarousel(list, unavailable) {
   if (!picks.length) {
     var empty = document.createElement('div');
     empty.className = 'hero-slide hero-empty'; empty.setAttribute('role', 'status');
-    empty.innerHTML = '<strong>' + (unavailable ? 'Les offres font une pause' : 'De nouvelles offres à découvrir') + '</strong><p>' + (unavailable ? 'Le catalogue est momentanément indisponible. Réessayez dans quelques instants.' : 'Aucun produit à comparer dans cette sélection pour le moment. Explorez nos univers.') + '</p>';
+    empty.innerHTML = '<strong>' + (unavailable ? 'Offres indisponibles' : 'De nouvelles offres à découvrir') + '</strong><p>' + (unavailable ? 'Le chargement a échoué. Vous pouvez réessayer.' : 'Aucun produit à comparer dans cette sélection pour le moment. Explorez nos univers.') + '</p>';
     var retry = document.createElement('button'); retry.className = 'hero-retry'; retry.textContent = 'Réessayer';
     retry.addEventListener('click', async function() { retry.disabled = true; retry.textContent = 'Chargement…'; await initHome(); });
     empty.append(retry); slides.append(empty); startCarousel(); return;
@@ -2099,7 +2098,7 @@ function renderMerchantMarquee(names) {
   names.forEach(function(name) {
     var item = document.createElement('span'); item.className = 'marchand-item';
     item.style.display = 'inline-flex'; item.style.alignItems = 'center'; item.style.gap = '10px';
-    var favicon = getFavicon(name);
+    var favicon = null; // Text-only ticker: consistent, understated merchant names.
     if (favicon) { var img = document.createElement('img'); img.src = favicon; img.alt = ''; img.loading = 'lazy'; img.addEventListener('error', function() { img.remove(); }); item.append(img); }
     item.append(document.createTextNode(name)); group.append(item);
   });
@@ -2111,7 +2110,7 @@ function renderMerchantMarquee(names) {
 function toggleMerchantMotion() {
   var host = document.querySelector('.marchands-bar'), button = document.getElementById('merchantPause');
   var paused = host.dataset.paused !== 'true'; host.dataset.paused = String(paused);
-  button.setAttribute('aria-pressed', String(paused)); button.textContent = paused ? 'Reprendre' : 'Pause';
+  button.setAttribute('aria-pressed', String(paused)); button.textContent = paused ? 'Reprendre' : 'Pause'; button.setAttribute('aria-label', paused ? 'Reprendre le défilement des vendeurs' : 'Mettre en pause le défilement des vendeurs');
 }
 async function loadMerchantMarquee() {
   var data = await apiFetch('action=merchants');
