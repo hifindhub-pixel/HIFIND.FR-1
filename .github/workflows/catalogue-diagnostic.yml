@@ -1,0 +1,31 @@
+name: Catalogue diagnostic
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/diagnose-catalogue.js'
+      - '.github/workflows/catalogue-diagnostic.yml'
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --ignore-scripts
+      - name: Read-only storage and perfume diagnostic
+        env:
+          NEON_URL: ${{ secrets.NEON_URL }}
+        run: node scripts/diagnose-catalogue.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: catalogue-diagnostic
+          path: catalogue-diagnostic.json
+          retention-days: 7
+          if-no-files-found: ignore
