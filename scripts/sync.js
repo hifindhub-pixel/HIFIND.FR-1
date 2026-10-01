@@ -7,7 +7,6 @@ const AFFILAE_BASE        = 'https://rest.affilae.com';
 import { streamFeed, parseCSVLine } from './lib/stream-feed.js';
 import { EanIndex, HarvestWriter, resetHarvest, harvestedPrograms, selectMatching, harvestDiskUsage } from './lib/ean-index.js';
 import { categorize } from './lib/categorize.js';
-import { learnPrefixes, applyPrefixes } from './lib/ean-prefix.js';
 import pkg from 'pg';
 const { Client } = pkg;
 
@@ -1180,20 +1179,7 @@ async function ingestHarvest() {
     }
   }
 
-  // ── Apprentissage par prefixe entreprise EAN ──
-  const allRows = [];
-  PENDING.forEach(function(b){ b.rows.forEach(function(r){ allRows.push(r); }); });
-
-  const learned = learnPrefixes(allRows);
-  const res = applyPrefixes(allRows, learned);
-  console.log('\n\ud83e\udde0 Prefixes entreprise appris : ' + res.prefixes.toLocaleString('fr-FR'));
-  console.log('   Produits reclasses depuis "autres" : ' + res.reclasses.toLocaleString('fr-FR'));
-  if (res.blocked) console.log('   Reclassements refuses (conflit avec le texte) : ' + res.blocked.toLocaleString('fr-FR'));
-  if (res.capped) console.log('   Reclassements plafonnes (volume trop concentre sur 1 prefixe) : ' + res.capped.toLocaleString('fr-FR'));
-  if (res.reclasses) {
-    Object.entries(res.parCategorie).sort(function(a,b){ return b[1]-a[1]; })
-      .forEach(function(e){ console.log('     ' + e[0].padEnd(20) + e[1]); });
-  }
+  // No category propagation from manufacturer EAN prefixes.
 
   // ── Insertion ──
   for (const b of PENDING) {

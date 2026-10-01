@@ -1,0 +1,31 @@
+name: Reclassify catalogue
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [scripts/recategorize.js, .github/workflows/recategorize.yml]
+permissions:
+  contents: read
+concurrency:
+  group: catalogue-reclassification
+  cancel-in-progress: false
+jobs:
+  reclassify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --ignore-scripts
+      - run: node --test tests/categorization-v2.test.js
+      - run: node scripts/recategorize.js
+        env:
+          NEON_URL: ${{ secrets.NEON_URL }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: category-reclassification
+          path: category-report/
+          retention-days: 30

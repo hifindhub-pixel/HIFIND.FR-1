@@ -2098,7 +2098,7 @@ function renderMerchantMarquee(names) {
   names.forEach(function(name) {
     var item = document.createElement('span'); item.className = 'marchand-item';
     item.style.display = 'inline-flex'; item.style.alignItems = 'center'; item.style.gap = '10px';
-    var favicon = null; // Text-only ticker: consistent, understated merchant names.
+    var favicon = getFavicon(name);
     if (favicon) { var img = document.createElement('img'); img.src = favicon; img.alt = ''; img.loading = 'lazy'; img.addEventListener('error', function() { img.remove(); }); item.append(img); }
     item.append(document.createTextNode(name)); group.append(item);
   });

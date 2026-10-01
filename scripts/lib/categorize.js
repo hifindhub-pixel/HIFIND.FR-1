@@ -150,7 +150,7 @@ const WEAK = [
   ['auto-moto', ['auto','moto','voiture','vehicule','scooter','quad','remorque','moteur','r15','r16','r17','r18','casque']],
   ['maison-jardin', ['maison','jardin','deco','meuble','cuisine','salle de bain','bricolage',
     'outil','outillage','jardinage','arrosage','terrasse','piscine','chauffage','luminaire']],
-  ['mode-vetements', ['mode','vetement','pret a porter','taille','coton','cuir','laine','denim','manches','col','doublure','fermeture eclair','coupe','slim','regular','oversize']],
+  ['mode-vetements', ['mode','vetement','bijoux','broche','pret a porter','taille','coton','cuir','laine','denim','manches','col','doublure','fermeture eclair','coupe','slim','regular','oversize']],
   ['beaute-bienetre', ['beaute','soin','creme','serum','cosmetique','parfum','visage','cheveux',
     'peau','maquillage','hydratant','nettoyant','bio']],
   ['sante-nutrition', ['sante','complement','nutrition','minceur','detox','sommeil','immunite','bien etre']],
@@ -223,73 +223,66 @@ function stripKnownAmbiguity(title) {
   return t;
 }
 
-/*
- * Score TEXTE SEUL (titre + categorie de flux + description), sans jamais
- * consulter le marchand. Sert a la fois de base pour categorize() et de
- * verification independante dans ean-prefix.js (pour ne pas propager une
- * categorie qui contredirait ce que le produit dit lui-meme de son cote).
- */
-export function textSignal(p) {
-  const title = stripKnownAmbiguity(norm(p.title));
-  const desc  = norm(p.description).slice(0, 300);
-  const feed  = norm(p.feedCat);
+// V2: precise product types first; longest title evidence beats generic words.
+// A brand, a description ingredient, or the merchant must not decide alone.
+const AMBIGUOUS = new Set(['ballon','arc','cible','tome','integrale','roman','livre','livres','edition collector','album','poche','broche','essai','one shot','strip','scorpion','wrangler','continental','dunlop','frontale','rechaud','tapis de sol','pince','meche','cheville','store','body','combinaison','mule','couche','console','veilleuse','collagene','miel','the vert','riz','pates','sirop']);
+const TYPES = [
+  ['maison-jardin', /\bserre livres\b/],
+  ['mode-vetements', /\b(sac banane|sac a dos scolaire)\b/],
+  ['enfants-bebes', /\b(peluche|figurine|jouet|miniature|newray|maquette|poupee|poupees|barbie|beanie boo s|melissa doug|melissa et doug|livre (de coloriage|d activite)|coffret coloriage|lego|playmobil|puzzle|doudou|poussette|biberon|tetine|siege auto bebe|jeu de societe|jeu de cartes|circuit de voiture)\b/],
+  ['animaux', /\b(croquettes?|litiere|griffoir|arbre a chat|aquarium|terrarium|gamelle|laisse|harnais (pour )?(chien|chat)|jouet (pour )?(chien|chat)|shampooing (pour )?(chien|chat))\b/],
+  ['maison-jardin', /\b(ballon ((d )?eau chaude|thermodynamique)|chauffe eau|console (murale|d entree|extensible)|robot aspirateur|aspirateur robot|nettoyeur detacheur|spotclean|crosswave|detergent|filtre (a|de) sable|pince a linge|cheville (molly|nylon)|store enrouleur)\b/],
+  ['beaute-bienetre', /\b(creme (pour le |de |du )?(corps|visage|mains|nuit|jour)|creme hydratante|body (cream|lotion|milk)|eau de (parfum|toilette|cologne)|parfum|mascara|rouge a levres|fond de teint|serum visage|gommage|scrub|creme a raser|demaquillant|demaquillants|baume demaquillant|contour des yeux|soin total regard|savon visage|shampooing|shampoing|deodorant|gel douche|pince a epiler|meches (de cheveux|extensions))\b/],
+  ['sante-nutrition', /\b(complement alimentaire|gelules?|comprimes?|pansements?|tensiometre|thermometre medical|chevillere|attelle|lentilles de contact)\b/],
+  ['high-tech', /\b(ps5|ps4|playstation|xbox|nintendo|jeu video|smartphone|iphone|ipad|macbook|apple watch|galaxy watch|montre connectee|casque (audio|bluetooth|vr)|camera (de securite|de surveillance)|cartouche d encre|toner|quietcomfort|surface arc mouse|arlo essential|ultrachrome|pellicule|kit tambour)\b/],
+  ['sport-outdoor', /\b(pneu (de |pour )?velo|casque (de )?(velo|ski|equitation)|chaussures? (de )?(running|football|randonnee|trail|ski)|sac a dos football|maillot (de )?(football|rugby|cyclisme)|ballon (de )?(football|basket|rugby|handball|volley)|raquette|vtt|velo (electrique|de route)|tapis de (yoga|course))\b/],
+  ['auto-moto', /\b(casque (moto|integral|jet)|blouson moto|gants? moto|pneus?|plaquettes? de frein|huile moteur|filtre a huile|essuie glace|amortisseur|embrayage|revue technique)\b/],
+];
 
-  for (const [cat, terms] of STRONG) {
-    for (const t of terms) if (hasWord(title, t)) return { category: cat, source: 'titre', score: 10 };
-  }
-
-  const scores = {};
-  const add = src => { for (const k in src) scores[k] = (scores[k] || 0) + src[k]; };
-  add(scoreRules(title, WEAK, 3));
-  add(scoreRules(feed,  FEED_HINTS, 4));
-  add(scoreRules(feed,  WEAK, 2));
-  add(scoreRules(desc,  WEAK, 1));
-
-  let best = null, bestScore = 0;
-  for (const k in scores) if (scores[k] > bestScore) { bestScore = scores[k]; best = k; }
-  return best ? { category: best, source: 'score', score: bestScore } : null;
+function ranked(scores, source, minimum = 6, margin = 3) {
+  const entries = Object.entries(scores).sort((a,b) => b[1]-a[1]);
+  if (!entries.length || entries[0][1] < minimum || (entries[1] && entries[0][1]-entries[1][1] < margin)) return null;
+  return { category: entries[0][0], source, score: entries[0][1] };
 }
 
-/**
- * Categories dont les boutiques specialisees vendent aussi, en articles
- * d'appel, des produits qui n'ont rien a voir (le cas signale : un Apple
- * Watch vendu par un motoriste, classe "auto-moto" faute de mieux). Pour
- * celles-ci, le repli marchand exige un indice textuel, meme faible.
- */
-const RISKY_FALLBACK = new Set(['auto-moto', 'maison-jardin', 'sport-outdoor']);
+export function textSignal(p) {
+  const title = stripKnownAmbiguity(norm(p.title));
+  if (/\b\d{3} \d{2} ?[rz] ?\d{2}\b/.test(title)) return {category:'auto-moto',source:'dimension-pneu',score:30};
+  // Pet-specific products take priority over generic toys and cosmetics.
+  if (/\b(chien|chat|chiot|chaton)\b/.test(title) && /\b(jouet|shampooing|shampoing|harnais|collier|panier|croquettes?)\b/.test(title))
+    return { category:'animaux', source:'type-produit', score:30 };
+  for (const [category, pattern] of TYPES) {
+    if (pattern.test(title)) return { category, source:'type-produit', score:30 };
+  }
+  const scores = {};
+  for (const [category, terms] of STRONG) {
+    for (const term of terms) {
+      if (!AMBIGUOUS.has(term) && hasWord(title, term)) {
+        // Max instead of sum: repeated synonyms cannot overwhelm a precise phrase.
+        scores[category] = Math.max(scores[category] || 0, 8 + term.split(' ').length * 3);
+      }
+    }
+  }
+  const exact = ranked(scores, 'titre', 11, 3);
+  if (exact) return exact;
+  // Prefer the deepest merchant taxonomy segment, never a broad parent such as "enfants".
+  const segments = String(p.feedCat || '').split(/[>|/\\;]+/).reverse();
+  for (const segment of segments) {
+    const feed = norm(segment);
+    const category = CATEGORIES.find(c => norm(c) === feed);
+    if (category && category !== 'autres') return { category, source:'categorie-flux', score:12 };
+    const hit = ranked(scoreRules(feed, FEED_HINTS, 6), 'categorie-flux', 6, 3);
+    if (hit) return hit;
+  }
+  const weak = scoreRules(title, WEAK, 3);
+  // Description only corroborates a category already present in the title.
+  const desc = scoreRules(norm(p.description).slice(0,600), WEAK, 1);
+  for (const cat in weak) weak[cat] += Math.min(desc[cat] || 0, 2);
+  return ranked(weak, 'indices-titre', 6, 3);
+}
 
 export function categorize(p) {
-  const merchant = norm(p.merchant);
-  const isMarketplace = [...MARKETPLACES].some(m => merchant.indexOf(norm(m)) !== -1);
-
-  const sig = textSignal(p);          // 1+2) regle forte, puis score pondere sur le texte seul
-  if (sig && sig.score >= 10) return sig;   // regle forte : verdict immediat, le marchand ne rentre pas en jeu
-
-  // 3) Le marchand ne DEPARTAGE que s'il existe deja un indice textuel,
-  //    meme faible et ambigu. Sans texte du tout, laisser le marchand
-  //    seul decider revient a plaquer sa categorie sur n'importe quel
-  //    produit — un chargeur, une montre, un parfum vendu par un
-  //    specialiste auto-moto se retrouvait ainsi classe "auto-moto".
-  //    Mieux vaut "autres" honnete qu'une categorie fausse avec assurance.
-  if (sig && p.merchantCategory && !isMarketplace) {
-    const scores = { [sig.category]: sig.score, [p.merchantCategory]: (sig.category === p.merchantCategory ? sig.score : 0) + 4 };
-    let best = null, bestScore = 0;
-    for (const k in scores) if (scores[k] > bestScore) { bestScore = scores[k]; best = k; }
-    if (bestScore >= 3) return { category: best, source: 'score', score: bestScore };
-  }
-
-  if (sig && sig.score >= 3) return sig;
-
-  // 4) Repli marchand. Pour les categories "a risque" — celles dont les
-  //    boutiques specialisees vendent aussi, en articles d'appel, des
-  //    produits sans rapport (gadgets electroniques chez un motoriste,
-  //    outillage chez un jardinier...) — on exige un indice textuel, meme
-  //    faible. Pour les specialistes purs (un libraire ne vend QUE des
-  //    livres), le repli reste inconditionnel : le risque de derive y est
-  //    quasi nul, et l'exiger degraderait des classements deja fiables.
-  if (p.merchantCategory && !isMarketplace) {
-    const risky = RISKY_FALLBACK.has(p.merchantCategory);
-    if (!risky || sig) return { category: p.merchantCategory, source: 'marchand', score: 1 };
-  }
-  return { category: 'autres', source: 'defaut', score: 0 };
+  const signal = textSignal(p);
+  // No automatic merchant/brand/EAN fallback: uncertain references remain unclassified.
+  return signal || { category:'autres', source:'a-verifier', score:0 };
 }
