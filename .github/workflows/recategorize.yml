@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: '20'
       - run: npm install --ignore-scripts
-      - run: node --test tests/categorization-v2.test.js tests/category-consensus.test.js
+      - run: node --test tests/categorization-v2.test.js tests/category-consensus.test.js tests/catalogue-readonly.test.js
       - run: node scripts/recategorize.js --apply
         env:
           NEON_URL: ${{ secrets.NEON_URL }}

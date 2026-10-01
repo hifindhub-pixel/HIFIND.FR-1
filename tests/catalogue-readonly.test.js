@@ -30,3 +30,9 @@ test('merchant alias cache retries after a transient database failure', async ()
   assert.equal(await countDistinctMerchants(client,offers),1);
   assert.equal(attempts,2);
 });
+
+test('public rows use corrected product category even when an old offer remains misclassified',async()=>{
+  const {formatRow}=await import('../api/products.js');
+  assert.equal(formatRow({title:'Nintendo Mario Tennis PS5',category:'sport-outdoor'}).category,'high-tech');
+  assert.equal(formatRow({title:'Livre d’activité à l’eau rouge',category:'high-tech'}).category,'enfants-bebes');
+});

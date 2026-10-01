@@ -1,5 +1,6 @@
 import pkg from 'pg';
 const { Pool } = pkg;
+import { categorize } from '../scripts/lib/categorize.js';
 import { classifyProductType, parseQueryIntent } from './product-type.js';
 import { countDistinctMerchants } from '../scripts/lib/merchants.js';
 import { filterByCondition } from '../scripts/lib/condition.js';
@@ -48,8 +49,10 @@ export function makeTrackingUrl(product) {
 }
 
 export function formatRow(p) {
+  const classification = categorize(p);
   return {
     ...p,
+    category: classification.category === 'autres' ? p.category : classification.category,
     programs: p.program_title ? { title: p.program_title, countries: [] } : null,
     tracking_url: makeTrackingUrl(p),
     // LOT 4 : calcule une seule fois ici, au point le plus central --
@@ -182,7 +185,7 @@ export async function groupWithOffers(client, products) {
     if (eanMap.has(key)) continue;
     const offers = offersByEan.get(p.ean) || [];
 
-    const filtered = filterCompatibleOffers(p.category, offers);
+    const filtered = filterCompatibleOffers(formatRow(p).category, offers);
 
     // A public read must not depend on a database write: Neon can keep
     // serving SELECTs after reaching its storage quota. Keep excluding
@@ -355,7 +358,7 @@ export default async function handler(req, res) {
           AND (p.title ILIKE $1 OR p.brand ILIKE $1)
           ORDER BY p.updated_at DESC LIMIT $2
         `, [term, limitN]);
-        rows = r2.rows.map(p => ({...formatRow(p), ean_offers: null, offers_count: 1}));
+        rows = r2.rows.map(p => ({...formatRow(p), ean_offers: null, offers_count: 1})).filter(p => p.category === cat);
         total = rows.length;
       }
 
@@ -424,7 +427,8 @@ export default async function handler(req, res) {
 
       if (r.rows.length > 0) {
         rows = await groupWithOffers(client, r.rows);
-        rows = rows.slice(0, limitN);
+        // A legacy offer can still have a different category from the best offer.
+        rows = rows.filter(p => p.category === cat).slice(0, limitN);
       } else {
         const r2 = await client.query(`
           SELECT p.*, pr.title as program_title FROM products p
@@ -434,7 +438,7 @@ export default async function handler(req, res) {
           AND p.category = $1
           ORDER BY p.updated_at DESC LIMIT $2 OFFSET $3
         `, [cat, limitN, offset]);
-        rows = r2.rows.map(p => ({...formatRow(p), ean_offers: null, offers_count: 1}));
+        rows = r2.rows.map(p => ({...formatRow(p), ean_offers: null, offers_count: 1})).filter(p => p.category === cat);
         total = rows.length;
       }
 
