@@ -954,20 +954,21 @@ nav {
 }
 
 </style>
+<link rel="stylesheet" href="/assets/home-refinement.css">
 </head>
 <body>
 
 <!-- ══ NAVBAR ══ -->
 <nav>
   <div class="nav-inner">
-    <div class="nav-logo" onclick="showPage('home')">
+    <a href="#" class="nav-logo" aria-label="HiFind, accueil" onclick="event.preventDefault();showPage('home')">
       <span class="hi">Hi</span><span class="find">Find</span>
-    </div>
+    </a>
     <div class="nav-search">
-      <input type="text" id="navInput" placeholder="Rechercher un produit..."
+      <input type="text" id="navInput" aria-label="Rechercher dans le catalogue" placeholder="Rechercher un produit..."
         onkeydown="if(event.key==='Enter') doNavSearch()"
         autocomplete="off">
-      <button onclick="doNavSearch()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+      <button onclick="doNavSearch()" aria-label="Lancer la recherche"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
     </div>
     <ul class="nav-cats">
       <li class="nav-cat active" onclick="showPage('home');setActiveNavCat(this)">Bons plans</li>
@@ -976,9 +977,12 @@ nav {
       <li class="nav-cat" onclick="goCategory('maison-jardin',this)">Maison & Jardin</li>
       <li class="nav-cat" onclick="goCategory('beaute-bienetre',this)">Beauté & Santé</li>
       <li class="nav-cat" onclick="goCategory('auto-moto',this)">Auto &amp; Moto</li>
-      <li class="nav-cat" onclick="goCategory('mode-vetements',this)">Mode</li>
-      <li class="nav-cat" onclick="goCategory('enfants-bebes',this)">Enfants</li>
-      <li class="nav-cat" onclick="goCategory('livres-bd',this)">Livres &amp; BD</li>
+      <li><details class="nav-menu"><summary class="nav-cat">Toutes les catégories</summary><div class="nav-menu-list">
+        <button onclick="goCategory('high-tech')">High-Tech</button><button onclick="goCategory('sport-outdoor')">Sport</button>
+        <button onclick="goCategory('maison-jardin')">Maison &amp; Jardin</button><button onclick="goCategory('beaute-bienetre')">Beauté &amp; Santé</button>
+        <button onclick="goCategory('auto-moto')">Auto &amp; Moto</button><button onclick="goCategory('mode-vetements')">Mode &amp; Accessoires</button>
+        <button onclick="goCategory('enfants-bebes')">Enfants</button><button onclick="goCategory('livres-bd')">Livres &amp; BD</button>
+      </div></details></li>
     </ul>
     <div class="nav-actions">
       <button onclick="toggleTheme()" id="themeBtn" title="Thème" style="width:34px;height:34px;border-radius:4px;background:transparent;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--sub);transition:all .2s;padding:0">
@@ -996,11 +1000,11 @@ nav {
   <div class="hero">
     <div class="hero-inner">
       <div class="hero-left">
-        <div class="hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.9 1.4 7L12 17.8 5.8 21.3l1.4-7L2 9.4l7-.8Z"/></svg> La plateforme qui vous fait économiser</div>
+        <div class="hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.6 7 .8-5.2 4.9 1.4 7L12 17.8 5.8 21.3l1.4-7L2 9.4l7-.8Z"/></svg> Comparez. Choisissez. Économisez.</div>
         <h1 class="barlow">Les <span class="accent">meilleurs prix</span>,<br>un seul endroit.</h1>
-        <p class="hero-sub">Comparez les prix chez nos marchands partenaires. Prix mis à jour quotidiennement.</p>
+        <p class="hero-sub">Comparez les offres de nos marchands partenaires et trouvez le prix qui vous convient.</p>
         <div class="hero-search">
-          <input type="text" id="heroInput" placeholder="Que cherchez-vous au meilleur prix ?"
+          <input type="text" id="heroInput" placeholder="Quel produit recherchez-vous ?" aria-label="Rechercher un produit"
             onkeydown="if(event.key==='Enter') doHeroSearch()"
             autocomplete="off">
           <button onclick="doHeroSearch()">Rechercher</button>
@@ -1014,25 +1018,22 @@ nav {
         </div>
       </div>
       <div class="hero-visual">
-        <div class="hero-img-wrap" style="aspect-ratio:auto;height:380px">
-          <div id="heroCarousel" style="position:relative;width:100%;height:100%;border-radius:16px;overflow:hidden;background:var(--bg2)">
-            <div id="heroSlides" style="display:flex;transition:transform .5s ease;height:100%">
-              <!-- Slides générés dynamiquement -->
-              <div class="hero-slide" style="min-width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg3)">
-                <div class="spin" style="border-top-color:var(--coral)"></div>
-              </div>
-            </div>
-            <button onclick="prevSlide()" style="position:absolute;left:.7rem;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;background:rgba(15,23,42,.8);border:1px solid var(--border2);color:#fff;font-size:1rem;cursor:pointer;z-index:10">‹</button>
-            <button onclick="nextSlide()" style="position:absolute;right:.7rem;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;background:rgba(15,23,42,.8);border:1px solid var(--border2);color:#fff;font-size:1rem;cursor:pointer;z-index:10">›</button>
-            <div id="heroDots" style="position:absolute;bottom:.7rem;left:50%;transform:translateX(-50%);display:flex;gap:.4rem"></div>
-          </div>
+        <div class="hero-img-wrap">
+          <section id="heroCarousel" aria-roledescription="carrousel" aria-label="Produits à découvrir">
+            <h2 class="hero-carousel-heading">À découvrir</h2>
+            <div id="heroSlides"><div class="hero-slide hero-empty" role="status"><div class="spin"></div><p>Chargement des offres…</p></div></div>
+            <button class="hero-control hero-prev" onclick="prevSlide()" aria-label="Produit précédent" hidden></button>
+            <button class="hero-control hero-next" onclick="nextSlide()" aria-label="Produit suivant" hidden></button>
+            <div id="heroDots" aria-label="Choisir un produit"></div>
+            <button id="heroPause" class="motion-toggle" onclick="toggleHeroMotion()" aria-pressed="false" hidden>Pause</button>
+          </section>
         </div>
       </div>
     </div>
   </div>
 
   <!-- MARCHANDS SCROLL -->
-  <div class="marchands-bar">
+  <section class="marchands-bar" aria-label="Marchands partenaires"><div class="marchands-heading"><span>Les marchands à comparer</span><button class="motion-toggle" id="merchantPause" aria-pressed="false" onclick="toggleMerchantMotion()">Pause</button></div><div class="marchands-window">
     <div class="marchands-track">
       <span class="marchand-item">Beauty Success</span>
       <span class="marchand-item">News Parfums</span>
@@ -1062,12 +1063,12 @@ nav {
       <span class="marchand-item">Rakuten</span>
       <span class="marchand-item">Mon Pied ce Héros</span>
     </div>
-  </div>
+  </div></section>
 
   <!-- CATÉGORIES -->
   <div class="section">
     <div class="section-label"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg> Univers</div>
-    <h2 class="section-title barlow">Trouvez par univers</h2>
+    <div class="home-universes-head"><h2 class="section-title barlow">Trouvez par univers</h2><a href="#allUniverses">Tous les univers →</a></div>
     <div class="cats-grid">
       <div class="cat-card large" onclick="goCategory('beaute-bienetre')">
         <img class="cat-img" src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&q=80" alt="Beauté">
@@ -1183,7 +1184,7 @@ nav {
   <div style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:3rem 0">
     <div class="section" style="padding-top:0;padding-bottom:0">
       <div class="section-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg> Explorer</div>
-      <h2 class="section-title barlow">Toutes les catégories</h2>
+      <h2 class="section-title barlow" id="allUniverses" tabindex="-1">Toutes les catégories</h2>
       <div class="cat-tile-grid" id="catTileGrid" style="margin-top:1.3rem"><div class="spinner"><div class="spin"></div></div></div>
     </div>
   </div>
@@ -1406,7 +1407,7 @@ function goBack() {
 async function apiFetch(params) {
   try {
     var url = '/api/products?' + params;
-    var res = await fetch(url);
+    var res = await fetch(url, { signal: AbortSignal.timeout(15000) });
     if (!res.ok) return null;
     return await res.json();
   } catch(e) { return null; }
@@ -1935,7 +1936,7 @@ async function initHome() {
 
     fill(document.getElementById('dealsGrid'), deals, 12, true);
 
-    renderHeroCarousel(deals.length ? deals : scored);
+    renderHeroCarousel(deals.length ? deals : scored, !data);
 
     // Nouvelles sections bas de page -- independantes du tri deals/scored
     // ci-dessus, chacune interroge sa propre categorie directement.
@@ -1944,7 +1945,7 @@ async function initHome() {
     renderCategoryCarousel('beaute-bienetre', 'carBeaute');
     renderCategoryTileGrid();
   } catch (e) {
-    console.error('initHome', e);
+    renderHeroCarousel([], true);
   }
 }
 
@@ -2006,110 +2007,130 @@ async function renderCategoryTileGrid(){
 }
 
 
-// ── CAROUSEL ──
-var carouselIdx = 0;
-var carouselTotal = 0;
-var carouselTimer = null;
+// Home carousel: real offers only, keyboard access and explicit motion controls.
+var carouselIdx = 0, carouselTotal = 0, carouselTimer = null;
+var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+var heroPaused = reducedMotion.matches;
 function goToSlide(n) {
-  var slides = document.getElementById('heroSlides');
-  var children = slides ? slides.children : [];
-  carouselTotal = children.length;
   if (!carouselTotal) return;
   carouselIdx = (n + carouselTotal) % carouselTotal;
-  slides.style.transform = 'translateX(-' + (carouselIdx * 100) + '%)';
-  document.querySelectorAll('[id^="dot-"]').forEach(function(d, i) {
-    d.style.width = i === carouselIdx ? '18px' : '7px';
-    d.style.background = i === carouselIdx ? '#FF6B6B' : 'rgba(255,255,255,.4)';
+  var slides = document.getElementById('heroSlides');
+  slides.style.transform = 'translateX(-' + carouselIdx * 100 + '%)';
+  Array.from(slides.children).forEach(function(slide, i) {
+    slide.inert = i !== carouselIdx;
+    slide.setAttribute('aria-hidden', String(i !== carouselIdx));
+  });
+  document.querySelectorAll('#heroDots button').forEach(function(dot, i) {
+    dot.setAttribute('aria-current', String(i === carouselIdx));
   });
 }
 function nextSlide() { goToSlide(carouselIdx + 1); }
 function prevSlide() { goToSlide(carouselIdx - 1); }
-document.addEventListener('click', function(e) {
-  var slide = e.target.closest('.hero-slide[data-id]');
-  if (slide) openDetail(slide.getAttribute('data-id'));
-});
-/* ── Carrousel héros : rempli avec de vrais produits, plus jamais vide ── */
-function renderHeroCarousel(list){
-  var slidesEl = document.getElementById('heroSlides');
-  var dotsEl = document.getElementById('heroDots');
-  if (!slidesEl) return;
-
-  var picks = [];
-  for (var i = 0; i < list.length && picks.length < 6; i++){
-    var p = list[i].p;
-    if (getImageUrl(p)) picks.push(p);
-  }
-  if (!picks.length) return;   // garde le spinner plutot qu'un carrousel vide
-
-  slidesEl.innerHTML = picks.map(function(p){
-    var offers = offersOf(p);
-    var lo = offers.length ? offers[0].price : (parseFloat(p.price) || 0);
-    var img = getImageUrl(p);
-    var sid = String(p.id).replace(/'/g, "\\'");
-    var esc = function(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
-    return '<div class="hero-slide" data-id="' + sid + '" style="min-width:100%;height:100%;display:flex;align-items:center;justify-content:center;gap:1.5rem;padding:1.5rem;cursor:pointer">'
-      + '<img src="' + img + '" alt="" loading="lazy" style="max-height:85%;max-width:45%;object-fit:contain;filter:drop-shadow(0 12px 24px rgba(0,0,0,.4))">'
-      + '<div style="max-width:48%">'
-        + (p.brand ? '<div style="font-family:var(--num);font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--coral);margin-bottom:.35rem">' + esc(p.brand) + '</div>' : '')
-        + '<div style="font-size:1.02rem;font-weight:700;line-height:1.32;margin-bottom:.6rem;color:#fff">' + esc(p.title).slice(0, 70) + '</div>'
-        + '<div style="font-family:var(--num);font-size:1.6rem;font-weight:900;color:var(--jade)">' + fmtEur(lo) + '</div>'
-        + (offers.length > 1 ? '<div style="font-size:.74rem;color:var(--sub);margin-top:.25rem">' + offers.length + ' marchands compar\u00e9s</div>' : '')
-      + '</div>'
-    + '</div>';
-  }).join('');
-
-  if (dotsEl) {
-    dotsEl.innerHTML = picks.map(function(_, i){
-      return '<span id="dot-' + i + '" onclick="goToSlide(' + i + ')" style="display:block;width:' + (i === 0 ? '18px' : '7px')
-        + ';height:7px;border-radius:4px;background:' + (i === 0 ? '#FF6B6B' : 'rgba(255,255,255,.4)')
-        + ';cursor:pointer;transition:all .3s"></span>';
-    }).join('');
-  }
-  carouselIdx = 0;
-  carouselTotal = picks.length;
+function updateHeroMotion() {
+  var btn = document.getElementById('heroPause');
+  btn.textContent = heroPaused ? 'Reprendre' : 'Pause';
+  btn.setAttribute('aria-pressed', String(heroPaused));
 }
-
-/* ── Bande de marchands : liste complete, independante de l'echantillon
-   affiche en page d'accueil (via action=merchants, tous les marchands
-   actifs, pas seulement ceux des ~120 produits tires au hasard) ── */
-function renderMerchantMarquee(names){
-  var track = document.querySelector('.marchands-track');
-  if (!track || !names || !names.length) return;
-
-  var itemHTML = function(nm){
-    var fav = getFavicon(nm);
-    var logo = fav
-      ? '<img src="' + fav + '" alt="" loading="lazy" style="width:16px;height:16px;object-fit:contain;border-radius:3px;flex-shrink:0" onerror="this.remove()">'
-      : '';
-    return '<span class="marchand-item" style="display:inline-flex;align-items:center;gap:.45rem">' + logo + nm + '</span>';
-  };
-
-  var row = names.map(itemHTML).join('');
-  track.innerHTML = row + row;   // duplique : le CSS defile jusqu'a -50%, boucle invisible
-
-  // Duree proportionnelle au nombre de marchands : sans ca, plus la liste
-  // s'allonge (elle vient desormais de tous les marchands actifs, pas
-  // d'une quinzaine figee), plus la vitesse APPARENTE augmente puisque le
-  // CSS parcourait la meme distance relative en un temps fixe (25s).
-  var SECONDS_PER_ITEM = 2.2;
-  var duration = Math.max(20, names.length * SECONDS_PER_ITEM);
-  track.style.animationDuration = duration + 's';
-}
-
-async function loadMerchantMarquee(){
-  try {
-    var data = await apiFetch('action=merchants');
-    var names = (data && data.data) ? data.data.map(function(m){ return m.title; }).filter(Boolean) : [];
-    renderMerchantMarquee(names);
-  } catch (e) { console.error('loadMerchantMarquee', e); }
-}
-
+function toggleHeroMotion() { heroPaused = !heroPaused; updateHeroMotion(); startCarousel(); }
 function startCarousel() {
-  if (carouselTimer) clearInterval(carouselTimer);
-  carouselTimer = setInterval(function() { nextSlide(); }, 4000);
+  clearInterval(carouselTimer);
+  carouselTimer = null;
+  if (carouselTotal < 2 || heroPaused || reducedMotion.matches) return;
+  carouselTimer = setInterval(function() {
+    var host = document.getElementById('heroCarousel');
+    if (!document.hidden && document.getElementById('page-home').classList.contains('active') && !host.matches(':hover') && !host.contains(document.activeElement)) nextSlide();
+  }, 5500);
 }
-
-initHome().then(function(){ startCarousel(); });
+function favoriteHeroProduct(id, button) {
+  var p = homeProductsCache[id];
+  if (!p) return;
+  var idx = favorites.findIndex(function(f) { return String(f.id) === String(id); });
+  if (idx >= 0) favorites.splice(idx, 1); else favorites.push(p);
+  localStorage.setItem('hf_favs', JSON.stringify(favorites));
+  button.setAttribute('aria-pressed', String(idx < 0));
+  button.setAttribute('aria-label', idx < 0 ? 'Retirer des favoris' : 'Ajouter aux favoris');
+  button.innerHTML = ICO.heart(idx < 0);
+}
+function renderHeroCarousel(list, unavailable) {
+  var slides = document.getElementById('heroSlides');
+  var dots = document.getElementById('heroDots');
+  var picks = list.map(function(item) { return item.p; }).filter(function(p) { return getImageUrl(p) && offersOf(p).length >= 2; }).slice(0, 6);
+  document.getElementById('heroCarousel').classList.toggle('has-products', picks.length > 0);
+  carouselTotal = picks.length;
+  carouselIdx = 0;
+  slides.style.transform = '';
+  document.querySelectorAll('.hero-control, #heroPause').forEach(function(b) { b.hidden = picks.length < 2; });
+  dots.replaceChildren();
+  slides.replaceChildren();
+  if (!picks.length) {
+    var empty = document.createElement('div');
+    empty.className = 'hero-slide hero-empty'; empty.setAttribute('role', 'status');
+    empty.innerHTML = '<strong>' + (unavailable ? 'Les offres font une pause' : 'De nouvelles offres à découvrir') + '</strong><p>' + (unavailable ? 'Le catalogue est momentanément indisponible. Réessayez dans quelques instants.' : 'Aucun produit à comparer dans cette sélection pour le moment. Explorez nos univers.') + '</p>';
+    var retry = document.createElement('button'); retry.className = 'hero-retry'; retry.textContent = 'Réessayer';
+    retry.addEventListener('click', async function() { retry.disabled = true; retry.textContent = 'Chargement…'; await initHome(); });
+    empty.append(retry); slides.append(empty); startCarousel(); return;
+  }
+  picks.forEach(function(p, i) {
+    var offers = offersOf(p), id = String(p.id);
+    var slide = document.createElement('article'); slide.className = 'hero-slide';
+    slide.setAttribute('aria-roledescription', 'diapositive'); slide.setAttribute('aria-label', (i + 1) + ' sur ' + picks.length);
+    var img = document.createElement('img'); img.src = getImageUrl(p); img.alt = p.title || 'Produit'; img.loading = i ? 'lazy' : 'eager';
+    img.addEventListener('error', function() { img.hidden = true; slide.classList.add('image-unavailable'); });
+    var info = document.createElement('div'); info.className = 'hero-slide-info';
+    var title = document.createElement('h3'); title.className = 'hero-slide-title'; title.textContent = p.title;
+    var price = document.createElement('div'); price.className = 'hero-slide-price'; price.textContent = fmtEur(offers[0].price);
+    var meta = document.createElement('p'); meta.className = 'hero-slide-meta'; meta.textContent = offers.length + ' marchands comparés · Hors livraison';
+    var cta = document.createElement('button'); cta.className = 'hero-slide-cta'; cta.textContent = 'Comparer les offres'; cta.addEventListener('click', function() { openDetail(id); });
+    var fav = document.createElement('button'); fav.className = 'hero-slide-fav';
+    var saved = favorites.some(function(f) { return String(f.id) === id; });
+    fav.setAttribute('aria-label', saved ? 'Retirer des favoris' : 'Ajouter aux favoris'); fav.setAttribute('aria-pressed', String(saved)); fav.innerHTML = ICO.heart(saved);
+    fav.addEventListener('click', function() { favoriteHeroProduct(id, fav); });
+    info.append(title, price, meta, cta); slide.append(img, info, fav); slides.append(slide);
+    var dot = document.createElement('button'); dot.setAttribute('aria-label', 'Afficher le produit ' + (i + 1)); dot.addEventListener('click', function() { goToSlide(i); }); dots.append(dot);
+  });
+  document.querySelectorAll('.hero-control').forEach(function(b) { b.innerHTML = ICO.arrow; });
+  goToSlide(0); updateHeroMotion(); startCarousel();
+}
+function renderMerchantMarquee(names) {
+  var track = document.querySelector('.marchands-track');
+  if (!track || !names.length) return;
+  names = Array.from(new Set(names));
+  var group = document.createElement('div'); group.className = 'merchant-group';
+  names.forEach(function(name) {
+    var item = document.createElement('span'); item.className = 'marchand-item';
+    item.style.display = 'inline-flex'; item.style.alignItems = 'center'; item.style.gap = '10px';
+    var favicon = getFavicon(name);
+    if (favicon) { var img = document.createElement('img'); img.src = favicon; img.alt = ''; img.loading = 'lazy'; img.addEventListener('error', function() { img.remove(); }); item.append(img); }
+    item.append(document.createTextNode(name)); group.append(item);
+  });
+  var repeat = group.cloneNode(true); repeat.setAttribute('aria-hidden', 'true');
+  repeat.querySelectorAll('img').forEach(function(img) { img.addEventListener('error', function() { img.remove(); }); });
+  track.replaceChildren(group, repeat);
+  track.style.animationDuration = Math.max(25, names.length * 2.8) + 's';
+}
+function toggleMerchantMotion() {
+  var host = document.querySelector('.marchands-bar'), button = document.getElementById('merchantPause');
+  var paused = host.dataset.paused !== 'true'; host.dataset.paused = String(paused);
+  button.setAttribute('aria-pressed', String(paused)); button.textContent = paused ? 'Reprendre' : 'Pause';
+}
+async function loadMerchantMarquee() {
+  var data = await apiFetch('action=merchants');
+  var names = data && Array.isArray(data.data) ? data.data.map(function(m) { return m.title; }).filter(Boolean) : [];
+  if (names.length) renderMerchantMarquee(names);
+}
+reducedMotion.addEventListener('change', function() { heroPaused = reducedMotion.matches; updateHeroMotion(); startCarousel(); });
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.nav-menu-list button') || !e.target.closest('.nav-menu')) document.querySelector('.nav-menu').open = false;
+});
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') document.querySelector('.nav-menu').open = false; });
+// Preserve the existing category controls, add keyboard access without changing routes.
+document.querySelectorAll('.cat-card[onclick], .nav-cats > .nav-cat').forEach(function(el) {
+  el.tabIndex = 0; el.setAttribute('role', 'button');
+  el.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); } });
+});
+var initialMerchants = Array.from(document.querySelectorAll('.marchand-item')).map(function(el) { return el.textContent; });
+renderMerchantMarquee(initialMerchants);
+initHome();
 loadMerchantMarquee();
 
 // Arrivee depuis une page produit statique (SEO) : ouvre directement la
