@@ -257,6 +257,8 @@ function ranked(scores, source, minimum = 6, margin = 3) {
 // Explicit product subjects outrank model names, compatible devices and brands.
 // Each override is named so import audits can explain the decision.
 const SUBJECT_RULES = [
+  {id:'sujet-robot-patissier', category:'maison-jardin', pattern:/\brobot patissier\b/},
+  {id:'sujet-jouet-cascadeurs', category:'enfants-bebes', pattern:/\b(action heroes|cascadeurs?)\b(?=.*\b(quad|moto|tremplin)\b)/},
   {id:'sujet-accessoire-gaming', category:'high-tech', pattern:/\b(amiibo|support pour (manette|smartphone))\b/},
   {id:'sujet-jeu-lego', category:'high-tech', pattern:/\blego\b(?=.*\b(ps[345]|xbox|jeu video)\b)(?!.*\b(\d{5}|pieces|construction|console|figurines?|jouet)\b)/},
   {id:'sujet-jouet', category:'enfants-bebes', pattern:/\b(lego|playmobil|peluches?|poupees?|maquettes?|figurines?|puzzles?)\b(?!.*\bserre livres\b)/},
@@ -320,4 +322,3 @@ export function categorize(p = {}) {
   // No automatic merchant/brand/EAN fallback: uncertain references remain unclassified.
   return signal || { category:'autres', source:'a-verifier', score:0 };
 }
-

@@ -261,12 +261,13 @@ export const TAXONOMY = {
 };
 
 const TYPE_RULES = [
+  ['toy', /\b(action heroes|cascadeurs?)\b(?=.*\b(quad|moto|tremplin)\b)/],
   ['gaming_accessory', /\b(amiibo|support pour manette)\b/],
   ['cleaning_product', /\b(detergent|lessive|nettoyant (pour )?(sol|sols|vitres))\b/],
   ['power_tool', /\b(perforateur|burineur|scie (sabre|circulaire|sauteuse)|perceuse|visseuse|meuleuse|ponceuse)\b/],
   ['appliance_accessory', /\b(sacs?|filtres?|brosses?|accessoires?) (pour )?aspirateur\b/],
   ['furniture', /\b(console (murale|d entree|extensible)|meuble|commode|matelas|sommier|rideau|couette|serre livres)\b/],
-  ['household_appliance', /\b(aspirateur|spotclean|crosswave|robot cuisine|lave linge|lave vaisselle|refrigerateur|congelateur|cafetiere|bouilloire|friteuse|blender|mixeur|micro ondes|four encastrable|chauffe eau|ventilateur|climatiseur|radiateur)\b/],
+  ['household_appliance', /\b(aspirateur|spotclean|crosswave|robot cuisine|robot patissier|lave linge|lave vaisselle|refrigerateur|congelateur|cafetiere|bouilloire|friteuse|blender|mixeur|micro ondes|four encastrable|chauffe eau|ventilateur|climatiseur|radiateur)\b/],
   ['tablet', /\b(ipad|tablette tactile|galaxy tab)\b/],
   ['smartwatch', /\b(apple watch|galaxy watch|montre connectee|bracelet connecte|smart band \d+|forerunner)\b/],
   ['printer', /\b(imprimante|cartouche d encre|toner|kit tambour|ultrachrome)\b/],

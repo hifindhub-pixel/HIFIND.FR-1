@@ -5,6 +5,8 @@ import {classifyProduct, classifyProductType, TAXONOMY, parseQueryIntent} from '
 
 // First six titles observed on the public catalogue on 2026-10-02.
 const cases = [
+ ['Robot pâtissier multifonctions 4.8l 1000w crème - SMF05CREU - SMEG','maison-jardin','household_appliance'],
+ ['Action Heroes Cascadeurs Avec Quad Moto Et Tremplins 71808 Multicolore','enfants-bebes','toy'],
  ['Warner Bros. LEGO Batman : L’héritage du chevalier - PS5 - Version française','high-tech','video_game'],
  ['Educo Puzzle en bois Montessori Lessive - 12 pièces','enfants-bebes','toy'],
  ['Nintendo Amiibo The Legend of Zelda Collection de Figurines','high-tech','gaming_accessory'],
