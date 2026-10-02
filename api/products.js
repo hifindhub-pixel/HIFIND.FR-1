@@ -5,6 +5,7 @@ import { classifyProductType, parseQueryIntent } from './product-type.js';
 import { countDistinctMerchants } from '../scripts/lib/merchants.js';
 import { filterByCondition } from '../scripts/lib/condition.js';
 import { detectContradictions } from '../scripts/lib/quarantine.js';
+import { computePriceInsights } from '../scripts/lib/price-insights.js';
 
 const AFFILAE_PROFILE_ID = '69c1bc52b682a8edf3205672';
 
@@ -249,6 +250,27 @@ async function countDistinctEans(client, whereSql, params) {
   return parseInt(r.rows[0]?.total || '0', 10);
 }
 
+export async function getPriceHistory(client, ean, days = 180) {
+  try {
+    const result = await client.query(`
+      SELECT observed_at, min_price, avg_price, max_price, merchant_count
+      FROM price_history
+      WHERE ean = $1 AND observed_at >= NOW() - make_interval(days => $2::int)
+      ORDER BY observed_at ASC
+    `, [ean, days]);
+    return result.rows.map(row => ({
+      observed_at: row.observed_at,
+      min_price: Number(row.min_price),
+      avg_price: Number(row.avg_price),
+      max_price: Number(row.max_price),
+      merchant_count: Number(row.merchant_count),
+    }));
+  } catch (error) {
+    if (error.code === '42P01') return [];
+    throw error;
+  }
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -407,6 +429,8 @@ export default async function handler(req, res) {
           const offers = await getEanOffers(client, product.ean, product.category);
           product.ean_offers = offers;
           product.offers_count = await countDistinctMerchants(client, offers);
+          product.price_history = await getPriceHistory(client, product.ean);
+          product.price_insight = computePriceInsights(offers, product.price_history, new Date(), { merchantCount: product.offers_count });
         }
         rows = [product];
       }

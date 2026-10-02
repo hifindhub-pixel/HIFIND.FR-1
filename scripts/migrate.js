@@ -48,6 +48,16 @@ async function main() {
     CREATE INDEX IF NOT EXISTS idx_products_ean ON products(ean) WHERE ean IS NOT NULL;
     CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
     CREATE INDEX IF NOT EXISTS idx_products_status ON products(status);
+    CREATE TABLE IF NOT EXISTS price_history (
+      ean TEXT NOT NULL,
+      observed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      min_price NUMERIC(14,2) NOT NULL,
+      avg_price NUMERIC(14,2) NOT NULL,
+      max_price NUMERIC(14,2) NOT NULL,
+      merchant_count SMALLINT NOT NULL,
+      PRIMARY KEY (ean, observed_at)
+    );
+    CREATE INDEX IF NOT EXISTS idx_price_history_ean_date ON price_history(ean, observed_at DESC);
   `);
   console.log('✅ Tables créées');
 

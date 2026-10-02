@@ -17,7 +17,7 @@ test('premium detail fetches real offers, preserves unknown shipping and renders
  const ctx=vm.createContext({currentResults:[],favorites:[],homeProductsCache:{},document:{getElementById:()=>host},
   showPage(){},apiFetch:async()=>({data:[p]}),normalizeMerchant:s=>s,extractConditionClient:()=> 'neuf',
   fmtDeliveryTime:x=>x,escHtml:s=>String(s),getImageUrl:()=>null,fmtEur:n=>n+' €',
-  ICO:{heart:()=>'',box:'',arrow:''},renderOfferRows:o=>{rendered=o;return 'REAL_OFFERS';},renderSimilar(){}});
+  ICO:{heart:()=>'',box:'',arrow:''},renderOfferRows:o=>{rendered=o;return 'REAL_OFFERS';},renderPriceIntelligence:()=>'',renderSimilar(){}});
  vm.runInContext(detail,ctx);
  await vm.runInContext("openDetail('a')",ctx);
  assert.equal(rendered.length,2);assert.equal(rendered[0].shipping,null);

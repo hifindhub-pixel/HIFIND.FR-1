@@ -1,0 +1,22 @@
+name: Capture Price History
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 7 * * *'
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install pg
+      - name: Capture changed comparable prices
+        env:
+          NEON_URL: ${{ secrets.NEON_URL }}
+        run: node scripts/capture-price-history.js
+

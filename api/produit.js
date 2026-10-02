@@ -1,4 +1,6 @@
-import { getPool, getEanOffers } from './products.js';
+import { getPool, getEanOffers, getPriceHistory } from './products.js';
+import { countDistinctMerchants } from '../scripts/lib/merchants.js';
+import { computePriceInsights } from '../scripts/lib/price-insights.js';
 
 const SITE_URL = 'https://hifind.fr';
 
@@ -127,7 +129,15 @@ function structuredData(ref, offers, canonical) {
   return escJsonLd(data);
 }
 
-function pageHtml({ ref, offers, canonical }) {
+function insightHtml(insight, history) {
+  if (!insight) return '';
+  const historyText = insight.history_status === 'ready'
+    ? `Plus bas observé : <strong>${fmtEur(insight.history_low)}</strong>${insight.change_30d_pct != null ? ` · variation sur 30 jours : <strong>${insight.change_30d_pct > 0 ? '+' : ''}${insight.change_30d_pct.toLocaleString('fr-FR')} %</strong>` : ''}`
+    : `Historique en cours de constitution · ${history.length} observation${history.length > 1 ? 's' : ''} réelle${history.length > 1 ? 's' : ''}`;
+  return `<section class="insight"><div class="score"><span>${insight.score}<small>/100</small></span></div><div><div class="score-label">Score HiFind · ${esc(insight.label)}</div><p>Confiance ${esc(insight.confidence)}. Calculé à partir des marchands comparés, de la position du prix, de sa fraîcheur et de l’historique disponible.</p><div class="history">${historyText}</div></div></section>`;
+}
+
+function pageHtml({ ref, offers, canonical, history = [], insight = null }) {
   const title = `${ref.title} : comparer les prix | HiFind`;
   const description = `Comparez le prix de ${ref.title} chez ${offers.length} marchands. ` +
     `\u00c0 partir de ${fmtEur(ref.price)}. Mis \u00e0 jour quotidiennement.`;
@@ -162,6 +172,7 @@ ${ref.image_url ? `<meta property="og:image" content="${esc(ref.image_url)}">` :
   h1{ font-size:1.4rem; margin:0 0 1rem; line-height:1.35; }
   .hero-price{ font-size:2rem; font-weight:900; color:var(--jade); }
   .hero-sub{ color:var(--sub); font-size:.85rem; margin-top:.3rem; }
+  .insight{display:grid;grid-template-columns:82px 1fr;gap:1rem;align-items:center;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1rem 1.2rem;margin:0 0 1.5rem}.score{width:72px;height:72px;border-radius:50%;background:rgba(16,185,129,.12);border:5px solid var(--jade);display:grid;place-items:center}.score span{font-size:1.35rem;font-weight:900}.score small{font-size:.65rem;color:var(--sub)}.score-label{font-weight:800}.insight p,.history{color:var(--sub);font-size:.76rem;line-height:1.5;margin:.3rem 0}.history strong{color:var(--text)}
   table{ width:100%; border-collapse:collapse; margin-top:1rem; }
   th{ text-align:left; font-size:.75rem; color:var(--sub); text-transform:uppercase; padding:.5rem .8rem; border-bottom:1px solid var(--border); }
   td{ padding:.8rem; border-bottom:1px solid var(--border); font-size:.9rem; }
@@ -182,7 +193,7 @@ ${ref.image_url ? `<meta property="og:image" content="${esc(ref.image_url)}">` :
 <main>
   <div class="layout">
     <div class="img-box">
-      ${ref.image_url ? `<img src="${esc(ref.image_url)}" alt="${esc(ref.title)}">` : ''}
+      ${ref.image_url ? `<img src="/api/img?url=${encodeURIComponent(ref.image_url)}" alt="${esc(ref.title)}">` : ''}
     </div>
     <div>
       ${ref.brand ? `<div class="brand">${esc(ref.brand)}</div>` : ''}
@@ -191,6 +202,7 @@ ${ref.image_url ? `<meta property="og:image" content="${esc(ref.image_url)}">` :
       <div class="hero-sub">${hi > lo ? `jusqu'\u00e0 ${fmtEur(hi)} ailleurs \u2014 ` : ''}${offers.length} marchands compar\u00e9s</div>
     </div>
   </div>
+  ${insightHtml(insight, history)}
   <table>
     <thead><tr><th>Marchand</th><th>Prix</th><th>Fra\u00eecheur</th><th></th></tr></thead>
     <tbody>
@@ -258,10 +270,13 @@ export default async function handler(req, res) {
 
     const ref = product.offers[0];   // le moins cher (prix affiche) sert de reference
     const canonical = `${SITE_URL}/produit/${slugify(ref.title)}-${ean}`;
+    const history = await getPriceHistory(client, ean);
+    const merchantCount = await countDistinctMerchants(client, product.offers);
+    const insight = computePriceInsights(product.offers, history, new Date(), { merchantCount });
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=86400');
-    return res.status(200).send(pageHtml({ ref, offers: product.offers, canonical }));
+    return res.status(200).send(pageHtml({ ref, offers: product.offers, canonical, history, insight }));
 
   } catch (err) {
     console.error('produit.js error:', err.message);
