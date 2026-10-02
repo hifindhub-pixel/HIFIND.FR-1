@@ -237,7 +237,7 @@ nav {
 .marchand-item {
   font-size:.72rem; font-weight:700; letter-spacing:.1em;
   text-transform:uppercase; color:var(--dim); white-space:nowrap;
-  transition:color .2s; cursor:default;
+  transition:color .2s; cursor:pointer; text-decoration:none;
 }
 .marchand-item:hover { color:var(--sub); }
 @keyframes scroll-left {
@@ -2189,13 +2189,21 @@ function renderHeroCarousel(list, unavailable) {
   document.querySelectorAll('.hero-control').forEach(function(b) { b.innerHTML = ICO.arrow; });
   goToSlide(0); updateHeroMotion(); startCarousel();
 }
-function renderMerchantMarquee(names) {
+function merchantSlug(name) {
+  return String(name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
+}
+function renderMerchantMarquee(merchants) {
   var track = document.querySelector('.marchands-track');
-  if (!track || !names.length) return;
-  names = Array.from(new Set(names));
+  if (!track || !merchants.length) return;
+  var seenMerchants = {};
+  merchants = merchants.map(function(m) { return typeof m === 'string' ? { title:m, slug:merchantSlug(m) } : m; })
+    .filter(function(m) { if (!m || !m.title || seenMerchants[m.slug || m.title]) return false; seenMerchants[m.slug || m.title] = true; return true; });
   var group = document.createElement('div'); group.className = 'merchant-group';
-  names.forEach(function(name) {
-    var item = document.createElement('span'); item.className = 'marchand-item';
+  merchants.forEach(function(merchant) {
+    var name = merchant.title;
+    var item = document.createElement('a'); item.className = 'marchand-item';
+    item.href = '/marchand/' + encodeURIComponent(merchant.slug || merchantSlug(name));
     item.style.display = 'inline-flex'; item.style.alignItems = 'center'; item.style.gap = '10px';
     var favicon = getFavicon(name);
     if (favicon) { var img = document.createElement('img'); img.src = favicon; img.alt = ''; img.loading = 'lazy'; img.addEventListener('error', function() { img.remove(); }); item.append(img); }
@@ -2204,7 +2212,7 @@ function renderMerchantMarquee(names) {
   var repeat = group.cloneNode(true); repeat.setAttribute('aria-hidden', 'true');
   repeat.querySelectorAll('img').forEach(function(img) { img.addEventListener('error', function() { img.remove(); }); });
   track.replaceChildren(group, repeat);
-  track.style.animationDuration = Math.max(25, names.length * 2.8) + 's';
+  track.style.animationDuration = Math.max(25, merchants.length * 2.8) + 's';
 }
 function toggleMerchantMotion() {
   var host = document.querySelector('.marchands-bar'), button = document.getElementById('merchantPause');
@@ -2213,8 +2221,8 @@ function toggleMerchantMotion() {
 }
 async function loadMerchantMarquee() {
   var data = await apiFetch('action=merchants');
-  var names = data && Array.isArray(data.data) ? data.data.map(function(m) { return m.title; }).filter(Boolean) : [];
-  if (names.length) renderMerchantMarquee(names);
+  var merchants = data && Array.isArray(data.data) ? data.data.filter(function(m) { return m && m.title; }) : [];
+  if (merchants.length) renderMerchantMarquee(merchants);
 }
 reducedMotion.addEventListener('change', function() { heroPaused = reducedMotion.matches; updateHeroMotion(); startCarousel(); });
 document.addEventListener('click', function(e) {

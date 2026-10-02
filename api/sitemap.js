@@ -56,8 +56,21 @@ function xmlEscape(s) {
 export default async function handler(req, res) {
   try {
     const client = await getPool().connect();
-    let rows;
+    let rows, merchants;
     try {
+      const merchantResult = await client.query(`
+        SELECT DISTINCT pr.title
+        FROM products p JOIN programs pr ON p.program_id = pr.id
+        WHERE p.status = 'enabled' AND p.ean IS NOT NULL
+          AND p.program_id NOT LIKE '%darty%' AND pr.title IS NOT NULL
+          AND EXISTS (
+            SELECT 1 FROM products p2 WHERE p2.ean = p.ean
+              AND p2.status = 'enabled' AND p2.program_id != p.program_id
+          )
+        ORDER BY pr.title
+      `);
+      merchants = merchantResult.rows;
+      const productLimit = Math.max(0, MAX_URLS - 1 - CATEGORIES.length - merchants.length);
       const result = await client.query(`
         SELECT p.ean, MAX(p.title) AS title, MAX(p.updated_at) AS updated_at
         FROM products p
@@ -71,7 +84,7 @@ export default async function handler(req, res) {
         HAVING COUNT(DISTINCT COALESCE(ma.merchant_id::text, p.program_id)) >= 2
         ORDER BY MAX(p.updated_at) DESC
         LIMIT $1
-      `, [MAX_URLS]);
+      `, [productLimit]);
       rows = result.rows;
     } finally {
       client.release();
@@ -82,6 +95,13 @@ export default async function handler(req, res) {
     urls.push({ loc: `${SITE_URL}/`, changefreq: 'daily', priority: '1.0' });
     for (const cat of CATEGORIES) {
       urls.push({ loc: `${SITE_URL}/categorie/${cat}`, changefreq: 'daily', priority: '0.8' });
+    }
+    const merchantSlugs = new Set();
+    for (const merchant of merchants) {
+      const slug = slugify(merchant.title);
+      if (!slug || merchantSlugs.has(slug)) continue;
+      merchantSlugs.add(slug);
+      urls.push({ loc: `${SITE_URL}/marchand/${slug}`, changefreq: 'daily', priority: '0.7' });
     }
     for (const row of rows) {
       const slug = slugify(row.title);

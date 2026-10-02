@@ -25,6 +25,10 @@
   ],
   "rewrites": [
     {
+      "source": "/marchand/:slug",
+      "destination": "/api/marchand?slug=:slug"
+    },
+    {
       "source": "/categorie/:slug",
       "destination": "/api/categorie?slug=:slug"
     },

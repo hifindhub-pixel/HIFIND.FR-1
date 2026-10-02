@@ -8,6 +8,11 @@ import { detectContradictions } from '../scripts/lib/quarantine.js';
 
 const AFFILAE_PROFILE_ID = '69c1bc52b682a8edf3205672';
 
+export function slugifyMerchant(value) {
+  return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
+}
+
 // ═══════════════════════════════════════════════════════════════
 // Pool de connexion créé UNE SEULE FOIS au chargement du module,
 // pas à chaque requête. Sur Vercel, une instance serverless "chaude"
@@ -379,9 +384,15 @@ export default async function handler(req, res) {
         WHERE p.status = 'enabled'
         AND p.program_id NOT LIKE '%darty%'
         AND pr.title IS NOT NULL
+        AND p.ean IS NOT NULL
+        AND EXISTS (
+          SELECT 1 FROM products p2
+          WHERE p2.ean = p.ean AND p2.status = 'enabled'
+          AND p2.program_id != p.program_id
+        )
         ORDER BY pr.title
       `);
-      rows = r.rows.map(row => ({ title: row.title }));
+      rows = r.rows.map(row => ({ title: row.title, slug: slugifyMerchant(row.title) }));
       total = rows.length;
 
     } else if (action === 'product' && id) {
@@ -539,4 +550,3 @@ export default async function handler(req, res) {
     if (client) client.release();   // rend la connexion au pool, ne la ferme pas
   }
 }
-

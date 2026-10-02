@@ -1,6 +1,6 @@
 import { getPool, groupWithOffers } from './products.js';
 
-const SITE_URL = 'https://hifind.fr';
+export const SITE_URL = 'https://hifind.fr';
 export const CATEGORY_META = {
   'high-tech': { title:'High-Tech', description:'Smartphones, ordinateurs, audio, TV, gaming et accessoires tech' },
   'auto-moto': { title:'Auto & Moto', description:'Pneus, pièces, équipement et accessoires auto-moto' },
@@ -25,19 +25,19 @@ const MULTI_VENDOR_WHERE = `
   )
 `;
 
-const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({
+export const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({
   '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
 }[c]));
-const jsonLd = value => JSON.stringify(value).replace(/</g, '\\u003c');
+export const jsonLd = value => JSON.stringify(value).replace(/</g, '\\u003c');
 const fmt = value => (Number(value) || 0).toLocaleString('fr-FR', { minimumFractionDigits:2, maximumFractionDigits:2 }) + ' €';
-const slugify = value => String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+export const slugify = value => String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
   .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
 
 function productUrl(product) {
   return `/produit/${slugify(product.title)}-${encodeURIComponent(product.ean)}`;
 }
 
-function productCard(product) {
+export function productCard(product) {
   const offers = product.ean_offers || [];
   const prices = offers.map(o => Number(o.price)).filter(p => p > 0).sort((a,b) => a-b);
   const low = prices[0] || Number(product.price) || 0;
