@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /api/
 
 Sitemap: https://hifind.fr/sitemap.xml
+

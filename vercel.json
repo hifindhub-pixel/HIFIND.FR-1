@@ -39,6 +39,10 @@
     {
       "source": "/sitemap.xml",
       "destination": "/api/sitemap"
+    },
+    {
+      "source": "/sitemap-:part.xml",
+      "destination": "/api/sitemap?part=:part"
     }
   ]
 }
