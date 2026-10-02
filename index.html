@@ -1432,6 +1432,9 @@ function clearSearch() {
 }
 
 function searchFor(q) {
+  ['heroSugg','navSugg','spSugg'].forEach(hideSugg);
+  FACETS = { types: new Set(), brands: new Set(), merchants: new Set(), minOffers: 0, min: null, max: null, freeShip: false };
+  document.getElementById('paginationBar').innerHTML = '';
   document.getElementById('spInput').value = q;
   document.getElementById('spClear').style.display = 'block';
   document.getElementById('navInput').value = q;
