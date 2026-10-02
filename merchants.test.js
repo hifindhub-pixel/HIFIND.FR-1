@@ -1,7 +1,7 @@
 // test/merchants.test.js
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { countDistinctMerchants, resetCacheForTests } from '../scripts/lib/merchants.js';
+import { countDistinctMerchants, resetCacheForTests } from './scripts/lib/merchants.js';
 
 function makeFakeClient(rows, onQuery) {
   return {
@@ -46,3 +46,4 @@ test('appels concurrents : une seule requete SQL (protection contre la condition
 
   assert.equal(queryCount, 1);
 });
+

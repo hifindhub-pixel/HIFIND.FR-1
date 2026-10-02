@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [scripts/recategorize.js, .github/workflows/recategorize.yml]
+    paths: [scripts/recategorize.js, scripts/lib/categorize.js, scripts/lib/category-consensus.js, .github/workflows/recategorize.yml]
 permissions:
   contents: read
 concurrency:
@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: '20'
       - run: npm install --ignore-scripts
-      - run: node --test tests/categorization-v2.test.js tests/category-consensus.test.js tests/catalogue-readonly.test.js
+      - run: npm test
       - run: node scripts/recategorize.js --apply
         env:
           NEON_URL: ${{ secrets.NEON_URL }}
@@ -29,3 +29,4 @@ jobs:
           name: category-reclassification
           path: category-report/
           retention-days: 30
+

@@ -1713,12 +1713,51 @@ function pcardHTML(p) {
 }
 
 // ══ DETAIL ══
+var DETAIL_REQUEST = 0;
 async function openDetail(id) {
+  var request = ++DETAIL_REQUEST;
   var p = currentResults.find(x => x.id === id)
        || favorites.find(x => x.id === id)
        || homeProductsCache[id];
 
   showPage('detail');
+  CURRENT_OFFERS = [];
+  document.getElementById('detailContent').textContent = 'Chargement des offres…';
+  try {
+    var detail = await apiFetch('action=product&id=' + encodeURIComponent(id));
+    if (request !== DETAIL_REQUEST) return;
+    if (detail && detail.data && detail.data[0]) p = detail.data[0];
+  } catch (error) {
+    if (request !== DETAIL_REQUEST) return;
+  }
+  if (!p) {
+    document.getElementById('detailContent').textContent = 'Ce produit est momentanément indisponible.';
+    return;
+  }
+  var byMerchant = {};
+  (p.ean_offers || []).forEach(function(o){
+    var price = Number(o.price);
+    if (!(price > 0) || !Number.isFinite(price)) return;
+    var merchant = normalizeMerchant(o.program_title || (o.programs && o.programs.title) || 'Marchand');
+    var shipping = o.shipping_cost == null || o.shipping_cost === '' ? null : Number(o.shipping_cost);
+    if (shipping != null && (!Number.isFinite(shipping) || shipping < 0)) shipping = null;
+    var offer = {merchant:merchant, price:price, shipping:shipping,
+      total:shipping == null ? null : price + shipping,
+      url:o.tracking_url || o.url || '#', updatedAt:o.updated_at,
+      condition:extractConditionClient(o.title), inStock:typeof o.in_stock === 'boolean' ? o.in_stock : null,
+      deliveryTime:fmtDeliveryTime(o.delivery_time)};
+    if (!byMerchant[merchant] || price < byMerchant[merchant].price) byMerchant[merchant] = offer;
+  });
+  var offers = Object.values(byMerchant).sort(function(a,b){return a.price-b.price;});
+  if (!offers.length) {
+    document.getElementById('detailContent').textContent = 'Aucune offre disponible pour ce produit actuellement.';
+    return;
+  }
+  CURRENT_OFFERS = offers;
+  var lo = offers[0].price, hi = offers[offers.length-1].price;
+  var isFav = favorites.some(function(f){return f.id === p.id;});
+  var sid = escHtml(String(p.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+  var img = getImageUrl(p);
   var avg = offers.length ? offers.reduce(function(sum,o){ return sum + o.price; },0) / offers.length : lo;
   var savings = avg > lo ? Math.round((1 - lo / avg) * 100) : 0;
   var shippingKnown = offers.filter(function(o){ return o.shipping != null; }).length;
@@ -1729,8 +1768,8 @@ async function openDetail(id) {
     '<div class="pd-layout">'
       + '<div class="pd-media">'
         + '<div class="pd-img-box">'
-          + '<button class="pd-fav-btn' + (isFav ? ' on' : '') + '" id="detailFavBtn" onclick="toggleFav(\\'' + sid + '\\',this)" aria-label="Sauvegarder">' + ICO.heart(isFav) + '</button>'
-          + (img ? '<img src="' + escHtml(img) + '" alt="' + escHtml(p.title) + '" onerror="this.style.display=\\'none\\'">' : '<span style="color:#cbd5e1">' + ICO.box + '</span>')
+          + '<button class="pd-fav-btn' + (isFav ? ' on' : '') + '" id="detailFavBtn" onclick="toggleFav(\'' + sid + '\',this)" aria-label="Sauvegarder">' + ICO.heart(isFav) + '</button>'
+          + (img ? '<img src="' + escHtml(img) + '" alt="' + escHtml(p.title) + '" onerror="this.style.display=\'none\'">' : '<span style="color:#cbd5e1">' + ICO.box + '</span>')
         + '</div>'
         + '<div class="pd-media-meta"><strong>' + offers.length + '</strong> marchand' + (offers.length > 1 ? 's' : '') + ' comparé' + (offers.length > 1 ? 's' : '') + '</div>'
       + '</div>'
@@ -2385,11 +2424,11 @@ function buildFacets(list){
   };
 }
 
-function optHTML(kind, value, count, checked){
+function optHTML(kind, value, count, checked, label){
   var v = String(value).replace(/"/g,'&quot;');
   return '<label class="opt"><input type="checkbox" ' + (checked?'checked ':'')
     + 'onchange="toggleFacet(\'' + kind + '\',this.value,this.checked)" value="' + v + '">'
-    + '<span class="opt-label">' + v + '</span><span class="opt-n">' + count + '</span></label>';
+    + '<span class="opt-label">' + (label == null ? v : escHtml(label)) + '</span><span class="opt-n">' + count + '</span></label>';
 }
 
 function facetBlock(id, title, body){
@@ -2418,6 +2457,11 @@ function setCatTitle(label, lede){
 }
 
 var TYPE_LABELS = {smartphone:'Smartphones', smartphone_accessory:'Accessoires téléphone', console:'Consoles', video_game:'Jeux vidéo', gaming_accessory:'Accessoires gaming', headphones:'Casques et écouteurs', computer:'Ordinateurs', television:'Téléviseurs', perfume:'Parfums', tyre:'Pneus', power_tool:'Outillage', household_appliance:'Électroménager', other:'Autres types'};
+function productTypeLabel(type){
+  var row=allResults.find(function(p){return p.product_type===type;});
+  return TYPE_LABELS[type] || (row && row.product_type_label) || TYPE_LABELS.other;
+}
+
 function renderCategoryTypeChips(){
   var host = document.getElementById('searchQuick');
   if (!host || !lastCat || !allResults.length) return;
@@ -2431,7 +2475,7 @@ function renderCategoryTypeChips(){
   label.textContent='Types :';
   host.appendChild(label);
   keys.forEach(function(k){
-    var b=document.createElement('button'); b.type='button'; b.textContent=(TYPE_LABELS[k] || k) + ' · ' + counts[k];
+    var b=document.createElement('button'); b.type='button'; b.textContent=productTypeLabel(k) + ' · ' + counts[k];
     b.onclick=function(){
       FACETS.types = new Set([k]);
       applyFacets();
@@ -2478,8 +2522,8 @@ function renderFacets(){
   + 'onchange="FACETS.minOffers=0;applyFacets()"><span class="opt-label">Tous</span></label>';
 
   var types = {};
-  allResults.forEach(function(p) { var label = TYPE_LABELS[p.product_type] || TYPE_LABELS.other; types[label] = (types[label] || 0) + 1; });
-  var typeOptions = Object.entries(types).sort(function(a,b){return b[1]-a[1];}).map(function(e){return optHTML('types', e[0], e[1], FACETS.types.has(e[0]));}).join('');
+  allResults.forEach(function(p) { var type = p.product_type || 'other'; types[type] = (types[type] || 0) + 1; });
+  var typeOptions = Object.entries(types).sort(function(a,b){return b[1]-a[1];}).map(function(e){return optHTML('types', e[0], e[1], FACETS.types.has(e[0]), productTypeLabel(e[0]));}).join('');
   el.innerHTML =
       (Object.keys(types).length > 1 ? facetBlock('type', 'Type de produit', '<small>Parmi les résultats affichés</small>' + typeOptions) : '')
     + facetBlock('price', 'Prix', price)
@@ -2516,7 +2560,7 @@ function applyFacets(){
     var lo = offers.length ? offers[0].price : (parseFloat(p.price)||0);
     if (FACETS.min != null && lo < FACETS.min) return false;
     if (FACETS.max != null && lo > FACETS.max) return false;
-    if (FACETS.types.size && !FACETS.types.has(TYPE_LABELS[p.product_type] || TYPE_LABELS.other)) return false;
+    if (FACETS.types.size && !FACETS.types.has(p.product_type || 'other')) return false;
     if (FACETS.brands.size && !FACETS.brands.has(p.brand)) return false;
     if (FACETS.merchants.size && !offers.some(function(o){ return FACETS.merchants.has(o.name); })) return false;
     if (FACETS.minOffers && offers.length < FACETS.minOffers) return false;
@@ -2531,7 +2575,7 @@ function renderChips(){
   var el = document.getElementById('activeChips');
   if (!el) return;
   var chips = [];
-  FACETS.types.forEach(function(t){ chips.push(['types',t,t]); });
+  FACETS.types.forEach(function(t){ chips.push(['types',t,productTypeLabel(t)]); });
   FACETS.brands.forEach(function(b){ chips.push(['brands', b, b]); });
   FACETS.merchants.forEach(function(m){ chips.push(['merchants', m, m]); });
   if (FACETS.min != null || FACETS.max != null) {
@@ -2731,3 +2775,4 @@ function goToPage(p){
 <script src="https://www.anrdoezrs.net/am/101723456/include/joined/impressions/page/am.js"></script>
 </body>
 </html>
+

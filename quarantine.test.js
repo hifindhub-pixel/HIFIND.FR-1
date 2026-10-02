@@ -1,7 +1,7 @@
 // test/quarantine.test.js
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { detectContradictions } from '../scripts/lib/quarantine.js';
+import { detectContradictions } from './scripts/lib/quarantine.js';
 
 test('PS5 reelle (3 libelles de marque, meme fabricant, categorie coherente) : PAS de contradiction', () => {
   // Faux positif trouve et corrige le 09/08 : "Sony", "Sony Interactive
@@ -33,3 +33,4 @@ test('vraie majorite de marque : geree par le filtre normal, pas de quarantaine 
   ]);
   assert.equal(issues.length, 0);
 });
+

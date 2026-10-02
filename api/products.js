@@ -1,6 +1,6 @@
 import pkg from 'pg';
 const { Pool } = pkg;
-import { categorize } from '../scripts/lib/categorize.js';
+import { classifyProduct } from '../scripts/lib/product-type.js';
 import { classifyProductType, parseQueryIntent } from './product-type.js';
 import { countDistinctMerchants } from '../scripts/lib/merchants.js';
 import { filterByCondition } from '../scripts/lib/condition.js';
@@ -49,7 +49,7 @@ export function makeTrackingUrl(product) {
 }
 
 export function formatRow(p) {
-  const classification = categorize(p);
+  const classification = classifyProduct(p);
   return {
     ...p,
     category: classification.category === 'autres' ? p.category : classification.category,
@@ -59,7 +59,12 @@ export function formatRow(p) {
     // formatRow() est appele par tous les chemins de reponse (recherche,
     // categorie, fiche produit), garantit que product_type est toujours
     // present sans avoir a l'ajouter endpoint par endpoint.
-    product_type: classifyProductType(p.title),
+    product_type: classification.product_type,
+    product_type_label: classification.product_type_label,
+    category_family: classification.category_family,
+    category_path: classification.category === 'autres' && p.category ? [p.category] : classification.category_path,
+    category_source: classification.source,
+    classification_version: classification.classification_version,
   };
 }
 
@@ -390,7 +395,7 @@ export default async function handler(req, res) {
         if (product.ean) {
           const offers = await getEanOffers(client, product.ean, product.category);
           product.ean_offers = offers;
-          product.offers_count = offers.length;
+          product.offers_count = await countDistinctMerchants(client, offers);
         }
         rows = [product];
       }
@@ -497,7 +502,9 @@ export default async function handler(req, res) {
 
     if (action === 'suggest') {
       return res.status(200).json({ data: rows.slice(0, 6).map(p => ({
-        id: p.id, title: p.title, price: p.price, offers_count: p.offers_count
+        id: p.id, title: p.title, price: p.price, offers_count: p.offers_count,
+        image_url: p.image_url, brand: p.brand, category: p.category,
+        product_type: p.product_type, product_type_label: p.product_type_label
       })) });
     }
 
@@ -532,3 +539,4 @@ export default async function handler(req, res) {
     if (client) client.release();   // rend la connexion au pool, ne la ferme pas
   }
 }
+

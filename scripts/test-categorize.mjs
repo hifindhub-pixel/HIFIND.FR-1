@@ -1,4 +1,4 @@
-import { categorize } from '/mnt/user-data/outputs/scripts/lib/categorize.js';
+import { categorize } from './lib/categorize.js';
 
 const cases = [
   ['Geolandar A/T (G015)', 'Pneus FR', 'auto-moto', '', 'auto-moto'],
@@ -28,3 +28,4 @@ for (const [title, merchant, mcat, feedCat, want] of cases) {
 }
 console.log(ok + '/' + cases.length + ' corrects');
 if (ko.length) ko.forEach(k => console.log('  KO  ' + k[0].padEnd(45) + '-> ' + k[1] + '  (attendu ' + k[2] + ')'));
+

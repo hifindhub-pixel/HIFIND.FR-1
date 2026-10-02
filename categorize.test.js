@@ -1,7 +1,7 @@
 // test/categorize.test.js
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { textSignal } from '../scripts/lib/categorize.js';
+import { textSignal } from './scripts/lib/categorize.js';
 
 test('GTA V ne tombe plus dans auto-moto (collision du mot "auto")', () => {
   const sig = textSignal({ title: 'Grand Theft Auto V - Edition Premium PS5', description: '', feedCat: '' });
@@ -32,3 +32,4 @@ test('limite connue et acceptee : un titre de jeu SANS mention de plateforme res
   const sig = textSignal({ title: 'Rockstar Games Grand Theft Auto V - Neuf', description: '', feedCat: '' });
   assert.equal(sig, null);
 });
+

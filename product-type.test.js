@@ -8,7 +8,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { classifyProductType, parseQueryIntent } from '../api/product-type.js';
+import { classifyProductType, parseQueryIntent } from './api/product-type.js';
 
 test('classification -- titres reels de la session du 09/08', () => {
   const cases = [
@@ -70,3 +70,4 @@ test('tri par palier -- console bat toujours un jeu sur une recherche nue, meme 
     .sort((a, b) => (b.tier - a.tier) || (b.row.score - a.row.score));
   assert.match(ranked[0].row.title, /Console/, 'la console doit gagner malgre un score textuel plus faible');
 });
+

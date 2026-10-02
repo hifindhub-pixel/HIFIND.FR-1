@@ -1,7 +1,7 @@
 // test/condition.test.js
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { extractCondition, filterByCondition } from '../scripts/lib/condition.js';
+import { extractCondition, filterByCondition } from './scripts/lib/condition.js';
 
 test('extraction sur titres reels de la session du 09/08', () => {
   const cases = [
@@ -36,3 +36,4 @@ test('filtrage : une egalite ne doit RIEN exclure (comme le fix marque)', () => 
   ];
   assert.equal(filterByCondition(offers).length, 2);
 });
+
