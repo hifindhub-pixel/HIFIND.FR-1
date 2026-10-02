@@ -61,6 +61,15 @@ async function main() {
       PRIMARY KEY (ean, observed_at)
     );
     CREATE INDEX IF NOT EXISTS idx_price_history_ean_date ON price_history(ean, observed_at DESC);
+    CREATE TABLE IF NOT EXISTS product_engagement_daily (
+      ean TEXT NOT NULL,
+      day DATE NOT NULL DEFAULT CURRENT_DATE,
+      detail_views INTEGER NOT NULL DEFAULT 0,
+      offer_clicks INTEGER NOT NULL DEFAULT 0,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (ean, day)
+    );
+    CREATE INDEX IF NOT EXISTS idx_product_engagement_day_ean ON product_engagement_daily(day DESC, ean);
   `);
   console.log('✅ Tables créées');
 

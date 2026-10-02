@@ -27,7 +27,7 @@ export function merchantPageHtml({ merchant, products, total, page = 1, pages = 
     about:{ '@type':'Organization', name:merchant },
     mainEntity:{ '@type':'ItemList', numberOfItems:products.length, itemListElement:products.map((p, i) => ({
       '@type':'ListItem', position:(page - 1) * 30 + i + 1,
-      url:`${SITE_URL}/produit/${slugifyMerchant(p.title)}-${encodeURIComponent(p.ean)}`, name:p.title
+      url:`${SITE_URL}/?openEan=${encodeURIComponent(p.ean)}`, name:p.title
     }))}
   };
   const pagination = pages > 1 ? `<nav class="pagination" aria-label="Pagination">

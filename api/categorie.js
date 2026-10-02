@@ -1,7 +1,8 @@
-import { getPool, groupWithOffers } from './products.js';
+import { getPool, groupWithOffers, rankedCandidates } from './products.js';
 
 export const SITE_URL = 'https://hifind.fr';
 export const CATEGORY_META = {
+  'innovations': { title:'Innovations', description:'Nouveautés technologiques, produits connectés, robotique et technologies émergentes' },
   'high-tech': { title:'High-Tech', description:'Smartphones, ordinateurs, audio, TV, gaming et accessoires tech' },
   'auto-moto': { title:'Auto & Moto', description:'Pneus, pièces, équipement et accessoires auto-moto' },
   'maison-jardin': { title:'Maison & Jardin', description:'Électroménager, bricolage, mobilier, décoration et jardin' },
@@ -34,7 +35,7 @@ export const slugify = value => String(value || '').toLowerCase().normalize('NFD
   .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
 
 function productUrl(product) {
-  return `/produit/${slugify(product.title)}-${encodeURIComponent(product.ean)}`;
+  return `/?openEan=${encodeURIComponent(product.ean)}`;
 }
 
 export function productCard(product) {
@@ -106,19 +107,13 @@ export default async function handler(req, res) {
   const offset = (page - 1) * limit;
   const client = await getPool().connect();
   try {
-    const candidates = await client.query(`WITH distinct_products AS (
-        SELECT DISTINCT ON (p.ean) p.*, pr.title AS program_title
-        FROM products p LEFT JOIN programs pr ON p.program_id=pr.id
-        WHERE ${MULTI_VENDOR_WHERE} AND p.category=$1
-        ORDER BY p.ean, p.price ASC
-      )
-      SELECT distinct_products.*, COUNT(*) OVER() AS total_count
-      FROM distinct_products ORDER BY ean LIMIT $2 OFFSET $3`, [category, limit * 3, offset]);
+    const candidates = await rankedCandidates(client, { category, limit: limit * 3, offset });
     const total = parseInt(candidates.rows[0]?.total_count || '0', 10);
     const pages = Math.max(1, Math.ceil(total / limit));
     if (page > pages) return res.status(404).send('Page de catégorie introuvable');
     let products = await groupWithOffers(client, candidates.rows);
-    products = products.filter(p => p.category === category).slice(0, limit);
+    if (category !== 'innovations') products = products.filter(p => p.category === category);
+    products = products.slice(0, limit);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=1800');
     return res.status(200).send(pageHtml({ category, products, total, page, pages }));

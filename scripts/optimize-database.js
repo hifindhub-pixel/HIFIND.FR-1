@@ -21,6 +21,16 @@ const statements = [
 
 try {
   await client.connect();
+  await client.query(`CREATE TABLE IF NOT EXISTS product_engagement_daily (
+    ean TEXT NOT NULL,
+    day DATE NOT NULL DEFAULT CURRENT_DATE,
+    detail_views INTEGER NOT NULL DEFAULT 0,
+    offer_clicks INTEGER NOT NULL DEFAULT 0,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (ean, day)
+  )`);
+  await client.query(`CREATE INDEX IF NOT EXISTS idx_product_engagement_day_ean
+    ON product_engagement_daily (day DESC, ean)`);
   try { await client.query('CREATE EXTENSION IF NOT EXISTS pg_trgm'); }
   catch (error) { console.warn('Extension pg_trgm:', error.message); }
 
@@ -49,4 +59,3 @@ try {
 } finally {
   await client.end();
 }
-

@@ -86,6 +86,61 @@ const MULTI_VENDOR_WHERE = `
   )
 `;
 
+// "Innovations" is a cross-category collection, not a primary taxonomy.
+// It therefore never steals a product from High-Tech, Maison or Sport. The
+// list is deliberately based on concrete product wording present in feeds.
+export const INNOVATION_WHERE = `(
+  p.category IN ('high-tech','maison-jardin','sport-outdoor','sante-nutrition')
+  AND lower(COALESCE(p.title,'') || ' ' || COALESCE(p.description,'')) ~
+    '(intelligence artificielle|(^|[^a-z])ai([^a-z]|$)|copilot[ +]?pc|smart ring|bague connect[eé]e|lunettes connect[eé]es|r[eé]alit[eé] (virtuelle|mixte)|casque vr|pliable|foldable|imprimante 3d|scanner 3d|drone|robot|domotique|maison connect[eé]e|matter|wifi 7|wi-fi 7|oled|mini[- ]led|[eé]lectrique|solaire portable)'
+)`;
+
+const MARKET_INTEREST_SQL = `CASE
+  WHEN lower(p.title) ~ '(iphone|galaxy|google pixel|smartphone|playstation|ps5|xbox|nintendo switch)' THEN 30
+  WHEN lower(p.title) ~ '(airpods|ecouteurs|casque audio|montre connectee|smartwatch|aspirateur robot|air ?fryer)' THEN 22
+  WHEN lower(p.title) ~ '(ordinateur portable|pc gamer|tablette|television|oled|drone|robot)' THEN 16
+  WHEN lower(p.title) ~ '(sneaker|basket|parfum|lego|poussette|velo electrique)' THEN 10
+  ELSE 0 END`;
+
+export async function rankedCandidates(client, { category = '', limit = 90, offset = 0 } = {}) {
+  const innovation = category === 'innovations';
+  const filter = innovation ? INNOVATION_WHERE : (category ? 'p.category = $1' : 'TRUE');
+  const args = category && !innovation ? [category, limit, offset] : [limit, offset];
+  const limitIndex = category && !innovation ? 2 : 1;
+  const offsetIndex = limitIndex + 1;
+  const baseCte = `WITH candidates AS (
+      SELECT DISTINCT ON (p.ean) p.*, pr.title AS program_title,
+        ${MARKET_INTEREST_SQL} AS market_interest
+      FROM products p LEFT JOIN programs pr ON p.program_id = pr.id
+      WHERE ${MULTI_VENDOR_WHERE} AND ${filter}
+      ORDER BY p.ean, p.price ASC
+    )`;
+
+  try {
+    return await client.query(`${baseCte}, engagement AS (
+        SELECT ean, SUM(detail_views)::int AS detail_views, SUM(offer_clicks)::int AS offer_clicks
+        FROM product_engagement_daily WHERE day >= CURRENT_DATE - INTERVAL '30 days' GROUP BY ean
+      )
+      SELECT candidates.*,
+        COALESCE(engagement.detail_views,0) AS trend_views,
+        COALESCE(engagement.offer_clicks,0) AS trend_clicks,
+        (candidates.market_interest + COALESCE(engagement.detail_views,0) * 2
+          + COALESCE(engagement.offer_clicks,0) * 6) AS trend_score,
+        COUNT(*) OVER() AS total_count
+      FROM candidates LEFT JOIN engagement USING (ean)
+      ORDER BY trend_score DESC, candidates.updated_at DESC NULLS LAST, candidates.ean
+      LIMIT $${limitIndex} OFFSET $${offsetIndex}`, args);
+  } catch (error) {
+    if (error.code !== '42P01') throw error;
+    return client.query(`${baseCte}
+      SELECT candidates.*, 0 AS trend_views, 0 AS trend_clicks,
+        candidates.market_interest AS trend_score, COUNT(*) OVER() AS total_count
+      FROM candidates
+      ORDER BY trend_score DESC, candidates.updated_at DESC NULLS LAST, candidates.ean
+      LIMIT $${limitIndex} OFFSET $${offsetIndex}`, args);
+  }
+}
+
 const INCOMPATIBLE = {
   'auto-moto': ['beaute-bienetre','mode-vetements','enfants-bebes','alimentation-bio'],
   'beaute-bienetre': ['auto-moto','sport-outdoor'],
@@ -270,7 +325,7 @@ export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=600');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { action='list', q='', limit='30', page='1', id='', cat='' } = req.query;
+  const { action='list', q='', limit='30', page='1', id='', ean='', cat='' } = req.query;
   const limitN = Math.max(1, Math.min(parseInt(limit)||30, 100));
   const pageN = Math.max(parseInt(page)||1, 1);
   const offset = (pageN - 1) * limitN;
@@ -410,12 +465,13 @@ export default async function handler(req, res) {
       rows = r.rows.map(row => ({ title: row.title, slug: slugifyMerchant(row.title) }));
       total = rows.length;
 
-    } else if (action === 'product' && id) {
+    } else if (action === 'product' && (id || ean)) {
       const r = await client.query(`
         SELECT p.*, pr.title as program_title FROM products p
         LEFT JOIN programs pr ON p.program_id = pr.id
-        WHERE p.id = $1 LIMIT 1
-      `, [id]);
+        WHERE ${id ? 'p.id = $1' : 'p.ean = $1'}
+        ORDER BY p.price ASC LIMIT 1
+      `, [id || ean]);
       if (r.rows.length > 0) {
         const product = formatRow(r.rows[0]);
         if (product.ean) {
@@ -442,29 +498,37 @@ export default async function handler(req, res) {
       `);
       const byCategory = {};
       r.rows.forEach(row => { byCategory[row.category] = parseInt(row.total, 10); });
+      try {
+        const innovationCount = await client.query(`SELECT COUNT(DISTINCT p.ean) AS total
+          FROM products p WHERE ${MULTI_VENDOR_WHERE} AND ${INNOVATION_WHERE}`);
+        byCategory.innovations = parseInt(innovationCount.rows[0]?.total || '0', 10);
+      } catch (error) {
+        console.warn('Innovation stats unavailable:', error.message);
+      }
       return res.status(200).json({ data: byCategory });
 
-    } else if (action === 'category' && cat) {
-      const catWhere = MULTI_VENDOR_WHERE + ' AND p.category = $1';
-
-      const r = await client.query(`
-          WITH candidates AS (
-          SELECT DISTINCT ON (p.ean) p.*, pr.title as program_title
-          FROM products p
-          LEFT JOIN programs pr ON p.program_id = pr.id
-          WHERE ${catWhere}
-          ORDER BY p.ean, p.price ASC
-          )
-          SELECT candidates.*, COUNT(*) OVER() AS total_count
-          FROM candidates ORDER BY ean LIMIT $2 OFFSET $3
-        `, [cat, limitN * 3, offset]);
+    } else if ((action === 'category' || action === 'trending') && (cat || action === 'trending')) {
+      const selectedCategory = action === 'trending' ? cat : cat;
+      const r = await rankedCandidates(client, {
+        category: selectedCategory,
+        limit: limitN * 3,
+        offset,
+      });
       total = parseInt(r.rows[0]?.total_count || '0', 10);
 
       if (r.rows.length > 0) {
         rows = await groupWithOffers(client, r.rows);
-        // A legacy offer can still have a different category from the best offer.
-        rows = rows.filter(p => p.category === cat).slice(0, limitN);
-      } else {
+        const scoreByEan = new Map(r.rows.map(row => [row.ean, {
+          trend_score: Number(row.trend_score) || 0,
+          trend_views: Number(row.trend_views) || 0,
+          trend_clicks: Number(row.trend_clicks) || 0,
+        }]));
+        rows = rows.map(product => ({ ...product, ...(scoreByEan.get(product.ean) || {}) }));
+        if (selectedCategory && selectedCategory !== 'innovations') {
+          rows = rows.filter(p => p.category === selectedCategory);
+        }
+        rows = rows.sort((a,b) => (b.trend_score || 0) - (a.trend_score || 0)).slice(0, limitN);
+      } else if (selectedCategory && selectedCategory !== 'innovations') {
         const r2 = await client.query(`
           SELECT p.*, pr.title as program_title FROM products p
           LEFT JOIN programs pr ON p.program_id = pr.id
@@ -472,9 +536,9 @@ export default async function handler(req, res) {
           AND p.program_id NOT LIKE '%darty%'
           AND p.category = $1
           ORDER BY p.updated_at DESC LIMIT $2 OFFSET $3
-        `, [cat, limitN, offset]);
+        `, [selectedCategory, limitN, offset]);
         rows = await groupWithOffers(client, r2.rows);
-        if (cat) rows = rows.filter(p => p.category === cat);
+        rows = rows.filter(p => p.category === selectedCategory);
         total = rows.length;
       }
 

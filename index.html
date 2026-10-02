@@ -119,6 +119,7 @@ nav {
 }
 .nav-cat:hover { color:var(--text); background:var(--bg3); }
 .nav-cat.active { color:var(--coral); }
+.nav-innovation{color:#8b5cf6}.nav-innovation:hover{color:#7c3aed}
 
 .nav-actions { display:flex; align-items:center; gap:.5rem; flex-shrink:0; }
 .nav-icon-btn {
@@ -924,6 +925,23 @@ nav {
   .pd-offer-price{text-align:left}
   .pd-offer-btn{justify-self:stretch}
 }
+
+/* Product page v2 — denser decision layout, still native to HiFind. */
+.pd-kicker{display:flex;align-items:center;gap:.55rem;margin-bottom:.65rem;color:var(--sub);font-size:.72rem;font-weight:700}
+.pd-live-dot{width:7px;height:7px;border-radius:50%;background:var(--jade);box-shadow:0 0 0 5px var(--jade-bg)}
+.pd-action-row{display:flex;gap:.55rem;align-items:center;margin-top:.8rem;flex-wrap:wrap}
+.pd-share-btn{border:1px solid var(--border2);background:var(--bg2);color:var(--text);border-radius:10px;padding:.72rem .9rem;font-weight:750;font-size:.76rem;cursor:pointer}
+.pd-share-btn:hover{background:var(--bg3)}
+.pd-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem;margin-top:.8rem}
+.pd-summary-item{border:1px solid var(--border);background:var(--bg2);border-radius:11px;padding:.72rem .8rem;min-width:0}
+.pd-summary-item span{display:block;color:var(--sub);font-size:.62rem;text-transform:uppercase;letter-spacing:.055em;font-weight:800}
+.pd-summary-item strong{display:block;margin-top:.18rem;font-size:.79rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pd-section-nav{position:sticky;top:72px;z-index:4;display:flex;gap:.4rem;padding:.55rem;margin:0 0 2rem;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:12px}
+.pd-section-nav a{padding:.48rem .7rem;border-radius:8px;text-decoration:none;color:var(--sub);font-size:.72rem;font-weight:800}
+.pd-section-nav a:hover{background:var(--bg3);color:var(--text)}
+.pd-decision-note{display:flex;gap:.65rem;align-items:flex-start;margin-top:.9rem;padding:.8rem .9rem;border-radius:11px;background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.15);font-size:.72rem;color:var(--sub);line-height:1.5}
+.pd-decision-note strong{color:var(--text)}
+@media(max-width:620px){.pd-summary-grid{grid-template-columns:1fr}.pd-section-nav{top:60px;overflow:auto}.pd-section-nav a{white-space:nowrap}}
 @media(max-width:860px){
   .pd-layout{ grid-template-columns:1fr; }
   .pd-media{ position:static; }
@@ -988,14 +1006,15 @@ nav {
       <button onclick="doNavSearch()" aria-label="Lancer la recherche"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
     </div>
     <ul class="nav-cats">
-      <li class="nav-cat active" onclick="showPage('home');setActiveNavCat(this)">Bons plans</li>
+      <li class="nav-cat active" onclick="showPage('home');setActiveNavCat(this)">Tendances</li>
+      <li class="nav-cat nav-innovation" onclick="goCategory('innovations',this)">Innovations</li>
       <li class="nav-cat" onclick="goCategory('high-tech',this)">High-Tech</li>
       <li class="nav-cat" onclick="goCategory('sport-outdoor',this)">Sport</li>
       <li class="nav-cat" onclick="goCategory('maison-jardin',this)">Maison & Jardin</li>
       <li class="nav-cat" onclick="goCategory('beaute-bienetre',this)">Beauté & Santé</li>
       <li class="nav-cat" onclick="goCategory('auto-moto',this)">Auto &amp; Moto</li>
       <li><details class="nav-menu"><summary class="nav-cat">Toutes les catégories</summary><div class="nav-menu-list">
-        <button onclick="goCategory('high-tech')">High-Tech</button><button onclick="goCategory('sport-outdoor')">Sport</button>
+        <button onclick="goCategory('innovations')">Innovations</button><button onclick="goCategory('high-tech')">High-Tech</button><button onclick="goCategory('sport-outdoor')">Sport</button>
         <button onclick="goCategory('maison-jardin')">Maison &amp; Jardin</button><button onclick="goCategory('beaute-bienetre')">Beauté &amp; Santé</button>
         <button onclick="goCategory('auto-moto')">Auto &amp; Moto</button><button onclick="goCategory('mode-vetements')">Mode &amp; Accessoires</button>
         <button onclick="goCategory('enfants-bebes')">Enfants</button><button onclick="goCategory('livres-bd')">Livres &amp; BD</button>
@@ -1025,12 +1044,9 @@ nav {
             autocomplete="off">
           <button onclick="doHeroSearch()">Rechercher</button>
         </div>
-        <div class="hero-popular">
+        <div class="hero-popular" id="heroPopular">
           <span class="hero-popular-label">Populaire :</span>
-          <button class="hero-tag" onclick="searchFor('iPhone 15 Pro')">iPhone 15 Pro</button>
-          <button class="hero-tag" onclick="searchFor('PS5')">PS5</button>
-          <button class="hero-tag" onclick="searchFor('AirPods Pro')">AirPods Pro</button>
-          <button class="hero-tag" onclick="searchFor('Dyson V15')">Dyson V15</button>
+          <span class="hero-popular-loading">Sélection en cours…</span>
         </div>
       </div>
       <div class="hero-visual">
@@ -1188,10 +1204,10 @@ nav {
   <div class="section">
     <div class="carousel-head">
       <div>
-        <div class="section-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg> High-tech</div>
-        <h2 class="section-title barlow">Électronique &amp; gadgets</h2>
+        <div class="section-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4"/><path d="M8.5 14.5A6 6 0 1 1 15.5 14.5C14.6 15.2 14 16 14 17h-4c0-1-.6-1.8-1.5-2.5Z"/></svg> Nouveautés technologiques</div>
+        <h2 class="section-title barlow">Innovations à suivre</h2>
       </div>
-      <a class="carousel-seeall" onclick="goCategory('high-tech')">Tout voir</a>
+      <a class="carousel-seeall" onclick="goCategory('innovations')">Tout voir</a>
     </div>
     <div class="carousel-row" id="carHighTech"><div class="spinner"><div class="spin"></div></div></div>
   </div>
@@ -1219,9 +1235,9 @@ nav {
 
   <!-- MEILLEURES AFFAIRES -->
   <div class="section">
-    <div class="section-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 12 22l-9-9V4a1 1 0 0 1 1-1h9l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/></svg> Économies maximales</div>
-    <h2 class="section-title barlow">Les meilleures affaires</h2>
-    <p class="section-sub">Produits avec le plus gros écart de prix entre marchands</p>
+    <div class="section-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 6-6 4 4 8-9"/><path d="M15 6h6v6"/></svg> Intérêt du moment</div>
+    <h2 class="section-title barlow">Les produits qui attirent le plus</h2>
+    <p class="section-sub">Classement évolutif selon l’intérêt des visiteurs, la fraîcheur et la qualité de comparaison.</p>
     <div class="prod-grid" id="dealsGrid">
       <div class="spinner"><div class="spin"></div></div>
     </div>
@@ -1323,6 +1339,7 @@ nav {
     </div>
     <div class="footer-col">
       <h4>Catégories</h4>
+      <a onclick="goCategory('innovations')">Innovations</a>
       <a onclick="goCategory('beaute-bienetre')">Beauté & Santé</a>
       <a onclick="goCategory('high-tech')">High-Tech</a>
       <a onclick="goCategory('auto-moto')">Auto & Moto</a>
@@ -1428,6 +1445,34 @@ async function apiFetch(params) {
     if (!res.ok) return null;
     return await res.json();
   } catch(e) { return null; }
+}
+
+function trackEngagement(ean, eventName) {
+  if (!ean) return;
+  if (eventName === 'detail_view') {
+    var day = new Date().toISOString().slice(0, 10);
+    var key = 'hf_view_' + day + '_' + ean;
+    try { if (localStorage.getItem(key)) return; localStorage.setItem(key, '1'); } catch(e) {}
+  }
+  fetch('/api/engagement', {
+    method:'POST', headers:{'Content-Type':'application/json'}, keepalive:true,
+    body:JSON.stringify({ ean:String(ean), event:eventName })
+  }).catch(function(){});
+}
+
+function trackOfferClick() {
+  if (currentProduct && currentProduct.ean) trackEngagement(currentProduct.ean, 'offer_click');
+}
+
+function shareCurrentProduct() {
+  if (!currentProduct || !currentProduct.ean) return;
+  var url = location.origin + '/?openEan=' + encodeURIComponent(currentProduct.ean);
+  var payload = { title:currentProduct.title || 'Comparaison HiFind', text:'Comparez les prix sur HiFind', url:url };
+  if (navigator.share) navigator.share(payload).catch(function(){});
+  else if (navigator.clipboard) navigator.clipboard.writeText(url).then(function(){
+    var button = document.querySelector('.pd-share-btn');
+    if (button) { button.textContent = 'Lien copié'; setTimeout(function(){ button.textContent = 'Partager cette comparaison'; }, 1800); }
+  }).catch(function(){});
 }
 
 // ══ SEARCH ══
@@ -1762,8 +1807,9 @@ function offersLabel(count) {
 
 // ══ DETAIL ══
 var DETAIL_REQUEST = 0;
-async function openDetail(id) {
+async function openDetail(id, options) {
   var request = ++DETAIL_REQUEST;
+  options = options || {};
   var p = currentResults.find(x => x.id === id)
        || favorites.find(x => x.id === id)
        || homeProductsCache[id];
@@ -1772,7 +1818,8 @@ async function openDetail(id) {
   CURRENT_OFFERS = [];
   document.getElementById('detailContent').textContent = 'Chargement des offres…';
   try {
-    var detail = await apiFetch('action=product&id=' + encodeURIComponent(id));
+    var lookup = options.ean ? 'ean=' + encodeURIComponent(id) : 'id=' + encodeURIComponent(id);
+    var detail = await apiFetch('action=product&' + lookup);
     if (request !== DETAIL_REQUEST) return;
     if (detail && detail.data && detail.data[0]) p = detail.data[0];
   } catch (error) {
@@ -1782,6 +1829,8 @@ async function openDetail(id) {
     document.getElementById('detailContent').textContent = 'Ce produit est momentanément indisponible.';
     return;
   }
+  currentProduct = p;
+  if (typeof trackEngagement === 'function' && p.ean) trackEngagement(p.ean, 'detail_view');
   var byMerchant = {};
   (p.ean_offers || []).forEach(function(o){
     var price = Number(o.price);
@@ -1822,6 +1871,7 @@ async function openDetail(id) {
         + '<div class="pd-media-meta"><strong>' + offers.length + '</strong> marchand' + (offers.length > 1 ? 's' : '') + ' comparé' + (offers.length > 1 ? 's' : '') + '</div>'
       + '</div>'
       + '<div class="pd-info">'
+        + '<div class="pd-kicker"><span class="pd-live-dot"></span>Comparaison actualisée à partir des offres disponibles</div>'
         + (p.brand ? '<div class="pd-brand">' + escHtml(p.brand) + '</div>' : '')
         + '<h1 class="pd-title">' + escHtml(p.title) + '</h1>'
         + (p.description ? '<p class="pd-specs">' + escHtml(p.description.slice(0, 260)) + '</p>' : '')
@@ -1838,10 +1888,19 @@ async function openDetail(id) {
           + '</div>'
           + '<a href="#pdOffers" class="pd-hero-cta">Voir les offres ' + ICO.arrow + '</a>'
         + '</div>'
+        + '<div class="pd-summary-grid">'
+          + '<div class="pd-summary-item"><span>Couverture</span><strong>' + offers.length + ' marchand' + (offers.length > 1 ? 's' : '') + '</strong></div>'
+          + '<div class="pd-summary-item"><span>Écart de prix</span><strong>' + fmtEur(Math.max(0, hi-lo)) + '</strong></div>'
+          + '<div class="pd-summary-item"><span>Meilleure offre</span><strong>' + escHtml(cheapestMerchant) + '</strong></div>'
+        + '</div>'
+        + '<div class="pd-action-row"><button class="pd-share-btn" onclick="shareCurrentProduct()">Partager cette comparaison</button></div>'
+        + '<div class="pd-decision-note"><strong>Conseil HiFind</strong><span>Comparez le prix livré lorsqu’il est disponible. Le prix et le stock définitifs restent ceux affichés chez le marchand.</span></div>'
       + '</div>'
     + '</div>'
 
-    + '<section class="pd-section">'
+    + '<nav class="pd-section-nav" aria-label="Navigation de la fiche"><a href="#pdOffers">Offres</a><a href="#pdPriceAnalysis">Analyse du prix</a><a href="#pdSimilar">Produits similaires</a></nav>'
+
+    + '<section class="pd-section" id="pdPriceAnalysis">'
       + '<div class="pd-section-head"><div><div class="pd-section-title">Comprendre le prix</div><div class="pd-section-sub">Calculé uniquement à partir des offres disponibles pour ce produit.</div></div></div>'
       + '<div class="pd-price-insight">'
         + '<div class="pd-stat"><div class="pd-stat-label">Prix le plus bas</div><div class="pd-stat-value">' + fmtEur(lo) + '</div><div class="pd-stat-note">' + escHtml(cheapestMerchant) + '</div></div>'
@@ -2046,23 +2105,21 @@ function renderSearchQuick(q) {
 
 async function initHome() {
   try {
-    // On demande large : le tri se fait ensuite sur la distribution reelle
-    var data = await apiFetch('action=list&limit=30');
+    // Le serveur classe les produits avec les signaux réels des 30 derniers
+    // jours, puis la fraîcheur et la couverture prennent le relais au démarrage.
+    var data = await apiFetch('action=trending&limit=40');
     var products = (data && data.data) ? data.data : [];
     products.forEach(function(p){ homeProductsCache[p.id] = p; });
 
-    // Selection by merchant coverage and price spread, not sales volume.
     var scored = products.map(function(p){
       var offers = offersOf(p);
       var lo = offers.length ? offers[0].price : (parseFloat(p.price) || 0);
       var hi = offers.length ? offers[offers.length-1].price : lo;
       var spread = hi > lo ? (1 - lo/hi) : 0;
-      return { p: p, n: offers.length, spread: spread, lo: lo };
+      return { p: p, n: offers.length, spread: spread, lo: lo, trend: Number(p.trend_score) || 0 };
     }).filter(function(x){ return x.n >= 2 && x.lo > 0; });
 
-    // Les plus gros ecarts, parmi ceux vendus par 3 marchands ou plus
-    var deals = scored.filter(function(x){ return x.n >= 3; })
-                      .sort(function(a,b){ return b.spread - a.spread; });
+    var trends = scored.sort(function(a,b){ return (b.trend-a.trend) || (b.n-a.n) || (b.spread-a.spread); });
 
     var seen = {};
     var fill = function(el, list, count, flagBest){
@@ -2079,14 +2136,15 @@ async function initHome() {
         : '<p style="color:var(--sub);padding:1rem">Aucun produit pour le moment.</p>';
     };
 
-    fill(document.getElementById('dealsGrid'), deals, 12, true);
+    fill(document.getElementById('dealsGrid'), trends, 12, true);
 
-    renderHeroCarousel(deals.length ? deals : scored, !data);
+    renderHeroCarousel(trends, !data);
+    renderPopularSearches(trends.map(function(x){ return x.p; }));
 
     // Nouvelles sections bas de page -- independantes du tri deals/scored
     // ci-dessus, chacune interroge sa propre categorie directement.
     renderCategoryCarousel('auto-moto', 'carAutoMoto');
-    renderCategoryCarousel('high-tech', 'carHighTech');
+    renderCategoryCarousel('innovations', 'carHighTech');
     renderCategoryCarousel('beaute-bienetre', 'carBeaute');
     renderCategoryTileGrid();
   } catch (e) {
@@ -2094,9 +2152,30 @@ async function initHome() {
   }
 }
 
+function renderPopularSearches(products) {
+  var host = document.getElementById('heroPopular');
+  if (!host) return;
+  host.innerHTML = '<span class="hero-popular-label">Populaire :</span>';
+  (products || []).slice(0, 4).forEach(function(product) {
+    var button = document.createElement('button');
+    button.className = 'hero-tag';
+    button.textContent = product.brand || product.product_type_label || String(product.title || '').slice(0, 28);
+    button.title = product.title || '';
+    button.addEventListener('click', function() { openDetail(product.id); });
+    host.append(button);
+  });
+  if (host.children.length === 1) {
+    var empty = document.createElement('span');
+    empty.className = 'hero-popular-loading';
+    empty.textContent = 'Les tendances arrivent bientôt';
+    host.append(empty);
+  }
+}
+
 // LOT design : icones simples par categorie, meme langage visuel que ICO
 // (trait 2px, coins arrondis) -- pas de nouvelle bibliotheque d'icones.
 var CAT_ICONS = {
+  'innovations': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4"/><path d="M8.5 14.5A6 6 0 1 1 15.5 14.5C14.6 15.2 14 16 14 17h-4c0-1-.6-1.8-1.5-2.5Z"/></svg>',
   'high-tech': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></svg>',
   'auto-moto': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 17H3V7l2-4h11l3 5h2v9h-2"/></svg>',
   'maison-jardin': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
@@ -2117,7 +2196,7 @@ async function renderCategoryCarousel(cat, elId){
   var host = document.getElementById(elId);
   if (!host) return;
   try {
-    var data = await apiFetch('action=category&cat=' + encodeURIComponent(cat) + '&limit=14');
+    var data = await apiFetch('action=trending&cat=' + encodeURIComponent(cat) + '&limit=14');
     var items = (data && data.data) ? data.data : [];
     if (!items.length) { host.closest('.section').hidden = true; return; }
     host.closest('.section').hidden = false;
@@ -2293,8 +2372,10 @@ loadMerchantMarquee();
 (function(){
   var params = new URLSearchParams(window.location.search);
   var pid = params.get('openProduct');
+  var ean = params.get('openEan');
   var query = (params.get('q') || '').trim();
-  if (pid) openDetail(pid);
+  if (ean && /^\d{8,14}$/.test(ean)) openDetail(ean, { ean:true });
+  else if (pid) openDetail(pid);
   else if (query) searchFor(query.slice(0, 120));
 })();
 
@@ -2400,13 +2481,7 @@ function escHtml(s){
 // serveur et cote client -- toute divergence casserait le lien).
 function productUrl(p) {
   if (!p || !p.ean) return '#';
-  var slug = String(p.title || '')
-    .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 80);
-  return '/produit/' + slug + '-' + p.ean;
+  return '/?openEan=' + encodeURIComponent(p.ean);
 }
 
 // Intercepte un clic GAUCHE simple pour garder la transition SPA rapide
@@ -2421,7 +2496,7 @@ function handleCardClick(event, id) {
   var p = currentResults.find(function(x){ return x.id === id; })
        || favorites.find(function(x){ return x.id === id; })
        || homeProductsCache[id];
-  if (p) { try { history.pushState({ id: id }, '', productUrl(p)); } catch(e) {} }
+  if (p) { try { history.pushState({ page:'detail', productId:id }, '', productUrl(p)); } catch(e) {} }
   return false;
 }
 
@@ -2501,6 +2576,7 @@ function facetBlock(id, title, body){
 
 
 var CAT_LABELS = {
+  'innovations':'Innovations',
   'high-tech':'High-tech', 'auto-moto':'Auto & moto', 'maison-jardin':'Maison & jardin',
   'mode-vetements':'Mode & vêtements', 'beaute-bienetre':'Beauté & bien-être',
   'sante-nutrition':'Santé & nutrition', 'enfants-bebes':'Enfants & bébés',
@@ -2721,7 +2797,7 @@ function renderOfferRows(offers){
         + deliveryLine
         + (freshness ? '<div class="pd-offer-freshness">Relevé ' + freshness + '</div>' : '')
       + '</div>'
-      + '<a class="pd-offer-btn ' + (isBestTotal ? 'primary' : 'secondary') + '" href="' + escHtml(o.url) + '" target="_blank" rel="noopener sponsored">Voir l\'offre</a>'
+      + '<a class="pd-offer-btn ' + (isBestTotal ? 'primary' : 'secondary') + '" href="' + escHtml(o.url) + '" target="_blank" rel="noopener sponsored" onclick="trackOfferClick()">Voir l\'offre</a>'
     + '</div>';
   }).join('');
 }
@@ -2830,8 +2906,5 @@ function goToPage(p){
 }
 
 </script>
-<!-- CJ Auto Deep Link : meme script que api/produit.js, voir commentaire
-     la-bas pour le detail des options choisies le 09/08. -->
-<script src="https://www.anrdoezrs.net/am/101723456/include/joined/impressions/page/am.js"></script>
 </body>
 </html>

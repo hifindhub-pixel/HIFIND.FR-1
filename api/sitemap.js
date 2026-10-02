@@ -4,6 +4,7 @@ const { Pool } = pkg;
 export const SITE_URL = 'https://hifind.fr';
 export const PRODUCTS_PER_SITEMAP = 40000;
 export const CATEGORIES = [
+  'innovations',
   'high-tech', 'auto-moto', 'maison-jardin', 'mode-vetements', 'beaute-bienetre',
   'sante-nutrition', 'enfants-bebes', 'sport-outdoor', 'animaux', 'alimentation-bio',
   'livres-bd',
