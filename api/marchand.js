@@ -1,5 +1,5 @@
 import { getPool, groupWithOffers, slugifyMerchant } from './products.js';
-import { SITE_URL, esc, jsonLd, productCard } from './categorie.js';
+import { SITE_URL, CATEGORY_META, esc, jsonLd, productCard } from './categorie.js';
 
 const MULTI_VENDOR_WHERE = `
   p.ean IS NOT NULL AND p.status = 'enabled'
@@ -19,7 +19,7 @@ export function merchantPageHtml({ merchant, products, total, page = 1, pages = 
   const description = `Comparez les prix de ${total.toLocaleString('fr-FR')} produits vendus par ${merchant} avec les offres d’autres marchands sur HiFind.`;
   const categories = new Map();
   products.forEach(product => {
-    const label = product.category_family || product.category || 'Autres produits';
+    const label = product.product_type_label || CATEGORY_META[product.category]?.title || 'Autres produits';
     categories.set(label, (categories.get(label) || 0) + 1);
   });
   const structured = {
