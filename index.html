@@ -1394,6 +1394,7 @@ function setActiveNavCat(el) {
 }
 
 function goCategory(cat, el) {
+  if (cat) { window.location.href = '/categorie/' + encodeURIComponent(cat); return; }
   setActiveNavCat(el || null);
   lastCat = cat;
   lastQuery = '';

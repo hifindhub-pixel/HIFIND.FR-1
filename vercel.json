@@ -12,13 +12,29 @@
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Cache-Control", "value": "public, s-maxage=300" }
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=300"
+        }
       ]
     }
   ],
   "rewrites": [
-    { "source": "/produit/:slug*", "destination": "/api/produit?slug=:slug*" },
-    { "source": "/sitemap.xml", "destination": "/api/sitemap" }
+    {
+      "source": "/categorie/:slug",
+      "destination": "/api/categorie?slug=:slug"
+    },
+    {
+      "source": "/produit/:slug*",
+      "destination": "/api/produit?slug=:slug*"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    }
   ]
 }
