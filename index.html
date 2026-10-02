@@ -945,6 +945,19 @@ nav {
   margin-bottom:.6rem; font-family:var(--num);
 }
 
+.sp-context{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:.65rem;font-size:.76rem;color:var(--sub);flex-wrap:wrap}
+.sp-context strong{color:var(--text)}
+.search-suggestion-title{padding:.65rem .8rem .35rem;font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--sub)}
+.catalogue-suggestion{width:100%;display:flex;align-items:center;gap:.75rem;padding:.72rem .85rem;background:transparent;border:0;border-bottom:1px solid var(--border);color:var(--text);text-align:left;cursor:pointer}
+.catalogue-suggestion:last-child{border-bottom:0}
+.catalogue-suggestion:hover,.catalogue-suggestion:focus{background:var(--bg3);outline:none}
+.catalogue-suggestion .sugg-img{width:38px;height:38px;object-fit:contain;background:#fff;border-radius:7px;flex:none}
+.catalogue-suggestion .sugg-copy{min-width:0;display:flex;flex-direction:column;gap:.18rem}
+.catalogue-suggestion .sugg-title{font-size:.78rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.catalogue-suggestion .sugg-meta{font-size:.66rem;color:var(--sub)}
+.search-quick{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;margin-top:.7rem}
+.search-quick button{border:1px solid var(--border);background:var(--bg2);color:var(--sub);border-radius:999px;padding:.32rem .58rem;font-size:.67rem;cursor:pointer}
+.search-quick button:hover{border-color:var(--border2);color:var(--text);background:var(--bg3)}
 </style>
 <link rel="stylesheet" href="/assets/home-refinement.css">
 </head>
@@ -1225,7 +1238,7 @@ nav {
     <div class="cat-head-top">
       <div>
         <h1 class="cat-title" id="catTitle">Résultats<span class="cat-count" id="resCountNum">0</span></h1>
-        <p class="cat-lede" id="catLede">Chaque produit ci-dessous est comparé chez plusieurs marchands. Le prix affiché est le plus bas relevé lors de la dernière actualisation.</p>
+        <p class="cat-lede" id="catLede">Chaque produit ci-dessous est comparé chez plusieurs marchands. Le prix affiché est le plus bas relevé lors de la dernière actualisation.</p><div class="sp-context" id="searchContext"></div><div class="search-quick" id="searchQuick"></div>
       </div>
       <div class="cat-tools">
         <select class="sort-select" id="sortSelect" onchange="sortResults()" aria-label="Trier les résultats">
@@ -1430,7 +1443,7 @@ function searchFor(q) {
   document.getElementById('spInput').value = q;
   document.getElementById('spClear').style.display = 'block';
   document.getElementById('navInput').value = q;
-  lastQuery = q; lastCat = '';
+  lastQuery = q; lastCat = ''; saveRecentSearch(q); renderSearchQuick(q);
   showPage('search');
   runSearch(q);
 }
@@ -1443,6 +1456,9 @@ async function runSearch(q) {
   if (sequence !== searchSequence) return;
   if (data && data.data && data.data.length > 0) {
     allResults = data.data; currentResults = allResults.slice();
+    var ctx = document.getElementById('searchContext');
+    if (ctx) ctx.innerHTML = '<strong>' + data.data.length + ' résultats affichés</strong> pour « ' + escHtml(q) + ' »';
+    renderSearchQuick(q);
     renderResults(currentResults);
     renderFacets(); renderChips();
 
@@ -1460,6 +1476,9 @@ async function runSearch(q) {
     }
   } else {
     allResults = []; currentResults = [];
+    var ctxEmpty = document.getElementById('searchContext');
+    if (ctxEmpty) ctxEmpty.innerHTML = '<strong>0 résultat</strong> pour « ' + escHtml(q) + ' »';
+    renderSearchQuick(q);
     document.getElementById('resCountNum').textContent = '0';
     document.getElementById('facetsPanel').innerHTML = '';
     var pagBar = document.getElementById('paginationBar');
@@ -1823,7 +1842,7 @@ function hideSugg(id) {
 function showSuggestions(id, val) {
   hideSugg(id);
   val = val.trim();
-  if (val.length < 3) return;
+  if (val.length < 2) return;
   var job = suggestionJobs[id] = { cancelled: false };
   job.timer = setTimeout(async function() {
     var key = val.toLowerCase(), data = suggestionCache.get(key);
@@ -1837,18 +1856,66 @@ function showSuggestions(id, val) {
     if (job.cancelled || !data || !data.data || !data.data.length) return;
     var el = document.getElementById(id);
     el.replaceChildren();
+
+    var title = document.createElement('div');
+    title.className = 'search-suggestion-title';
+    title.textContent = 'Produits correspondants';
+    el.appendChild(title);
+
     data.data.forEach(function(p) {
       var button = document.createElement('button');
       button.type = 'button'; button.className = 'catalogue-suggestion';
-      var title = document.createElement('span'); title.textContent = p.title;
-      var meta = document.createElement('small');
-      meta.textContent = fmtEur(p.price) + ' · ' + p.offers_count + ' marchands';
-      button.append(title, meta);
-      button.addEventListener('click', function() { hideSugg(id); openDetail(p.id); });
-      el.append(button);
+      var img = p.image || p.image_url || p.thumbnail || '';
+      if (img) {
+        var image = document.createElement('img');
+        image.className = 'sugg-img';
+        image.src = img;
+        image.alt = '';
+        image.loading = 'lazy';
+        image.onerror = function(){ this.remove(); };
+        button.appendChild(image);
+      }
+      var copy = document.createElement('span'); copy.className = 'sugg-copy';
+      var t = document.createElement('span'); t.className = 'sugg-title'; t.textContent = p.title;
+      var meta = document.createElement('small'); meta.className = 'sugg-meta';
+      var bits = [];
+      if (p.brand) bits.push(p.brand);
+      if (p.category) bits.push(p.category);
+      if (p.price != null) bits.push('dès ' + fmtEur(p.price));
+      if (p.offers_count != null) bits.push(p.offers_count + ' marchand' + (p.offers_count > 1 ? 's' : ''));
+      meta.textContent = bits.join(' · ');
+      copy.append(t, meta); button.appendChild(copy);
+      button.addEventListener('click', function() { hideSugg(id); saveRecentSearch(val); openDetail(p.id); });
+      el.appendChild(button);
     });
     el.style.display = 'block';
-  }, 350);
+  }, 220);
+}
+
+function saveRecentSearch(q) {
+  try {
+    var arr = JSON.parse(localStorage.getItem('hifind_recent_searches') || '[]');
+    arr = [q].concat(arr.filter(function(x){ return x.toLowerCase() !== q.toLowerCase(); })).slice(0,5);
+    localStorage.setItem('hifind_recent_searches', JSON.stringify(arr));
+  } catch(e) {}
+}
+function getRecentSearches() {
+  try { return JSON.parse(localStorage.getItem('hifind_recent_searches') || '[]'); } catch(e) { return []; }
+}
+function renderSearchQuick(q) {
+  var el = document.getElementById('searchQuick');
+  if (!el) return;
+  el.replaceChildren();
+  var recent = getRecentSearches().filter(function(x){ return !q || x.toLowerCase() !== q.toLowerCase(); }).slice(0,4);
+  if (!recent.length) return;
+  var label = document.createElement('span');
+  label.style.cssText='font-size:.67rem;color:var(--sub);font-weight:700';
+  label.textContent='Récent :';
+  el.appendChild(label);
+  recent.forEach(function(item){
+    var b=document.createElement('button'); b.type='button'; b.textContent=item;
+    b.onclick=function(){ searchFor(item); }; el.appendChild(b);
+  });
 }
 [['heroInput','heroSugg'],['navInput','navSugg'],['spInput','spSugg']].forEach(function(pair) {
   var input = document.getElementById(pair[0]), el = document.getElementById(pair[1]);
