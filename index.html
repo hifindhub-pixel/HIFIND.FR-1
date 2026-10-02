@@ -1440,9 +1440,12 @@ function searchFor(q) {
   runSearch(q);
 }
 
+var searchSequence = 0;
 async function runSearch(q) {
+  var sequence = ++searchSequence;
   showSpinner('resultsContainer');
   var data = await apiFetch('action=search&q=' + encodeURIComponent(q) + '&limit=40');
+  if (sequence !== searchSequence) return;
   if (data && data.data && data.data.length > 0) {
     allResults = data.data; currentResults = allResults.slice();
     renderResults(currentResults);
@@ -1462,15 +1465,17 @@ async function runSearch(q) {
     }
   } else {
     allResults = []; currentResults = [];
+    document.getElementById('resCountNum').textContent = '0';
     document.getElementById('facetsPanel').innerHTML = '';
     var pagBar = document.getElementById('paginationBar');
     if (pagBar) pagBar.innerHTML = '';
     document.getElementById('resultsContainer').innerHTML =
-      '<div class="empty-state"><div class="empty-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div><div class="empty-title">Aucun résultat</div><div class="empty-sub">Essayez avec d\'autres mots clés</div></div>';
+      '<div class="empty-state"><div class="empty-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div><div class="empty-title">' + (data ? 'Aucun résultat' : 'Recherche momentanément indisponible') + '</div><div class="empty-sub">' + (data ? "Essayez une marque ou une référence plus précise." : "Veuillez relancer votre recherche dans quelques instants.") + '</div></div>';
   }
 }
 
 async function loadCategory(cat, page) {
+  var sequence = ++searchSequence;
   page = page || 1;
   showSpinner('resultsContainer');
   document.querySelectorAll('.fcat').forEach(b => {
@@ -1478,6 +1483,7 @@ async function loadCategory(cat, page) {
   });
   var action = cat ? 'action=category&cat=' + encodeURIComponent(cat) : 'action=list';
   var data = await apiFetch(action + '&limit=' + PAGE_SIZE + '&page=' + page);
+  if (sequence !== searchSequence) return;
 
   PAGE_STATE.cat = cat;
   PAGE_STATE.page = (data && data.page) || page;
@@ -1865,34 +1871,69 @@ function prodCardSmall(p, showBadge) {
 }
 
 // ══ SUGGESTIONS ══
-var SUGGESTIONS = ['parfum femme','parfum homme','crème visage','shampoing','soin cheveux',
-  'pneu été','pneu hiver','huile moteur','autoradio','kit freinage',
-  'basket homme','basket femme','chaussures running','chaussures randonnée',
-  'ordinateur portable','pc gamer','casque audio','écouteurs bluetooth','tablette',
-  'tapis de course','vélo elliptique','appareil musculation',
-  'robe été','jean slim','manteau femme','veste homme',
-  'siège auto enfant','poussette','jouet bébé','lego',
-  'tondeuse','taille haie','robot cuisine','cafetière'];
-
-function showSuggestions(id, val) {
+var suggestionJobs = {}, suggestionCache = new Map();
+function hideSugg(id) {
+  var job = suggestionJobs[id];
+  if (job) { clearTimeout(job.timer); job.cancelled = true; }
   var el = document.getElementById(id);
-  if (!val || val.length < 2) { el.style.display='none'; return; }
-  var matches = SUGGESTIONS.filter(function(s){ return s.toLowerCase().includes(val.toLowerCase()); }).slice(0,6);
-  if (!matches.length) { el.style.display='none'; return; }
-  el.innerHTML = '';
-  matches.forEach(function(s) {
-    var idx = s.toLowerCase().indexOf(val.toLowerCase());
-    var div = document.createElement('div');
-    div.style.cssText = 'padding:.65rem 1rem;cursor:pointer;font-size:.88rem;display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--border);transition:background .15s';
-    div.innerHTML = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> ' + s.slice(0,idx) + '<strong style="color:var(--coral)">' + s.slice(idx,idx+val.length) + '</strong>' + s.slice(idx+val.length);
-    div.onmouseover = function(){ this.style.background='var(--bg3)'; };
-    div.onmouseout = function(){ this.style.background=''; };
-    div.onclick = (function(term,elId){ return function(){ searchFor(term); hideSugg(elId); }; })(s,id);
-    el.appendChild(div);
-  });
-  el.style.display = 'block';
+  if (el) el.style.display = 'none';
 }
-function hideSugg(id) { var el=document.getElementById(id); if(el) el.style.display='none'; }
+function showSuggestions(id, val) {
+  hideSugg(id);
+  val = val.trim();
+  if (val.length < 3) return;
+  var job = suggestionJobs[id] = { cancelled: false };
+  job.timer = setTimeout(async function() {
+    var key = val.toLowerCase(), data = suggestionCache.get(key);
+    if (!data) {
+      data = await apiFetch('action=suggest&q=' + encodeURIComponent(val) + '&limit=6');
+      if (data && data.data) {
+        if (suggestionCache.size >= 30) suggestionCache.delete(suggestionCache.keys().next().value);
+        suggestionCache.set(key, data);
+      }
+    }
+    if (job.cancelled || !data || !data.data || !data.data.length) return;
+    var el = document.getElementById(id);
+    el.replaceChildren();
+    data.data.forEach(function(p) {
+      var button = document.createElement('button');
+      button.type = 'button'; button.className = 'catalogue-suggestion';
+      var title = document.createElement('span'); title.textContent = p.title;
+      var meta = document.createElement('small');
+      meta.textContent = fmtEur(p.price) + ' · ' + p.offers_count + ' marchands';
+      button.append(title, meta);
+      button.addEventListener('click', function() { hideSugg(id); openDetail(p.id); });
+      el.append(button);
+    });
+    el.style.display = 'block';
+  }, 350);
+}
+[['heroInput','heroSugg'],['navInput','navSugg'],['spInput','spSugg']].forEach(function(pair) {
+  var input = document.getElementById(pair[0]), el = document.getElementById(pair[1]);
+  if (!el) {
+    el = document.createElement('div'); el.id = pair[1]; input.parentElement.append(el);
+  }
+  el.classList.add('catalogue-suggestions'); el.setAttribute('aria-label', 'Produits suggérés');
+  input.setAttribute('aria-controls', pair[1]);
+  input.oninput = function() { showSuggestions(pair[1], input.value); };
+  input.onblur = null;
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' || e.key === 'Enter') hideSugg(pair[1]);
+    if (e.key === 'ArrowDown' && el.style.display === 'block') {
+      e.preventDefault(); el.querySelector('button')?.focus();
+    }
+  });
+  el.addEventListener('keydown', function(e) {
+    var buttons = Array.from(el.querySelectorAll('button')), n = buttons.indexOf(document.activeElement);
+    if (e.key === 'Escape') { hideSugg(pair[1]); input.focus(); }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault(); buttons[(n + (e.key === 'ArrowDown' ? 1 : buttons.length - 1)) % buttons.length]?.focus();
+    }
+  });
+  input.parentElement.addEventListener('focusout', function(e) {
+    if (!input.parentElement.contains(e.relatedTarget)) hideSugg(pair[1]);
+  });
+});
 
 // ══ BRAND FILTERS ══
 
@@ -2155,7 +2196,7 @@ document.addEventListener('DOMContentLoaded', function() {
    PAGE CATÉGORIE — état des facettes et rendu
    ═══════════════════════════════════════════════════════════ */
 var VIEW = localStorage.getItem('hf-view') || 'grid';
-var FACETS = { brands: new Set(), merchants: new Set(), minOffers: 0, min: null, max: null, freeShip: false };
+var FACETS = { types: new Set(), brands: new Set(), merchants: new Set(), minOffers: 0, min: null, max: null, freeShip: false };
 var FACET_OPEN = { price:true, brand:true, merchant:true, offers:true };
 var BRAND_SHOW_ALL = false, MERCHANT_SHOW_ALL = false, BRAND_Q = '';
 
@@ -2358,6 +2399,7 @@ function setCatTitle(label, lede){
   if (l && lede) l.textContent = lede;
 }
 
+var TYPE_LABELS = {smartphone:'Smartphones', smartphone_accessory:'Accessoires téléphone', console:'Consoles', video_game:'Jeux vidéo', gaming_accessory:'Accessoires gaming', headphones:'Casques et écouteurs', computer:'Ordinateurs', television:'Téléviseurs', perfume:'Parfums', tyre:'Pneus', power_tool:'Outillage', household_appliance:'Électroménager', other:'Autres types'};
 function renderFacets(){
   var f = buildFacets(allResults);
   var el = document.getElementById('facetsPanel');
@@ -2395,8 +2437,12 @@ function renderFacets(){
   + '<label class="opt"><input type="radio" name="fOffers" ' + (!FACETS.minOffers?'checked ':'')
   + 'onchange="FACETS.minOffers=0;applyFacets()"><span class="opt-label">Tous</span></label>';
 
+  var types = {};
+  allResults.forEach(function(p) { var label = TYPE_LABELS[p.product_type] || TYPE_LABELS.other; types[label] = (types[label] || 0) + 1; });
+  var typeOptions = Object.entries(types).sort(function(a,b){return b[1]-a[1];}).map(function(e){return optHTML('types', e[0], e[1], FACETS.types.has(e[0]));}).join('');
   el.innerHTML =
-      facetBlock('price', 'Prix', price)
+      (Object.keys(types).length > 1 ? facetBlock('type', 'Type de produit', '<small>Parmi les résultats affichés</small>' + typeOptions) : '')
+    + facetBlock('price', 'Prix', price)
     + facetBlock('brand', 'Marque', brand)
     + facetBlock('merchant', 'Marchand', merch)
     + facetBlock('offers', 'Nombre de marchands', offers);
@@ -2419,7 +2465,7 @@ function applyPriceRange(){
   applyFacets();
 }
 function clearFacets(){
-  FACETS = { brands:new Set(), merchants:new Set(), minOffers:0, min:null, max:null, freeShip:false };
+  FACETS = { types: new Set(), brands:new Set(), merchants:new Set(), minOffers:0, min:null, max:null, freeShip:false };
   BRAND_Q = '';
   renderFacets(); applyFacets();
 }
@@ -2430,6 +2476,7 @@ function applyFacets(){
     var lo = offers.length ? offers[0].price : (parseFloat(p.price)||0);
     if (FACETS.min != null && lo < FACETS.min) return false;
     if (FACETS.max != null && lo > FACETS.max) return false;
+    if (FACETS.types.size && !FACETS.types.has(TYPE_LABELS[p.product_type] || TYPE_LABELS.other)) return false;
     if (FACETS.brands.size && !FACETS.brands.has(p.brand)) return false;
     if (FACETS.merchants.size && !offers.some(function(o){ return FACETS.merchants.has(o.name); })) return false;
     if (FACETS.minOffers && offers.length < FACETS.minOffers) return false;
@@ -2444,6 +2491,7 @@ function renderChips(){
   var el = document.getElementById('activeChips');
   if (!el) return;
   var chips = [];
+  FACETS.types.forEach(function(t){ chips.push(['types',t,t]); });
   FACETS.brands.forEach(function(b){ chips.push(['brands', b, b]); });
   FACETS.merchants.forEach(function(m){ chips.push(['merchants', m, m]); });
   if (FACETS.min != null || FACETS.max != null) {

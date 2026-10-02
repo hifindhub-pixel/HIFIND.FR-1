@@ -1,0 +1,36 @@
+name: Catalogue health and price observations
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '15 8 * * *'
+  push:
+    branches: [main]
+    paths:
+      - scripts/catalogue-health.js
+      - .github/workflows/catalogue-health.yml
+permissions:
+  contents: read
+concurrency:
+  group: catalogue-health
+  cancel-in-progress: false
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --ignore-scripts
+      - name: Export catalogue observations and freshness
+        env:
+          NEON_URL: ${{ secrets.NEON_URL }}
+        run: node scripts/catalogue-health.js
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: catalogue-observations-${{ github.run_id }}
+          path: reports/catalogue-health/
+          retention-days: 90
+          if-no-files-found: error

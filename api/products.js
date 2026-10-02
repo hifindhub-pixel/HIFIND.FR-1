@@ -246,7 +246,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const { action='list', q='', limit='30', page='1', id='', cat='' } = req.query;
-  const limitN = Math.min(parseInt(limit)||30, 100);
+  const limitN = Math.max(1, Math.min(parseInt(limit)||30, 100));
   const pageN = Math.max(parseInt(page)||1, 1);
   const offset = (pageN - 1) * limitN;
 
@@ -259,7 +259,7 @@ export default async function handler(req, res) {
     let total = null;
     let searchMeta = {};
 
-    if (action === 'search' && q) {
+    if ((action === 'search' || action === 'suggest') && q) {
       const tsQuery = buildTsQuery(q);
       // Requete a mots-vides uniquement (ex: "de", "le") -> repli simple
       const hasQuery = tsQuery.length > 0;
@@ -358,7 +358,8 @@ export default async function handler(req, res) {
           AND (p.title ILIKE $1 OR p.brand ILIKE $1)
           ORDER BY p.updated_at DESC LIMIT $2
         `, [term, limitN]);
-        rows = r2.rows.map(p => ({...formatRow(p), ean_offers: null, offers_count: 1})).filter(p => p.category === cat);
+        rows = await groupWithOffers(client, r2.rows);
+        if (cat) rows = rows.filter(p => p.category === cat);
         total = rows.length;
       }
 
@@ -438,7 +439,8 @@ export default async function handler(req, res) {
           AND p.category = $1
           ORDER BY p.updated_at DESC LIMIT $2 OFFSET $3
         `, [cat, limitN, offset]);
-        rows = r2.rows.map(p => ({...formatRow(p), ean_offers: null, offers_count: 1})).filter(p => p.category === cat);
+        rows = await groupWithOffers(client, r2.rows);
+        if (cat) rows = rows.filter(p => p.category === cat);
         total = rows.length;
       }
 
@@ -490,6 +492,12 @@ export default async function handler(req, res) {
 
       rows = allRows.sort(() => Math.random() - 0.5).slice(0, limitN);
       total = rows.length;
+    }
+
+    if (action === 'suggest') {
+      return res.status(200).json({ data: rows.slice(0, 6).map(p => ({
+        id: p.id, title: p.title, price: p.price, offers_count: p.offers_count
+      })) });
     }
 
     const pages = total != null ? Math.max(1, Math.ceil(total / limitN)) : null;
