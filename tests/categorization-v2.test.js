@@ -37,3 +37,6 @@ for(const [title,category] of [
  ['HORI sac banane pour Switch 2','high-tech'],['LEGO Serre-livres Disney','enfants-bebes'],
  ['Valise avec serrure TSA','mode-vetements']
 ])test('audit: '+title,()=>assert.equal(categorize({title}).category,category));
+
+test('Montessori construction kit',()=>assert.equal(categorize({title:'Mamontessoribox - MaMontessoriBox arc en ciel construction'}).category,'enfants-bebes'));
+test('sport audio remains electronics',()=>assert.equal(categorize({title:'Casque de Running Shokz OpenRun Pro 2 Mini Noir'}).category,'high-tech'));

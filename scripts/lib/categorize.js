@@ -227,13 +227,13 @@ function stripKnownAmbiguity(title) {
 // A brand, a description ingredient, or the merchant must not decide alone.
 const AMBIGUOUS = new Set(['ballon','arc','cible','tome','integrale','roman','livre','livres','edition collector','album','poche','broche','essai','one shot','strip','foret','niche','scorpion','wrangler','continental','dunlop','frontale','rechaud','tapis de sol','pince','meche','cheville','store','body','combinaison','mule','couche','console','veilleuse','collagene','miel','the vert','riz','pates','sirop']);
 const TYPES = [
-  ['high-tech', /\b(ecouteurs|openfit|soundform|forerunner|ps5|ps4|xbox|jeu (nintendo|video)|drone miniature|casque stereo|casque filaire|casque avec micro)\b/],
+  ['high-tech', /\b(ecouteurs|openfit|openrun|soundform|forerunner|ps5|ps4|xbox|jeu (nintendo|video)|drone miniature|casque stereo|casque filaire|casque avec micro)\b/],
   ['maison-jardin', /\b(reveil|compresseur sans fil)\b/],
 
   ['auto-moto', /\b(desodorisant voiture|parfum (pour )?voiture|booster de demarrage|anti fuite metallique pour radiateur|chargeur de batterie (de )?voiture)\b/],
   ['maison-jardin', /\b(colle a bois|porte outils|bague de (copie|copiage)|commode|absorbeur d humidite|deshumidificateur|parfum d interieur|concentre de parfum|sachets armoire|parfum d ambiance)\b/],
   ['high-tech', /\b(support pour (manette|smartphone)|pour switch [12])\b/],
-  ['enfants-bebes', /\b(montessoribox|lego|couche culotte|pampers|sylvanian|jouet a tirer|jouet (de )?premier age|jouet bebe|atelier de bijoux|veilleuse musicale|matelas pour berceau)\b/],
+  ['enfants-bebes', /\b(mamontessoribox|montessoribox|lego|couche culotte|pampers|sylvanian|jouet a tirer|jouet (de )?premier age|jouet bebe|atelier de bijoux|veilleuse musicale|matelas pour berceau)\b/],
   ['mode-vetements', /\b(valise|bagage)\b/],
 
   ['maison-jardin', /\bserre livres\b/],

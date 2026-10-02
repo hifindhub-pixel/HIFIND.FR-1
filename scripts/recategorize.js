@@ -1,3 +1,4 @@
+// Classification revision: 2026-10-02 (Montessori and sports audio).
 // Reclassify existing offers without changing prices, URLs or price observation dates.
 // Writes a reversible change manifest before any UPDATE, then commits atomically.
 import pg from 'pg';
