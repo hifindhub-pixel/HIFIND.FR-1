@@ -61,6 +61,8 @@ export function pageHtml({ category, products, total, page = 1, pages = 1 }) {
   const meta = CATEGORY_META[category];
   if (!meta) return null;
   const canonical = `${SITE_URL}/categorie/${category}${page > 1 ? `?page=${page}` : ''}`;
+  const previous = page > 1 ? `${SITE_URL}/categorie/${category}${page > 2 ? `?page=${page - 1}` : ''}` : '';
+  const next = page < pages ? `${SITE_URL}/categorie/${category}?page=${page + 1}` : '';
   const title = `${meta.title} : comparez les prix de ${total.toLocaleString('fr-FR')} produits | HiFind`;
   const description = `Comparez les prix de ${total.toLocaleString('fr-FR')} produits ${meta.description.toLowerCase()} chez plusieurs marchands sur HiFind.`;
   const types = new Map();
@@ -80,7 +82,7 @@ export function pageHtml({ category, products, total, page = 1, pages = 1 }) {
     ${page < pages ? `<a href="/categorie/${category}?page=${page+1}" rel="next">Suivant →</a>` : '<span></span>'}
   </nav>` : '';
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(title)}</title><meta name="description" content="${esc(description)}"><link rel="canonical" href="${canonical}">
+<title>${esc(title)}</title><meta name="description" content="${esc(description)}"><link rel="canonical" href="${canonical}">${previous ? `<link rel="prev" href="${previous}">` : ''}${next ? `<link rel="next" href="${next}">` : ''}
 <meta property="og:type" content="website"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(description)}"><meta property="og:url" content="${canonical}">
 <link rel="icon" href="/favicon.png"><script type="application/ld+json">${jsonLd(structured)}</script>
 <style>
@@ -112,10 +114,11 @@ export default async function handler(req, res) {
       client.query(`SELECT COUNT(DISTINCT p.ean) AS total FROM products p
         WHERE ${MULTI_VENDOR_WHERE} AND p.category=$1`, [category]),
     ]);
-    let products = await groupWithOffers(client, candidates.rows);
-    products = products.filter(p => p.category === category).slice(0, limit);
     const total = parseInt(countResult.rows[0]?.total || '0', 10);
     const pages = Math.max(1, Math.ceil(total / limit));
+    if (page > pages) return res.status(404).send('Page de catégorie introuvable');
+    let products = await groupWithOffers(client, candidates.rows);
+    products = products.filter(p => p.category === category).slice(0, limit);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=1800');
     return res.status(200).send(pageHtml({ category, products, total, page, pages }));

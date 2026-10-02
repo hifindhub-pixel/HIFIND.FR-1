@@ -2231,12 +2231,15 @@ renderMerchantMarquee(initialMerchants);
 initHome();
 loadMerchantMarquee();
 
-// Arrivee depuis une page produit statique (SEO) : ouvre directement la
-// fiche interactive correspondante plutot que la page d'accueil.
+// Routes d'entree depuis les pages SEO. Les fiches produit gardent la
+// priorite ; une recherche envoyee par une page categorie ouvre directement
+// les vrais resultats et conserve le terme dans les champs de recherche.
 (function(){
   var params = new URLSearchParams(window.location.search);
   var pid = params.get('openProduct');
+  var query = (params.get('q') || '').trim();
   if (pid) openDetail(pid);
+  else if (query) searchFor(query.slice(0, 120));
 })();
 
 // ══ FLIGHTS ══
@@ -2776,4 +2779,3 @@ function goToPage(p){
 <script src="https://www.anrdoezrs.net/am/101723456/include/joined/impressions/page/am.js"></script>
 </body>
 </html>
-

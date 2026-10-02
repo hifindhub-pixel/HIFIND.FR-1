@@ -9,6 +9,13 @@ test('category page is indexable and escapes catalogue data',()=>{
  assert.doesNotMatch(html,/<script>alert\(1\)<\/script>/);
  assert.match(html,/Téléviseur &lt;script&gt;alert\(1\)&lt;\/script&gt;/);
  assert.match(html,/application\/ld\+json/);assert.match(html,/rel="next"/);
+ assert.match(html,/<link rel="next" href="https:\/\/hifind.fr\/categorie\/high-tech\?page=2">/);
+});
+test('paginated category pages expose canonical previous and next URLs',()=>{
+ const html=pageHtml({category:'high-tech',products:[product],total:8149,page:2,pages:272});
+ assert.match(html,/<link rel="canonical" href="https:\/\/hifind.fr\/categorie\/high-tech\?page=2">/);
+ assert.match(html,/<link rel="prev" href="https:\/\/hifind.fr\/categorie\/high-tech">/);
+ assert.match(html,/<link rel="next" href="https:\/\/hifind.fr\/categorie\/high-tech\?page=3">/);
 });
 test('all supported categories have unique titles',()=>{
  const titles=Object.values(CATEGORY_META).map(x=>x.title);
