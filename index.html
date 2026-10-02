@@ -1456,6 +1456,8 @@ async function runSearch(q) {
   if (sequence !== searchSequence) return;
   if (data && data.data && data.data.length > 0) {
     allResults = data.data; currentResults = allResults.slice();
+    var searchTitle = document.getElementById('catTitle');
+    if (searchTitle) searchTitle.innerHTML = 'Résultats<span class="cat-count" id="resCountNum">' + ((data.total != null ? data.total : data.data.length).toLocaleString('fr-FR')) + '</span>';
     var ctx = document.getElementById('searchContext');
     if (ctx) ctx.innerHTML = '<strong>' + data.data.length + ' résultats affichés</strong> pour « ' + escHtml(q) + ' »';
     renderSearchQuick(q);
@@ -1506,7 +1508,14 @@ async function loadCategory(cat, page) {
 
   if (data && data.data && data.data.length > 0) {
     allResults = data.data; currentResults = allResults.slice();
-  renderFacets(); renderChips();
+    var catLabel = CAT_LABELS[cat] || 'Tous les produits';
+    var catLead = cat
+      ? 'Comparez les prix des produits ' + catLabel.toLowerCase() + ' chez plusieurs marchands.'
+      : 'Comparez les prix des produits disponibles chez plusieurs marchands.';
+    setCatTitle(catLabel, catLead);
+    var countEl = document.getElementById('resCountNum');
+    if (countEl) countEl.textContent = String(PAGE_STATE.total || currentResults.length).toLocaleString('fr-FR');
+    renderFacets(); renderChips(); renderCategoryTypeChips();
     renderResults(currentResults);
     renderPagination();
   } else {
@@ -2409,6 +2418,28 @@ function setCatTitle(label, lede){
 }
 
 var TYPE_LABELS = {smartphone:'Smartphones', smartphone_accessory:'Accessoires téléphone', console:'Consoles', video_game:'Jeux vidéo', gaming_accessory:'Accessoires gaming', headphones:'Casques et écouteurs', computer:'Ordinateurs', television:'Téléviseurs', perfume:'Parfums', tyre:'Pneus', power_tool:'Outillage', household_appliance:'Électroménager', other:'Autres types'};
+function renderCategoryTypeChips(){
+  var host = document.getElementById('searchQuick');
+  if (!host || !lastCat || !allResults.length) return;
+  var counts = {};
+  allResults.forEach(function(p){ if (p.product_type) counts[p.product_type] = (counts[p.product_type] || 0) + 1; });
+  var keys = Object.keys(counts).sort(function(a,b){ return counts[b]-counts[a]; }).slice(0,6);
+  if (!keys.length) return;
+  host.replaceChildren();
+  var label = document.createElement('span');
+  label.style.cssText='font-size:.67rem;color:var(--sub);font-weight:700';
+  label.textContent='Types :';
+  host.appendChild(label);
+  keys.forEach(function(k){
+    var b=document.createElement('button'); b.type='button'; b.textContent=(TYPE_LABELS[k] || k) + ' · ' + counts[k];
+    b.onclick=function(){
+      FACETS.types = new Set([k]);
+      applyFacets();
+    };
+    host.appendChild(b);
+  });
+}
+
 function renderFacets(){
   var f = buildFacets(allResults);
   var el = document.getElementById('facetsPanel');
