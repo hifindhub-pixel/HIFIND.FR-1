@@ -847,79 +847,71 @@ nav {
 .pd-layout{ display:grid; grid-template-columns:340px 1fr; gap:2.2rem; align-items:start; margin-bottom:2.6rem; }
 
 .pd-media{ position:sticky; top:112px; }
-.pd-img-box{
-  position:relative; background:#fff; border:1px solid var(--border);
-  border-radius:16px; padding:2rem; aspect-ratio:1;
-  display:flex; align-items:center; justify-content:center;
+.pd-layout{display:grid;grid-template-columns:minmax(360px,.95fr) minmax(0,1.05fr);gap:2rem;align-items:start;margin-bottom:2.4rem}
+.pd-media{position:sticky;top:100px}
+.pd-img-box{position:relative;background:#fff;border:1px solid var(--border);border-radius:20px;min-height:520px;padding:2.2rem;display:flex;align-items:center;justify-content:center;box-shadow:0 16px 45px rgba(0,0,0,.08)}
+.pd-img-box img{width:100%;height:100%;max-height:470px;object-fit:contain}
+.pd-fav-btn{position:absolute;top:1rem;right:1rem;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.96);border:1px solid #e5e7eb;display:grid;place-items:center;color:#64748b;cursor:pointer;z-index:2;transition:transform .15s,box-shadow .15s,color .15s}
+.pd-fav-btn:hover{transform:scale(1.05);box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.pd-fav-btn.on{color:var(--coral)}
+.pd-media-meta{display:flex;justify-content:center;gap:.35rem;margin-top:.8rem;font-size:.76rem;color:var(--sub)}
+.pd-media-meta strong{color:var(--text);font-family:var(--num);font-weight:800}
+.pd-brand{font-family:var(--num);font-size:.72rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--coral);margin-bottom:.45rem}
+.pd-title{font-family:'Barlow',sans-serif;font-size:clamp(1.8rem,3vw,2.45rem);font-weight:800;line-height:1.12;margin-bottom:.7rem;color:var(--text);letter-spacing:-.025em}
+.pd-specs{font-size:.9rem;color:var(--sub);line-height:1.6;margin-bottom:1.15rem;max-width:62ch}
+.pd-trust-row{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.1rem}
+.pd-trust-pill{display:inline-flex;align-items:center;gap:.35rem;padding:.38rem .62rem;border:1px solid var(--border);border-radius:999px;background:var(--bg2);font-size:.7rem;font-weight:700;color:var(--sub)}
+.pd-hero{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:1.25rem 1.3rem;display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:center;box-shadow:0 10px 28px rgba(0,0,0,.05)}
+.pd-hero-label{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--sub);margin-bottom:.35rem}
+.pd-hero-value{font-family:var(--num);font-size:2.55rem;font-weight:900;color:var(--jade);line-height:1}
+.pd-hero-sub{font-size:.75rem;color:var(--sub);margin-top:.45rem}
+.pd-hero-cta{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.82rem 1.1rem;background:var(--coral);color:#fff;border-radius:10px;font-weight:800;font-size:.82rem;text-decoration:none;transition:background .15s,transform .15s;white-space:nowrap}
+.pd-hero-cta:hover{background:var(--coral-h);transform:translateY(-1px)}
+.pd-section{margin:0 0 2.2rem}
+.pd-section-head{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin-bottom:.9rem}
+.pd-section-title{font-family:'Barlow Condensed',sans-serif;font-size:1.45rem;font-weight:800;letter-spacing:-.01em}
+.pd-section-sub{font-size:.75rem;color:var(--sub)}
+.pd-price-insight{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem}
+.pd-stat{padding:.9rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:12px}
+.pd-stat-label{font-size:.67rem;color:var(--sub);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.pd-stat-value{font-family:var(--num);font-size:1.25rem;font-weight:850;margin-top:.25rem}
+.pd-stat-note{font-size:.68rem;color:var(--sub);margin-top:.2rem}
+.pd-offers{margin-bottom:2.8rem;scroll-margin-top:130px}
+.pd-offers-head{display:flex;align-items:end;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.6rem}
+.pd-offers-title{font-family:'Barlow Condensed',sans-serif;font-size:1.45rem;font-weight:800}
+.pd-offers-title span{font-family:var(--num);color:var(--sub);font-weight:600;font-size:.9rem;margin-left:.4rem}
+.pd-offers-list{border:1px solid var(--border);border-radius:16px;overflow:hidden;background:var(--bg2)}
+.pd-offer-row{display:grid;grid-template-columns:minmax(220px,1fr) minmax(155px,auto) auto;align-items:center;gap:1rem;padding:1rem 1.15rem;border-bottom:1px solid var(--border);transition:background .15s}
+.pd-offer-row:last-child{border-bottom:none}
+.pd-offer-row:hover{background:var(--bg3)}
+.pd-offer-row.best{background:var(--jade-bg)}
+.pd-offer-merchant{display:flex;align-items:center;gap:.7rem;min-width:0}
+.pd-offer-name{font-weight:800;font-size:.88rem}
+.pd-offer-tag{display:inline-block;margin-top:.28rem;font-size:.61rem;font-weight:800;padding:.15rem .45rem;border-radius:999px;background:var(--jade);color:#04241a;letter-spacing:.02em;text-transform:uppercase}
+.pd-offer-price{font-family:var(--num);font-size:1.2rem;font-weight:850;text-align:right;white-space:nowrap}
+.pd-offer-row.best .pd-offer-price{color:var(--jade)}
+.pd-offer-total{font-size:.72rem;font-family:Inter,sans-serif;color:var(--sub);margin-top:.15rem}
+.pd-offer-total strong{color:var(--text)}
+.pd-offer-shipping,.pd-offer-delivery,.pd-offer-freshness{font-family:Inter,sans-serif;font-size:.66rem;font-weight:600;color:var(--sub);margin-top:.2rem}
+.pd-offer-freshness{opacity:.8}
+.pd-offer-btn{padding:.62rem .95rem;border-radius:9px;font-weight:800;font-size:.76rem;text-decoration:none;white-space:nowrap;text-align:center;transition:opacity .15s,background .15s}
+.pd-offer-btn.primary{background:var(--coral);color:#fff}
+.pd-offer-btn.primary:hover{background:var(--coral-h)}
+.pd-offer-btn.secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border2)}
+.pd-offer-btn.secondary:hover{background:var(--bg4)}
+.pd-similar{margin-top:2.8rem}
+.pd-similar-head{font-family:'Barlow Condensed',sans-serif;font-size:1.45rem;font-weight:800;margin-bottom:1rem}
+@media(max-width:860px){
+  .pd-layout{grid-template-columns:1fr;gap:1.2rem}
+  .pd-media{position:static}
+  .pd-img-box{min-height:360px}
+  .pd-hero{grid-template-columns:1fr}
+  .pd-hero-cta{width:100%}
+  .pd-price-insight{grid-template-columns:1fr 1fr}
+  .pd-offer-row{grid-template-columns:1fr;row-gap:.65rem}
+  .pd-offer-price{text-align:left}
+  .pd-offer-btn{justify-self:stretch}
 }
-.pd-img-box img{ max-width:100%; max-height:100%; object-fit:contain; }
-.pd-fav-btn{
-  position:absolute; top:.9rem; right:.9rem; width:38px; height:38px; border-radius:10px;
-  background:rgba(255,255,255,.95); border:1px solid var(--border2);
-  display:grid; place-items:center; color:#64748b; cursor:pointer;
-  transition:color .15s, transform .15s;
-}
-.pd-fav-btn:hover{ transform:scale(1.06); }
-.pd-fav-btn.on{ color:var(--coral); }
-.pd-media-meta{ margin-top:.9rem; text-align:center; font-size:.76rem; color:var(--sub); }
-.pd-media-meta strong{ color:var(--jade); font-family:var(--num); font-weight:700; }
-
-.pd-info{ min-width:0; }
-.pd-brand{ font-family:var(--num); font-size:.75rem; font-weight:700; letter-spacing:.07em;
-  text-transform:uppercase; color:var(--coral); margin-bottom:.5rem; }
-.pd-title{ font-family:'Barlow',sans-serif; font-size:1.7rem; font-weight:800;
-  line-height:1.25; margin-bottom:.6rem; color:var(--text); }
-.pd-specs{ font-size:.86rem; color:var(--sub); line-height:1.55; margin-bottom:1.4rem; max-width:58ch; }
-
-.pd-hero{
-  background:var(--bg2); border:1px solid var(--border); border-radius:14px;
-  padding:1.3rem 1.4rem; display:flex; align-items:center; justify-content:space-between;
-  gap:1.2rem; flex-wrap:wrap;
-}
-.pd-hero-label{ font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--sub); margin-bottom:.3rem; }
-.pd-hero-value{ font-family:var(--num); font-size:2.3rem; font-weight:900; color:var(--jade); line-height:1; }
-.pd-hero-sub{ font-size:.78rem; color:var(--sub); margin-top:.4rem; }
-.pd-hero-cta{
-  display:inline-flex; align-items:center; gap:.4rem; padding:.8rem 1.3rem;
-  background:var(--coral); color:#fff; border-radius:10px; font-weight:700; font-size:.86rem;
-  text-decoration:none; transition:background .15s, transform .15s; white-space:nowrap;
-}
-.pd-hero-cta:hover{ background:var(--coral-h); transform:translateY(-1px); }
-
-.pd-offers{ margin-bottom:2.8rem; scroll-margin-top:130px; }
-.pd-offers-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:.6rem; }
-.pd-offers-title{ font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; font-weight:800; }
-.pd-offers-title span{ font-family:var(--num); color:var(--sub); font-weight:600; font-size:.9rem; margin-left:.4rem; }
-
-.pd-offers-list{ border:1px solid var(--border); border-radius:14px; overflow:hidden; }
-.pd-offer-row{
-  display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:1.2rem;
-  padding:.95rem 1.2rem; border-bottom:1px solid var(--border); transition:background .15s;
-}
-.pd-offer-row:last-child{ border-bottom:none; }
-.pd-offer-row:hover{ background:var(--bg3); }
-.pd-offer-row.best{ background:var(--jade-bg); }
-.pd-offer-merchant{ display:flex; align-items:center; gap:.7rem; min-width:0; }
-.pd-offer-name{ font-weight:700; font-size:.88rem; }
-.pd-offer-tag{
-  display:inline-block; margin-top:.2rem; font-size:.64rem; font-weight:700;
-  padding:.12rem .4rem; border-radius:4px; background:var(--jade); color:#04241a;
-  letter-spacing:.02em; text-transform:uppercase;
-}
-.pd-offer-price{ font-family:var(--num); font-size:1.25rem; font-weight:800; text-align:right; white-space:nowrap; }
-.pd-offer-row.best .pd-offer-price{ color:var(--jade); }
-.pd-offer-btn{
-  padding:.55rem 1.1rem; border-radius:8px; font-weight:700; font-size:.8rem;
-  text-decoration:none; white-space:nowrap; transition:opacity .15s, background .15s;
-}
-.pd-offer-btn.primary{ background:var(--coral); color:#fff; }
-.pd-offer-btn.primary:hover{ background:var(--coral-h); }
-.pd-offer-btn.secondary{ background:var(--bg3); color:var(--text); border:1px solid var(--border2); }
-.pd-offer-btn.secondary:hover{ background:var(--bg4); }
-
-.pd-similar{ margin-top:2.8rem; }
-.pd-similar-head{ font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; font-weight:800; margin-bottom:1rem; }
-
 @media(max-width:860px){
   .pd-layout{ grid-template-columns:1fr; }
   .pd-media{ position:static; }
@@ -1699,106 +1691,53 @@ async function openDetail(id) {
        || homeProductsCache[id];
 
   showPage('detail');
-  document.getElementById('detailContent').innerHTML = '<div class="spinner"><div class="spin"></div><p class="spin-lbl">Chargement...</p></div>';
-
-  if (!p || !p.ean_offers) {
-    try {
-      var data = await apiFetch('action=product&id=' + encodeURIComponent(id));
-      if (data && data.data && data.data.length > 0) {
-        p = data.data[0];
-        homeProductsCache[id] = p;
-      }
-    } catch(e) {}
-  }
-
-  if (!p) {
-    document.getElementById('detailContent').innerHTML = '<div class="empty-state"><div class="empty-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17.5v.01"/></svg></div><div class="empty-title">Produit introuvable</div></div>';
-    return;
-  }
-
-  currentProduct = p;
-  document.getElementById('breadcat').textContent = p.category || 'Produits';
-  document.getElementById('breadname').textContent = p.title ? p.title.slice(0, 50) + (p.title.length > 50 ? '...' : '') : '';
-
-  var offers = [];
-  if (p.ean_offers && p.ean_offers.length > 0) {
-    p.ean_offers.forEach(function(o) {
-      var pr = parseFloat(o.price);
-      if (!(pr > 0)) return;
-      var shipping = (o.shipping_cost != null && o.shipping_cost !== '') ? parseFloat(o.shipping_cost) : null;
-      offers.push({
-        merchant: normalizeMerchant(o.program_title || (o.programs && o.programs.title) || 'Partenaire'),
-        price: pr,
-        shipping: (shipping != null && !isNaN(shipping)) ? shipping : null,
-        total: (shipping != null && !isNaN(shipping)) ? pr + shipping : null,
-        url: o.tracking_url || o.url,
-        updatedAt: o.updated_at || null,
-        condition: extractConditionClient(o.title || p.title),
-        deliveryTime: fmtDeliveryTime(o.delivery_time),
-        inStock: o.in_stock,   // true / false / null (null = non communique par le marchand)
-      });
-    });
-  } else {
-    var shippingSingle = (p.shipping_cost != null && p.shipping_cost !== '') ? parseFloat(p.shipping_cost) : null;
-    offers.push({
-      merchant: normalizeMerchant(p.program_title || p.brand || 'Partenaire'),
-      price: parseFloat(p.price) || 0,
-      shipping: (shippingSingle != null && !isNaN(shippingSingle)) ? shippingSingle : null,
-      total: (shippingSingle != null && !isNaN(shippingSingle)) ? (parseFloat(p.price) || 0) + shippingSingle : null,
-      url: p.tracking_url || p.url,
-      updatedAt: p.updated_at || null,
-      condition: extractConditionClient(p.title),
-      deliveryTime: fmtDeliveryTime(p.delivery_time),
-      inStock: p.in_stock,
-    });
-  }
-  // Trie par prix TOTAL quand il est connu pour toutes les offres -- sinon
-  // par prix produit seul, pour ne pas melanger deux bases de comparaison
-  // differentes dans le meme classement.
-  var allTotalsKnown = offers.every(function(o){ return o.total != null; });
-  offers.sort(function(a,b){
-    var av = allTotalsKnown ? a.total : a.price;
-    var bv = allTotalsKnown ? b.total : b.price;
-    return av - bv;
-  });
-  CURRENT_OFFERS = offers;
-
-  var img = getImageUrl(p);
-  var lo = offers.length ? offers[0].price : 0;
-  var hi = offers.length ? offers[offers.length - 1].price : lo;
-  var isFav = favorites.some(f => f.id === p.id);
-  var sid = String(p.id).replace(/'/g, "\\'");
-
-  var heroSub = hi > lo
-    ? 'chez ' + escHtml(offers[0].merchant) + ' &middot; jusqu\'\u00e0 ' + fmtEur(hi) + ' ailleurs'
-    : 'chez ' + escHtml(offers[0].merchant);
+  var avg = offers.length ? offers.reduce(function(sum,o){ return sum + o.price; },0) / offers.length : lo;
+  var savings = avg > lo ? Math.round((1 - lo / avg) * 100) : 0;
+  var shippingKnown = offers.filter(function(o){ return o.shipping != null; }).length;
+  var stockKnown = offers.filter(function(o){ return o.inStock != null; }).length;
+  var cheapestMerchant = offers.length ? offers[0].merchant : 'Partenaire';
 
   document.getElementById('detailContent').innerHTML =
     '<div class="pd-layout">'
       + '<div class="pd-media">'
         + '<div class="pd-img-box">'
-          + '<button class="pd-fav-btn' + (isFav ? ' on' : '') + '" id="detailFavBtn" onclick="toggleFav(\'' + sid + '\',this)" aria-label="Sauvegarder">' + ICO.heart(isFav) + '</button>'
-          + (img ? '<img src="' + escHtml(img) + '" alt="' + escHtml(p.title) + '" onerror="this.style.display=\'none\'">' : '<span style="color:#cbd5e1">' + ICO.box + '</span>')
+          + '<button class="pd-fav-btn' + (isFav ? ' on' : '') + '" id="detailFavBtn" onclick="toggleFav(\\'' + sid + '\\',this)" aria-label="Sauvegarder">' + ICO.heart(isFav) + '</button>'
+          + (img ? '<img src="' + escHtml(img) + '" alt="' + escHtml(p.title) + '" onerror="this.style.display=\\'none\\'">' : '<span style="color:#cbd5e1">' + ICO.box + '</span>')
         + '</div>'
-        + '<div class="pd-media-meta"><strong>' + offers.length + '</strong> marchand' + (offers.length > 1 ? 's' : '') + ' compar\u00e9' + (offers.length > 1 ? 's' : '') + '</div>'
+        + '<div class="pd-media-meta"><strong>' + offers.length + '</strong> marchand' + (offers.length > 1 ? 's' : '') + ' comparé' + (offers.length > 1 ? 's' : '') + '</div>'
       + '</div>'
       + '<div class="pd-info">'
         + (p.brand ? '<div class="pd-brand">' + escHtml(p.brand) + '</div>' : '')
         + '<h1 class="pd-title">' + escHtml(p.title) + '</h1>'
-        + (p.description ? '<p class="pd-specs">' + escHtml(p.description.slice(0, 220)) + '</p>' : '')
+        + (p.description ? '<p class="pd-specs">' + escHtml(p.description.slice(0, 260)) + '</p>' : '')
+        + '<div class="pd-trust-row">'
+          + '<span class="pd-trust-pill">✓ Prix comparés</span>'
+          + (shippingKnown ? '<span class="pd-trust-pill">✓ Livraison renseignée</span>' : '')
+          + (stockKnown ? '<span class="pd-trust-pill">✓ Disponibilité renseignée</span>' : '')
+        + '</div>'
         + '<div class="pd-hero">'
           + '<div>'
-            + '<div class="pd-hero-label">Prix le plus bas</div>'
+            + '<div class="pd-hero-label">Meilleur prix affiché</div>'
             + '<div class="pd-hero-value">' + fmtEur(lo) + '</div>'
-            + '<div class="pd-hero-sub">' + heroSub + '</div>'
+            + '<div class="pd-hero-sub">Chez ' + escHtml(cheapestMerchant) + (savings > 0 ? ' · ' + savings + '% sous la moyenne des offres' : '') + '</div>'
           + '</div>'
-          + '<a href="#pdOffers" class="pd-hero-cta">Comparer les offres' + ICO.arrow + '</a>'
+          + '<a href="#pdOffers" class="pd-hero-cta">Voir les offres ' + ICO.arrow + '</a>'
         + '</div>'
       + '</div>'
     + '</div>'
+
+    + '<section class="pd-section">'
+      + '<div class="pd-section-head"><div><div class="pd-section-title">Comprendre le prix</div><div class="pd-section-sub">Calculé uniquement à partir des offres disponibles pour ce produit.</div></div></div>'
+      + '<div class="pd-price-insight">'
+        + '<div class="pd-stat"><div class="pd-stat-label">Prix le plus bas</div><div class="pd-stat-value">' + fmtEur(lo) + '</div><div class="pd-stat-note">' + escHtml(cheapestMerchant) + '</div></div>'
+        + '<div class="pd-stat"><div class="pd-stat-label">Prix moyen</div><div class="pd-stat-value">' + fmtEur(avg) + '</div><div class="pd-stat-note">' + offers.length + ' offre' + (offers.length > 1 ? 's' : '') + ' analysée' + (offers.length > 1 ? 's' : '') + '</div></div>'
+        + '<div class="pd-stat"><div class="pd-stat-label">Écart observé</div><div class="pd-stat-value">' + fmtEur(Math.max(0, hi - lo)) + '</div><div class="pd-stat-note">entre l’offre la moins chère et la plus chère</div></div>'
+      + '</div>'
+    + '</section>'
+
     + '<div class="pd-offers" id="pdOffers">'
       + '<div class="pd-offers-head">'
-        + '<h2 class="pd-offers-title">Comparer les prix<span>' + offers.length + ' offre' + (offers.length > 1 ? 's' : '') + '</span></h2>'
+        + '<div><h2 class="pd-offers-title">Comparer les prix<span>' + offers.length + ' offre' + (offers.length > 1 ? 's' : '') + '</span></h2><div class="pd-section-sub">Prix produit et frais de livraison affichés séparément lorsque les données sont disponibles.</div></div>'
         + '<select class="sort-select" onchange="sortOffers(this.value)" aria-label="Trier les offres">'
           + '<option value="price">Prix croissant</option>'
           + '<option value="name">Marchand A-Z</option>'
