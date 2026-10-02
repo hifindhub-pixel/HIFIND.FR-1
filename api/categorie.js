@@ -106,15 +106,15 @@ export default async function handler(req, res) {
   const offset = (page - 1) * limit;
   const client = await getPool().connect();
   try {
-    const [candidates, countResult] = await Promise.all([
-      client.query(`SELECT DISTINCT ON (p.ean) p.*, pr.title AS program_title
+    const candidates = await client.query(`WITH distinct_products AS (
+        SELECT DISTINCT ON (p.ean) p.*, pr.title AS program_title
         FROM products p LEFT JOIN programs pr ON p.program_id=pr.id
         WHERE ${MULTI_VENDOR_WHERE} AND p.category=$1
-        ORDER BY p.ean, p.price ASC LIMIT $2 OFFSET $3`, [category, limit * 3, offset]),
-      client.query(`SELECT COUNT(DISTINCT p.ean) AS total FROM products p
-        WHERE ${MULTI_VENDOR_WHERE} AND p.category=$1`, [category]),
-    ]);
-    const total = parseInt(countResult.rows[0]?.total || '0', 10);
+        ORDER BY p.ean, p.price ASC
+      )
+      SELECT distinct_products.*, COUNT(*) OVER() AS total_count
+      FROM distinct_products ORDER BY ean LIMIT $2 OFFSET $3`, [category, limit * 3, offset]);
+    const total = parseInt(candidates.rows[0]?.total_count || '0', 10);
     const pages = Math.max(1, Math.ceil(total / limit));
     if (page > pages) return res.status(404).send('Page de catégorie introuvable');
     let products = await groupWithOffers(client, candidates.rows);

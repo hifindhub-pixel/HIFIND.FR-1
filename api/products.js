@@ -2,7 +2,7 @@ import pkg from 'pg';
 const { Pool } = pkg;
 import { classifyProduct } from '../scripts/lib/product-type.js';
 import { classifyProductType, parseQueryIntent } from './product-type.js';
-import { countDistinctMerchants } from '../scripts/lib/merchants.js';
+import { countDistinctMerchants, loadMerchantAliases, canonicalMerchantId } from '../scripts/lib/merchants.js';
 import { filterByCondition } from '../scripts/lib/condition.js';
 import { detectContradictions } from '../scripts/lib/quarantine.js';
 import { computePriceInsights } from '../scripts/lib/price-insights.js';
@@ -188,7 +188,9 @@ async function getAllOffersForEans(client, eans) {
 
 export async function groupWithOffers(client, products) {
   const eans = [...new Set(products.map(p => p.ean).filter(Boolean))];
+  if (!eans.length) return [];
   const offersByEan = await getAllOffersForEans(client, eans);
+  const merchantAliases = await loadMerchantAliases(client);
 
   const eanMap = new Map();
   for (const p of products) {
@@ -207,7 +209,7 @@ export async function groupWithOffers(client, products) {
     // le meme marchand reel (LOT 2 -- scripts/lib/merchants.js). Avant ce
     // branchement, deux program_id du meme marchand (ex: Foot Store 2 /
     // Footstore avant leur fusion) comptaient a tort comme 2 marchands.
-    const distinctVendorCount = await countDistinctMerchants(client, filtered);
+    const distinctVendorCount = new Set(filtered.map(offer => canonicalMerchantId(merchantAliases, offer.program_id))).size;
     if (distinctVendorCount < 2) continue;
 
     const best = filtered[0];
@@ -239,15 +241,6 @@ function buildTsQuery(q) {
     .map(w => w.replace(/[^\p{L}\p{N}]/gu, '') + ':*')
     .filter(w => w !== ':*')
     .join(' & ');
-}
-
-async function countDistinctEans(client, whereSql, params) {
-  const r = await client.query(`
-    SELECT COUNT(DISTINCT p.ean) AS total
-    FROM products p
-    WHERE ${whereSql}
-  `, params);
-  return parseInt(r.rows[0]?.total || '0', 10);
 }
 
 export async function getPriceHistory(client, ean, days = 180) {
@@ -454,18 +447,18 @@ export default async function handler(req, res) {
     } else if (action === 'category' && cat) {
       const catWhere = MULTI_VENDOR_WHERE + ' AND p.category = $1';
 
-      const [r, totalCount] = await Promise.all([
-        client.query(`
+      const r = await client.query(`
+          WITH candidates AS (
           SELECT DISTINCT ON (p.ean) p.*, pr.title as program_title
           FROM products p
           LEFT JOIN programs pr ON p.program_id = pr.id
           WHERE ${catWhere}
           ORDER BY p.ean, p.price ASC
-          LIMIT $2 OFFSET $3
-        `, [cat, limitN * 3, offset]),
-        countDistinctEans(client, catWhere, [cat]),
-      ]);
-      total = totalCount;
+          )
+          SELECT candidates.*, COUNT(*) OVER() AS total_count
+          FROM candidates ORDER BY ean LIMIT $2 OFFSET $3
+        `, [cat, limitN * 3, offset]);
+      total = parseInt(r.rows[0]?.total_count || '0', 10);
 
       if (r.rows.length > 0) {
         rows = await groupWithOffers(client, r.rows);
@@ -501,21 +494,24 @@ export default async function handler(req, res) {
         { cat: 'maison-jardin',   n: 2 },
       ];
 
-      const perCatResults = await Promise.all(CATS.map(({ cat, n }) =>
-        client.query(`
-          SELECT DISTINCT ON (p.ean) p.*, pr.title as program_title
+      const categoryLimits = CATS.map(item => `('${item.cat.replace(/'/g, "''")}',${item.n * 3})`).join(',');
+      const candidates = await client.query(`
+        WITH category_limits(category, max_rows) AS (VALUES ${categoryLimits})
+        SELECT selected.*, pr.title AS program_title
+        FROM category_limits limits
+        CROSS JOIN LATERAL (
+          SELECT DISTINCT ON (p.ean) p.*
           FROM products p
-          LEFT JOIN programs pr ON p.program_id = pr.id
-          WHERE ${MULTI_VENDOR_WHERE}
-          AND p.category = $1
+          WHERE ${MULTI_VENDOR_WHERE} AND p.category = limits.category
           ORDER BY p.ean, p.price ASC
-          LIMIT $2
-        `, [cat, n * 3])
-      ));
+          LIMIT limits.max_rows
+        ) selected
+        LEFT JOIN programs pr ON selected.program_id = pr.id
+      `);
 
-      // Une seule requête d'offres pour TOUS les candidats de toutes
-      // les catégories, au lieu d'une par catégorie.
-      const allCandidates = perCatResults.flatMap(r => r.rows);
+      // Une seule requête de candidats puis une seule requête d'offres
+      // pour toutes les catégories de la home.
+      const allCandidates = candidates.rows;
       const grouped = await groupWithOffers(client, allCandidates);
 
       // Re-répartit par catégorie pour respecter le nombre voulu par

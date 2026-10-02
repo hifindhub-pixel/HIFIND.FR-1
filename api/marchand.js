@@ -66,15 +66,15 @@ export default async function handler(req, res) {
     if (!matched.length) return res.status(404).send('Marchand introuvable');
     const merchant = matched[0].title;
     const programIds = matched.map(row => row.id);
-    const [candidates, countResult] = await Promise.all([
-      client.query(`SELECT DISTINCT ON (p.ean) p.*, pr.title AS program_title
+    const candidates = await client.query(`WITH distinct_products AS (
+        SELECT DISTINCT ON (p.ean) p.*, pr.title AS program_title
         FROM products p LEFT JOIN programs pr ON p.program_id=pr.id
         WHERE ${MULTI_VENDOR_WHERE} AND p.program_id=ANY($1)
-        ORDER BY p.ean, p.price ASC LIMIT $2 OFFSET $3`, [programIds, limit * 3, offset]),
-      client.query(`SELECT COUNT(DISTINCT p.ean) AS total FROM products p
-        WHERE ${MULTI_VENDOR_WHERE} AND p.program_id=ANY($1)`, [programIds]),
-    ]);
-    const total = parseInt(countResult.rows[0]?.total || '0', 10);
+        ORDER BY p.ean, p.price ASC
+      )
+      SELECT distinct_products.*, COUNT(*) OVER() AS total_count
+      FROM distinct_products ORDER BY ean LIMIT $2 OFFSET $3`, [programIds, limit * 3, offset]);
+    const total = parseInt(candidates.rows[0]?.total_count || '0', 10);
     const pages = Math.max(1, Math.ceil(total / limit));
     if (!total || page > pages) return res.status(404).send('Page marchand introuvable');
     const products = (await groupWithOffers(client, candidates.rows)).slice(0, limit);

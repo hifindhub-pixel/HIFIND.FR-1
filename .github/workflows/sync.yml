@@ -33,6 +33,11 @@ jobs:
           CJ_PUBLISHER_ID: ${{ secrets.CJ_PUBLISHER_ID }}
           CJ_FEEDS: ${{ secrets.CJ_FEEDS }}
         run: node scripts/sync.js
+      - name: Ensure query indexes
+        if: success()
+        env:
+          NEON_URL: ${{ secrets.NEON_URL }}
+        run: node scripts/optimize-database.js
       - name: Capture changed prices
         if: success()
         env:

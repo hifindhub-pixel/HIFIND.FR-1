@@ -48,6 +48,9 @@ async function main() {
     CREATE INDEX IF NOT EXISTS idx_products_ean ON products(ean) WHERE ean IS NOT NULL;
     CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
     CREATE INDEX IF NOT EXISTS idx_products_status ON products(status);
+    CREATE INDEX IF NOT EXISTS idx_products_active_ean_program_price ON products(ean, program_id, price) WHERE status='enabled' AND ean IS NOT NULL;
+    CREATE INDEX IF NOT EXISTS idx_products_active_category_ean_price ON products(category, ean, price) WHERE status='enabled' AND ean IS NOT NULL;
+    CREATE INDEX IF NOT EXISTS idx_products_active_program_ean ON products(program_id, ean) WHERE status='enabled' AND ean IS NOT NULL;
     CREATE TABLE IF NOT EXISTS price_history (
       ean TEXT NOT NULL,
       observed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

@@ -1,0 +1,22 @@
+name: Optimize Database
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 3 * * 0'
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install pg
+      - name: Ensure query indexes
+        env:
+          NEON_URL: ${{ secrets.NEON_URL }}
+        run: node scripts/optimize-database.js
+
