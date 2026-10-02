@@ -2,6 +2,11 @@ name: Optimize Database
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/optimize-database.js'
+      - '.github/workflows/optimize-database.yml'
   schedule:
     - cron: '30 3 * * 0'
 
@@ -19,4 +24,3 @@ jobs:
         env:
           NEON_URL: ${{ secrets.NEON_URL }}
         run: node scripts/optimize-database.js
-
