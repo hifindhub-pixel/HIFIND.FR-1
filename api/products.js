@@ -272,16 +272,17 @@ export default async function handler(req, res) {
             WITH matched AS (
               SELECT DISTINCT ON (p.ean) p.*, pr.title as program_title,
                 ts_rank(p.search_vector, query) AS rank,
-                similarity(p.title, $1) AS trgm_sim
+                similarity(p.title, $1) AS trgm_sim,
+                (strpos(lower(p.title), lower($1)) > 0 OR lower(p.brand) = lower($1)) AS exact_match
               FROM products p
               LEFT JOIN programs pr ON p.program_id = pr.id,
               to_tsquery('french', $2) query
               WHERE ${searchWhere}
               AND (p.search_vector @@ query OR p.title % $1)
-              ORDER BY p.ean, ts_rank(p.search_vector, query) DESC, p.price ASC
+              ORDER BY p.ean, exact_match DESC NULLS LAST, ts_rank(p.search_vector, query) DESC, p.price ASC
             )
             SELECT * FROM matched
-            ORDER BY rank DESC, trgm_sim DESC
+            ORDER BY exact_match DESC NULLS LAST, rank DESC, trgm_sim DESC
             LIMIT $3 OFFSET $4
           `, [q, tsQuery, limitN * 4, offset]),
           client.query(`
@@ -309,7 +310,7 @@ export default async function handler(req, res) {
         // au lieu d'etre code en dur pour une seule.
         const queryIntent = parseQueryIntent(q);
 
-        const scoreOf = row => parseFloat(row.rank) + parseFloat(row.trgm_sim || 0);
+        const scoreOf = row => (row.exact_match ? 10 : 0) + parseFloat(row.rank) + parseFloat(row.trgm_sim || 0);
         const tierOf = row => {
           if (!queryIntent.primaryType) return 0;   // requete generique : pas de tri par type
           return classifyProductType(row.title) === queryIntent.primaryType ? 1 : 0;

@@ -1201,7 +1201,7 @@ async function ingestHarvest() {
       }
     } catch (e) { console.log('  \u26a0\ufe0f ' + b.meta.title + ' : ' + e.message); }
   }
-  allRows.forEach(function(r){ CAT_STATS[r.category] = (CAT_STATS[r.category] || 0) + 1; });
+  categoryRows.forEach(function(r){ CAT_STATS[r.category] = (CAT_STATS[r.category] || 0) + 1; });
 
   console.log('\n\ud83c\udf89 Ingestion : ' + totalKept.toLocaleString('fr-FR')
               + ' produits comparables sur ' + totalScanned.toLocaleString('fr-FR') + ' recoltes');
