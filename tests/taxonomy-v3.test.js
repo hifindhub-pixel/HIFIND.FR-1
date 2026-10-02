@@ -5,6 +5,12 @@ import {classifyProduct, classifyProductType, TAXONOMY, parseQueryIntent} from '
 
 // First six titles observed on the public catalogue on 2026-10-02.
 const cases = [
+ ['Warner Bros. LEGO Batman : L’héritage du chevalier - PS5 - Version française','high-tech','video_game'],
+ ['Educo Puzzle en bois Montessori Lessive - 12 pièces','enfants-bebes','toy'],
+ ['Nintendo Amiibo The Legend of Zelda Collection de Figurines','high-tech','gaming_accessory'],
+ ['Cable Guys Borderlands Figurine Gaming Psycho - Support pour manette ou smartphone','high-tech','gaming_accessory'],
+ ['Smart Band 10, Noir - Neuf','high-tech','smartwatch'],
+ ['Nuxe - Rêve De Miel Soin Lèvres Au Miel 10ml','beaute-bienetre','skincare'],
  ['Scie Sabre 18v Lxt (machine Seule) Dans Valise Synthétique Makita Djr187zk','maison-jardin','power_tool'],
  ['Makita - Perforateur Burineur Sds-max 1350w 9,4 J Dans Valise Hr4511c','maison-jardin','power_tool'],
  ['Figurines et accessoires - LICENCE / - Coffret Deluxe - 13 figurines et accessoires, dans 5 poses, planche de surf - Neuf','enfants-bebes','toy'],

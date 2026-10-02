@@ -227,7 +227,7 @@ function stripKnownAmbiguity(title) {
 // A brand, a description ingredient, or the merchant must not decide alone.
 const AMBIGUOUS = new Set(['bridgestone','goodyear','pirelli','hankook','yokohama','falken','nexen','vredestein','uniroyal','firestone','kumho','toyo tires','nokian','cooper tires','sailun','landsail','laufenn','ballon','arc','cible','tome','integrale','roman','livre','livres','edition collector','album','poche','broche','essai','one shot','strip','foret','niche','scorpion','wrangler','continental','dunlop','frontale','rechaud','tapis de sol','pince','meche','cheville','store','body','combinaison','mule','couche','console','veilleuse','collagene','miel','the vert','riz','pates','sirop']);
 const TYPES = [
-  ['high-tech', /\b(galaxy (?:[saz]\d+|tab|watch|buds)|(?:google )?pixel \d+|redmi (?:note )?\d+|ecouteurs|openfit|openrun|open swim|openswim|soundform|forerunner|ps5|ps4|xbox|jeu (nintendo|video)|drone miniature|casque stereo|casque filaire|casque avec micro)\b/],
+  ['high-tech', /\b(bracelet connecte|smart band \d+|galaxy (?:[saz]\d+|tab|watch|buds)|(?:google )?pixel \d+|redmi (?:note )?\d+|ecouteurs|openfit|openrun|open swim|openswim|soundform|forerunner|ps5|ps4|xbox|jeu (nintendo|video)|drone miniature|casque stereo|casque filaire|casque avec micro)\b/],
   ['maison-jardin', /\b(reveil|compresseur sans fil)\b/],
 
   ['auto-moto', /\b(desodorisant voiture|parfum (pour )?voiture|booster de demarrage|anti fuite metallique pour radiateur|chargeur de batterie (de )?voiture)\b/],
@@ -241,7 +241,7 @@ const TYPES = [
   ['enfants-bebes', /\b(peluche|figurine|jouet|miniature|newray|maquette|poupee|poupees|barbie|beanie boo s|melissa doug|melissa et doug|livre (de coloriage|d activite)|coffret coloriage|lego|playmobil|puzzle|doudou|poussette|biberon|tetine|siege auto bebe|jeu de societe|jeu de cartes|circuit de voiture)\b/],
   ['animaux', /\b(croquettes?|litiere|griffoir|arbre a chat|aquarium|terrarium|gamelle|laisse|harnais (pour )?(chien|chat)|jouet (pour )?(chien|chat)|shampooing (pour )?(chien|chat))\b/],
   ['maison-jardin', /\b(ballon ((d )?eau chaude|thermodynamique)|chauffe eau|console (murale|d entree|extensible)|robot aspirateur|aspirateur robot|nettoyeur detacheur|spotclean|crosswave|detergent|filtre (a|de) sable|pince a linge|cheville (molly|nylon)|store enrouleur)\b/],
-  ['beaute-bienetre', /\b(creme (pour le |de |du )?(corps|visage|mains|nuit|jour)|creme hydratante|body (cream|lotion|milk)|eau de (parfum|toilette|cologne)|parfum|mascara|rouge a levres|fond de teint|serum visage|lotion (exfoliante|clarifiante)|gel de teint|gommage|scrub|creme a raser|demaquillant|demaquillants|baume demaquillant|contour des yeux|soin total regard|savon visage|shampooing|shampoing|deodorant|gel douche|pince a epiler|meches (de cheveux|extensions))\b/],
+  ['beaute-bienetre', /\b(creme (pour le |de |du )?(corps|visage|mains|nuit|jour)|creme hydratante|body (cream|lotion|milk)|eau de (parfum|toilette|cologne)|parfum|mascara|rouge a levres|fond de teint|serum visage|baume levres|soin levres|phyto ombres|lotion (exfoliante|clarifiante)|gel de teint|gommage|scrub|creme a raser|demaquillant|demaquillants|baume demaquillant|contour des yeux|soin total regard|savon visage|shampooing|shampoing|deodorant|gel douche|pince a epiler|meches (de cheveux|extensions))\b/],
   ['sante-nutrition', /\b(complement alimentaire|gelules?|comprimes?|pansements?|tensiometre|thermometre medical|chevillere|attelle|lentilles de contact)\b/],
   ['high-tech', /\b(ps5|ps4|playstation|xbox|nintendo|jeu video|smartphone|iphone|ipad|macbook|apple watch|galaxy watch|montre connectee|casque (audio|bluetooth|vr)|camera (de securite|de surveillance)|cartouche d encre|toner|quietcomfort|surface arc mouse|arlo essential|ultrachrome|pellicule|kit tambour)\b/],
   ['sport-outdoor', /\b(trottinette electrique|pneu (de |pour )?(velo|vtt)|casque (de )?(velo|ski|equitation)|chaussures? (de )?(running|football|randonnee|trail|ski)|sac a dos football|maillot (de )?(football|rugby|cyclisme)|ballon (de )?(football|basket|rugby|handball|volley)|raquette|vtt|velo (electrique|de route)|tapis de (yoga|course))\b/],
@@ -257,9 +257,11 @@ function ranked(scores, source, minimum = 6, margin = 3) {
 // Explicit product subjects outrank model names, compatible devices and brands.
 // Each override is named so import audits can explain the decision.
 const SUBJECT_RULES = [
-  {id:'sujet-outillage', category:'maison-jardin', pattern:/\b(perforateur|burineur|scie (sabre|circulaire|sauteuse)|perceuse|visseuse|meuleuse|ponceuse)\b/},
-  {id:'sujet-jouet', category:'enfants-bebes', pattern:/\b(lego|playmobil|peluches?|poupees?|maquettes?|figurines?)\b(?!.*\bserre livres\b)/},
+  {id:'sujet-accessoire-gaming', category:'high-tech', pattern:/\b(amiibo|support pour (manette|smartphone))\b/},
+  {id:'sujet-jeu-lego', category:'high-tech', pattern:/\blego\b(?=.*\b(ps[345]|xbox|jeu video)\b)(?!.*\b(\d{5}|pieces|construction|console|figurines?|jouet)\b)/},
+  {id:'sujet-jouet', category:'enfants-bebes', pattern:/\b(lego|playmobil|peluches?|poupees?|maquettes?|figurines?|puzzles?)\b(?!.*\bserre livres\b)/},
   {id:'sujet-jouet-lego', category:'enfants-bebes', pattern:/\blego\b/},
+  {id:'sujet-outillage', category:'maison-jardin', pattern:/\b(perforateur|burineur|scie (sabre|circulaire|sauteuse)|perceuse|visseuse|meuleuse|ponceuse)\b/},
   {id:'sujet-mobilier', category:'maison-jardin', pattern:/\b(meuble (pour )?(tv|television)|support mural (pour )?(tv|televiseur)|console (murale|d entree|extensible))\b/},
   {id:'sujet-cyclisme', category:'sport-outdoor', pattern:/\bpneus? (de |pour )?(velo|vtt|bicyclette)\b/},
   {id:'sujet-animal', category:'animaux', pattern:/\b(jouet|shampooing|shampoing|harnais|collier|panier) (pour (les? )?)?(chien|chat|chiot|chaton)\b/},
@@ -270,14 +272,14 @@ const SUBJECT_RULES = [
 
 export function textSignal(p = {}) {
   const title = stripKnownAmbiguity(norm(p.title));
-  const subject = SUBJECT_RULES.find(rule => rule.pattern.test(title) &&
-    !(rule.id === 'sujet-animal' && /\b(premier age|bebe|a tirer|boite a musique)\b/.test(title)));
-  if (subject) return { category:subject.category, source:subject.id, score:35 };
-  if (/\b\d{3} \d{2} ?[rz] ?\d{2}\b/.test(title)) return {category:'auto-moto',source:'dimension-pneu',score:30};
   // ISBN is a book identifier, unlike a generic manufacturer prefix.
   const ean = String(p.ean || '').trim();
   if (/^97[89]\d{10}$/.test(ean) && [...ean].reduce((sum,d,i)=>sum+Number(d)*(i%2?3:1),0)%10===0)
     return {category:'livres-bd',source:'isbn',score:40};
+  const subject = SUBJECT_RULES.find(rule => rule.pattern.test(title) &&
+    !(rule.id === 'sujet-animal' && /\b(premier age|bebe|a tirer|boite a musique)\b/.test(title)));
+  if (subject) return { category:subject.category, source:subject.id, score:35 };
+  if (/\b\d{3} \d{2} ?[rz] ?\d{2}\b/.test(title)) return {category:'auto-moto',source:'dimension-pneu',score:30};
   if (/\b(tome|vol) \d+\b/.test(title) && !/\b(mascara|parfum|serum|shampooing)\b/.test(title))
     return {category:'livres-bd',source:'volume-livre',score:30};
   // Explicit animal destination, not an animal character in a children's toy.
