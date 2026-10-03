@@ -96,8 +96,7 @@ export const INNOVATION_WHERE = `(
 )`;
 
 const MARKET_INTEREST_SQL = `CASE
-  WHEN COALESCE(p.product_type, '') IN ('smartphone_accessory','gaming_accessory','appliance_accessory')
-    OR lower(COALESCE(p.title, '')) LIKE ANY (ARRAY[
+  WHEN lower(COALESCE(p.title, '')) LIKE ANY (ARRAY[
       '%coque%', '% case %', '% cover%', '%housse%', '%etui%', '%étui%',
       '%flip wallet%', '%folio%', '%panzer%glass%', '%verre%iphone%',
       '%verre%galaxy%', '%protecteur%iphone%', '%protecteur%galaxy%',
