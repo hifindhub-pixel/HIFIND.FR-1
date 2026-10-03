@@ -47,6 +47,10 @@ try {
     SELECT c.ean, NOW(), c.min_price, c.avg_price, c.max_price, c.merchant_count
     FROM current_prices c LEFT JOIN latest l USING (ean)
     WHERE l.ean IS NULL
+       -- Un prix inchange doit quand meme construire un historique reel.
+       -- Un point hebdomadaire suffit pour etablir la stabilite sans creer
+       -- des millions de lignes quotidiennes inutiles.
+       OR l.observed_at < NOW() - INTERVAL '7 days'
        OR c.min_price IS DISTINCT FROM l.min_price
        OR c.avg_price IS DISTINCT FROM l.avg_price
        OR c.max_price IS DISTINCT FROM l.max_price

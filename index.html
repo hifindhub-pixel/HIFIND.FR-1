@@ -888,6 +888,9 @@ nav {
 .pd-chart{width:100%;height:105px;margin-top:.65rem;overflow:visible}.pd-chart-line{fill:none;stroke:var(--coral);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.pd-chart-area{fill:rgba(255,107,107,.08)}
 .pd-history-empty{min-height:92px;display:flex;align-items:center;color:var(--sub);font-size:.75rem;line-height:1.55;max-width:60ch}
 .pd-history-stats{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.35rem;font-size:.68rem;color:var(--sub)}.pd-history-stats b{color:var(--text)}
+.pd-history-periods{display:flex;gap:.25rem}.pd-history-period{border:1px solid var(--border);background:transparent;color:var(--sub);border-radius:999px;padding:.23rem .48rem;font-size:.62rem;font-weight:750;cursor:pointer}.pd-history-period.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+.pd-chart-grid{stroke:var(--border);stroke-width:1}.pd-chart-average{fill:none;stroke:var(--sub);stroke-width:1.5;stroke-dasharray:5 5;opacity:.75}.pd-chart-dot{fill:var(--coral);stroke:var(--bg2);stroke-width:3}.pd-chart-labels{display:flex;justify-content:space-between;color:var(--dim);font-size:.61rem;margin-top:-.15rem}.pd-chart-legend{display:flex;gap:.8rem;align-items:center;margin-top:.35rem;font-size:.62rem;color:var(--sub)}.pd-chart-legend i{display:inline-block;width:16px;height:2px;margin-right:.3rem;vertical-align:middle;background:var(--coral)}.pd-chart-legend i.avg{background:transparent;border-top:2px dashed var(--sub)}
+.pd-score{flex-wrap:wrap}.pd-score-copy{min-width:0;flex:1}.pd-score-explain{flex:0 0 100%;margin-top:.15rem;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.38rem .7rem}.pd-score-factor{font-size:.61rem;color:var(--sub)}.pd-score-factor span{display:flex;justify-content:space-between;gap:.4rem}.pd-score-bar{height:4px;background:var(--bg4);border-radius:999px;overflow:hidden;margin-top:.18rem}.pd-score-bar i{display:block;height:100%;background:var(--jade);border-radius:inherit}
 .pd-offers{margin-bottom:2.8rem;scroll-margin-top:130px}
 .pd-offers-head{display:flex;align-items:end;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.6rem}
 .pd-offers-title{font-family:'Barlow Condensed',sans-serif;font-size:1.45rem;font-weight:800}
@@ -1770,34 +1773,60 @@ function pcardHTML(p) {
   + '</a>';
 }
 
-function renderPriceIntelligence(product) {
+var PRICE_HISTORY_PERIOD = 180;
+function renderPriceIntelligence(product, requestedPeriod) {
   var insight = product && product.price_insight;
   if (!insight || !Number.isFinite(Number(insight.score))) return '';
-  var history = Array.isArray(product.price_history) ? product.price_history.filter(function(item){ return Number(item.min_price) > 0; }) : [];
+  var period = requestedPeriod || PRICE_HISTORY_PERIOD || 180;
+  var allHistory = Array.isArray(product.price_history) ? product.price_history.filter(function(item){ return Number(item.min_price) > 0; }) : [];
+  var latestTime = allHistory.length ? Math.max.apply(null, allHistory.map(function(item){ return new Date(item.observed_at).getTime(); })) : Date.now();
+  var cutoff = latestTime - period * 86400000;
+  var history = allHistory.filter(function(item){ return new Date(item.observed_at).getTime() >= cutoff; });
   var chart = '';
   if (history.length >= 2) {
     var values = history.map(function(item){ return Number(item.min_price); });
-    var min = Math.min.apply(null, values), max = Math.max.apply(null, values), range = Math.max(1, max - min);
-    var points = values.map(function(value, index){
+    var averages = history.map(function(item){ return Number(item.avg_price) || Number(item.min_price); });
+    var combined = values.concat(averages);
+    var min = Math.min.apply(null, combined), max = Math.max.apply(null, combined), range = Math.max(1, max - min);
+    var pointFor = function(value,index){
       var x = history.length === 1 ? 350 : 10 + index * 680 / (history.length - 1);
       var y = 92 - (value - min) * 72 / range;
       return x.toFixed(1) + ',' + y.toFixed(1);
-    }).join(' ');
+    };
+    var points = values.map(pointFor).join(' ');
+    var avgPoints = averages.map(pointFor).join(' ');
+    var dots = values.map(function(value,index){
+      var xy=pointFor(value,index).split(',');
+      var date=new Date(history[index].observed_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});
+      return '<circle class="pd-chart-dot" cx="' + xy[0] + '" cy="' + xy[1] + '" r="4" tabindex="0"><title>' + date + ' · ' + fmtEur(value) + '</title></circle>';
+    }).join('');
+    var firstDate = new Date(history[0].observed_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});
+    var lastDate = new Date(history[history.length-1].observed_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});
     chart = '<svg class="pd-chart" viewBox="0 0 700 105" preserveAspectRatio="none" role="img" aria-label="Évolution du meilleur prix observé">'
+      + '<line class="pd-chart-grid" x1="10" y1="20" x2="690" y2="20"></line><line class="pd-chart-grid" x1="10" y1="56" x2="690" y2="56"></line><line class="pd-chart-grid" x1="10" y1="92" x2="690" y2="92"></line>'
       + '<polygon class="pd-chart-area" points="10,100 ' + points + ' 690,100"></polygon>'
-      + '<polyline class="pd-chart-line" points="' + points + '"></polyline></svg>'
+      + '<polyline class="pd-chart-average" points="' + avgPoints + '"></polyline><polyline class="pd-chart-line" points="' + points + '"></polyline>' + dots + '</svg>'
+      + '<div class="pd-chart-labels"><span>' + firstDate + '</span><span>' + lastDate + '</span></div><div class="pd-chart-legend"><span><i></i>Meilleur prix</span><span><i class="avg"></i>Prix moyen</span></div>'
       + '<div class="pd-history-stats"><span>Plus bas <b>' + fmtEur(insight.history_low) + '</b></span><span>Moyenne <b>' + fmtEur(insight.history_average) + '</b></span>'
       + (insight.change_30d_pct != null ? '<span>Variation 30 j <b>' + (insight.change_30d_pct > 0 ? '+' : '') + insight.change_30d_pct.toLocaleString('fr-FR') + ' %</b></span>' : '') + '</div>';
   } else {
     chart = '<div class="pd-history-empty">La collecte de l’historique vient de commencer. HiFind affichera ici l’évolution réelle du meilleur prix dès que plusieurs observations seront disponibles.</div>';
   }
-  return '<section class="pd-section">'
+  var factors = insight.components || {};
+  var factor = function(label,value,max){ var pct=Math.max(0,Math.min(100,(Number(value)||0)/max*100)); return '<div class="pd-score-factor"><span>' + label + '<b>' + Math.round(Number(value)||0) + '/' + max + '</b></span><div class="pd-score-bar"><i style="width:' + pct + '%"></i></div></div>'; };
+  return '<section class="pd-section" id="pdPriceIntelligence">'
     + '<div class="pd-section-head"><div><div class="pd-section-title">Score HiFind et historique</div><div class="pd-section-sub">Calcul transparent à partir des offres disponibles, de leur fraîcheur et des prix réellement observés.</div></div></div>'
     + '<div class="pd-intelligence">'
       + '<div class="pd-score"><div class="pd-score-value" style="--score:' + Math.max(0, Math.min(100, Number(insight.score))) + '"><strong>' + insight.score + '<small>/100</small></strong></div>'
-        + '<div class="pd-score-copy"><strong>' + escHtml(insight.label || 'Prix analysé') + '</strong><span>Confiance ' + escHtml(insight.confidence || 'standard') + ' · ' + offersLabel(product.offers_count || 0) + '</span></div></div>'
-      + '<div class="pd-history"><div class="pd-history-head"><strong>Évolution du meilleur prix</strong><span>' + (history.length ? history.length + ' observation' + (history.length > 1 ? 's' : '') : 'Collecte en cours') + '</span></div>' + chart + '</div>'
+        + '<div class="pd-score-copy"><strong>' + escHtml(insight.label || 'Prix analysé') + '</strong><span>Confiance ' + escHtml(insight.confidence || 'limitée') + ' · ' + offersLabel(product.offers_count || 0) + '</span></div><div class="pd-score-explain">' + factor('Couverture',factors.merchant_coverage,20) + factor('Marché',factors.market_position,35) + factor('Fraîcheur',factors.freshness,15) + factor('Historique',factors.history,30) + '</div></div>'
+      + '<div class="pd-history"><div class="pd-history-head"><div><strong>Évolution du meilleur prix</strong><span style="display:block;margin-top:.15rem">' + (history.length ? history.length + ' observation' + (history.length > 1 ? 's' : '') : 'Collecte en cours') + '</span></div><div class="pd-history-periods">' + [30,90,180].map(function(days){ return '<button class="pd-history-period' + (period===days?' active':'') + '" onclick="selectPriceHistoryPeriod(' + days + ')">' + days + ' j</button>'; }).join('') + '</div></div>' + chart + '</div>'
     + '</div></section>';
+}
+
+function selectPriceHistoryPeriod(days) {
+  PRICE_HISTORY_PERIOD = days;
+  var host = document.getElementById('pdPriceIntelligence');
+  if (host && currentProduct) host.outerHTML = renderPriceIntelligence(currentProduct, days);
 }
 
 function offersLabel(count) {
