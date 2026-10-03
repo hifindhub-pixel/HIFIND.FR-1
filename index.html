@@ -2041,7 +2041,11 @@ function showSuggestions(id, val) {
       if (p.offers_count != null) bits.push(p.offers_count + ' marchand' + (p.offers_count > 1 ? 's' : ''));
       meta.textContent = bits.join(' · ');
       copy.append(t, meta); button.appendChild(copy);
-      button.addEventListener('click', function() { hideSugg(id); saveRecentSearch(val); openDetail(p.id); });
+      button.addEventListener('click', function() {
+        hideSugg(id); saveRecentSearch(val);
+        if (p.ean) openDetail(p.ean, { ean:true });
+        else openDetail(p.id);
+      });
       el.appendChild(button);
     });
     el.style.display = 'block';

@@ -6,6 +6,7 @@ import { countDistinctMerchants, loadMerchantAliases, canonicalMerchantId } from
 import { filterByCondition } from '../scripts/lib/condition.js';
 import { detectContradictions } from '../scripts/lib/quarantine.js';
 import { computePriceInsights } from '../scripts/lib/price-insights.js';
+import { rankSearchResults } from '../scripts/lib/search-ranking.js';
 
 const AFFILAE_PROFILE_ID = '69c1bc52b682a8edf3205672';
 
@@ -312,6 +313,24 @@ function buildTsQuery(q) {
     .join(' & ');
 }
 
+async function loadSearchEngagement(client, eans) {
+  if (!eans.length) return new Map();
+  try {
+    const result = await client.query(`
+      SELECT ean,
+        SUM(detail_views) FILTER (WHERE day >= CURRENT_DATE - INTERVAL '30 days')::int AS detail_views,
+        SUM(offer_clicks) FILTER (WHERE day >= CURRENT_DATE - INTERVAL '30 days')::int AS offer_clicks
+      FROM product_engagement_daily
+      WHERE ean = ANY($1) AND day >= CURRENT_DATE - INTERVAL '30 days'
+      GROUP BY ean
+    `, [eans]);
+    return new Map(result.rows.map(row => [String(row.ean), row]));
+  } catch (error) {
+    if (error.code === '42P01') return new Map();
+    throw error;
+  }
+}
+
 export async function getPriceHistory(client, ean, days = 180) {
   try {
     const result = await client.query(`
@@ -366,24 +385,29 @@ export default async function handler(req, res) {
             WITH matched AS (
               SELECT DISTINCT ON (p.ean) p.*, pr.title as program_title,
                 ts_rank(p.search_vector, query) AS rank,
-                similarity(p.title, $1) AS trgm_sim,
-                (strpos(lower(p.title), lower($1)) > 0 OR lower(p.brand) = lower($1)) AS exact_match
+                GREATEST(similarity(p.title, $1), similarity(COALESCE(p.brand,''), $1)) AS trgm_sim,
+                (lower(p.title) = lower($1) OR lower(p.brand) = lower($1)) AS exact_match,
+                (p.ean = regexp_replace($1, '[^0-9]', '', 'g')) AS ean_match,
+                (strpos(lower(p.title), lower($1)) > 0) AS phrase_match
               FROM products p
               LEFT JOIN programs pr ON p.program_id = pr.id,
               to_tsquery('french', $2) query
               WHERE ${searchWhere}
-              AND (p.search_vector @@ query OR p.title % $1)
-              ORDER BY p.ean, exact_match DESC NULLS LAST, ts_rank(p.search_vector, query) DESC, p.price ASC
+              AND (p.search_vector @@ query OR p.title % $1 OR COALESCE(p.brand,'') % $1
+                OR lower(p.brand) = lower($1) OR p.ean = regexp_replace($1, '[^0-9]', '', 'g'))
+              ORDER BY p.ean, ean_match DESC, exact_match DESC NULLS LAST,
+                phrase_match DESC, ts_rank(p.search_vector, query) DESC, p.price ASC
             )
             SELECT * FROM matched
-            ORDER BY exact_match DESC NULLS LAST, rank DESC, trgm_sim DESC
+            ORDER BY ean_match DESC, exact_match DESC NULLS LAST, phrase_match DESC, rank DESC, trgm_sim DESC
             LIMIT $3 OFFSET $4
           `, [q, tsQuery, limitN * 4, offset]),
           client.query(`
             SELECT COUNT(DISTINCT p.ean) AS total
             FROM products p, to_tsquery('french', $2) query
             WHERE ${MULTI_VENDOR_WHERE}
-            AND (p.search_vector @@ query OR p.title % $1)
+            AND (p.search_vector @@ query OR p.title % $1 OR COALESCE(p.brand,'') % $1
+              OR lower(p.brand) = lower($1) OR p.ean = regexp_replace($1, '[^0-9]', '', 'g'))
           `, [q, tsQuery]).then(res => parseInt(res.rows[0]?.total || '0', 10)),
         ]);
       } else {
@@ -432,7 +456,8 @@ export default async function handler(req, res) {
         }
 
         rows = await groupWithOffers(client, ranked);
-        rows = rows.slice(0, limitN);
+        const engagement = await loadSearchEngagement(client, rows.map(product => product.ean).filter(Boolean));
+        rows = rankSearchResults(rows, q, queryIntent, engagement).slice(0, limitN);
 
         // La recherche demande un type precis (ex: "console" pour "PS5")
         // mais AUCUN resultat de ce type n'existe : le dire explicitement
@@ -611,7 +636,7 @@ export default async function handler(req, res) {
 
     if (action === 'suggest') {
       return res.status(200).json({ data: rows.slice(0, 6).map(p => ({
-        id: p.id, title: p.title, price: p.price, offers_count: p.offers_count,
+        id: p.id, ean: p.ean, title: p.title, price: p.price, offers_count: p.offers_count,
         image_url: p.image_url, brand: p.brand, category: p.category,
         product_type: p.product_type, product_type_label: p.product_type_label
       })) });
