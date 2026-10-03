@@ -10,6 +10,11 @@ test('category page is indexable and escapes catalogue data',()=>{
  assert.match(html,/Téléviseur &lt;script&gt;alert\(1\)&lt;\/script&gt;/);
  assert.match(html,/application\/ld\+json/);assert.match(html,/rel="next"/);
  assert.match(html,/<link rel="next" href="https:\/\/hifind.fr\/categorie\/high-tech\?page=2">/);
+ assert.match(html,/Prix marchands réels/);
+ assert.match(html,/Aucun produit sponsorisé/);
+ assert.match(html,/id="catalogueSearch"/);
+ assert.match(html,/data-type="Téléviseurs"/);
+ assert.match(html,/Les produits qui attirent le plus d’intérêt/);
 });
 test('paginated category pages expose canonical previous and next URLs',()=>{
  const html=pageHtml({category:'high-tech',products:[product],total:8149,page:2,pages:272});
