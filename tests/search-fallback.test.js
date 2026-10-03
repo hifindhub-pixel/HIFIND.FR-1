@@ -43,3 +43,29 @@ test('exact brand outranks a similar stem even with a higher full-text score', a
     assert.equal(body.data[0].brand,'Bose');
   } finally {pool.connect=original;}
 });
+
+test('a cheaper accessory sharing an EAN cannot replace the real phone', async () => {
+  resetCacheForTests();
+  const pool = getPool(), original = pool.connect;
+  const phone = id => ({id:'p'+id,ean:'0195949038327',program_id:'phone-'+id,program_title:'Phone '+id,
+    title:'Apple iPhone 17 Pro 256 Go',brand:'Apple',category:'high-tech',price:1199,rank:0.4,trgm_sim:0.8,exact_match:false});
+  const accessory = id => ({id:'a'+id,ean:'0195949038327',program_id:'case-'+id,program_title:'Case '+id,
+    title:'Coque de protection pour iPhone 17 Pro',brand:'Apple',category:'high-tech',price:19,rank:0.7,trgm_sim:0.9,exact_match:false});
+  const candidates = [accessory('a'),phone('a'),accessory('b'),phone('b')];
+  pool.connect = async()=>({release(){},async query(sql){
+    if(sql.includes('merchant_aliases')) return {rows:[]};
+    if(sql.includes('COUNT(DISTINCT')) return {rows:[{total:1}]};
+    if(sql.includes('WITH matched')) return {rows:candidates};
+    if(sql.includes('product_engagement_daily')) return {rows:[]};
+    return {rows:candidates};
+  }});
+  try {
+    let body;
+    await handler({method:'GET',query:{action:'search',q:'iPhone 17 Pro'}},{setHeader(){},status(){return this;},json(b){body=b;}});
+    assert.equal(body.data.length,1);
+    assert.equal(body.data[0].product_type,'smartphone');
+    assert.equal(body.data[0].price,1199);
+    assert.equal(body.data[0].ean_offers.length,2);
+    assert.ok(body.data[0].ean_offers.every(offer => offer.product_type === 'smartphone'));
+  } finally {pool.connect=original;}
+});

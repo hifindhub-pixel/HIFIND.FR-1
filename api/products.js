@@ -218,6 +218,20 @@ function filterCompatibleOffers(mainCategory, offers) {
   return filtered;
 }
 
+function filterOffersByProductType(reference, offers, merchantAliases) {
+  const referenceType = formatRow(reference).product_type;
+  if (!referenceType || referenceType === 'other') return offers;
+  // Un EAN reutilise a tort sur une coque et un telephone ne doit jamais
+  // faire de la coque la "meilleure offre" du telephone. On conserve les
+  // offres du type de la fiche et les titres ambigus, uniquement si cela
+  // laisse bien au moins deux marchands reels comparables.
+  const compatible = offers.filter(offer =>
+    offer.product_type === referenceType || offer.product_type === 'other'
+  );
+  const vendors = new Set(compatible.map(offer => canonicalMerchantId(merchantAliases, offer.program_id)));
+  return vendors.size >= 2 ? compatible : [];
+}
+
 export async function getEanOffers(client, ean, mainCategory) {
   const r = await client.query(`
     SELECT DISTINCT ON (p.program_id) p.*, pr.title as program_title
@@ -268,7 +282,9 @@ export async function groupWithOffers(client, products) {
     if (eanMap.has(key)) continue;
     const offers = offersByEan.get(p.ean) || [];
 
-    const filtered = filterCompatibleOffers(formatRow(p).category, offers);
+    let filtered = filterCompatibleOffers(formatRow(p).category, offers);
+    filtered = filterOffersByProductType(p, filtered, merchantAliases);
+    if (!filtered.length) continue;
 
     // A public read must not depend on a database write: Neon can keep
     // serving SELECTs after reaching its storage quota. Keep excluding
@@ -383,7 +399,7 @@ export default async function handler(req, res) {
         [r, totalCount] = await Promise.all([
           client.query(`
             WITH matched AS (
-              SELECT DISTINCT ON (p.ean) p.*, pr.title as program_title,
+              SELECT p.*, pr.title as program_title,
                 ts_rank(p.search_vector, query) AS rank,
                 GREATEST(similarity(p.title, $1), similarity(COALESCE(p.brand,''), $1)) AS trgm_sim,
                 (lower(p.title) = lower($1) OR lower(p.brand) = lower($1)) AS exact_match,
@@ -395,13 +411,11 @@ export default async function handler(req, res) {
               WHERE ${searchWhere}
               AND (p.search_vector @@ query OR p.title % $1 OR COALESCE(p.brand,'') % $1
                 OR lower(p.brand) = lower($1) OR p.ean = regexp_replace($1, '[^0-9]', '', 'g'))
-              ORDER BY p.ean, ean_match DESC, exact_match DESC NULLS LAST,
-                phrase_match DESC, ts_rank(p.search_vector, query) DESC, p.price ASC
             )
             SELECT * FROM matched
             ORDER BY ean_match DESC, exact_match DESC NULLS LAST, phrase_match DESC, rank DESC, trgm_sim DESC
             LIMIT $3 OFFSET $4
-          `, [q, tsQuery, limitN * 4, offset]),
+          `, [q, tsQuery, limitN * 8, offset]),
           client.query(`
             SELECT COUNT(DISTINCT p.ean) AS total
             FROM products p, to_tsquery('french', $2) query
@@ -434,9 +448,20 @@ export default async function handler(req, res) {
           return classifyProductType(row.title) === queryIntent.primaryType ? 1 : 0;
         };
 
-        const ranked = r.rows.map(row => ({ row, score: scoreOf(row), tier: tierOf(row) }))
+        const rankedOffers = r.rows.map(row => ({ row, score: scoreOf(row), tier: tierOf(row) }))
           .sort((a, b) => (b.tier - a.tier) || (b.score - a.score))
           .map(x => x.row);
+        // Plusieurs marchands peuvent fournir le meme EAN. Le choix de la
+        // fiche de reference se fait APRES le classement par type, afin
+        // qu'une coque moins chere partageant un EAN errone ne remplace pas
+        // un smartphone dans les resultats.
+        const seenEans = new Set();
+        const ranked = rankedOffers.filter(row => {
+          const key = row.ean || row.id;
+          if (seenEans.has(key)) return false;
+          seenEans.add(key);
+          return true;
+        });
 
         // Diagnostic temporaire : &debug=1 dans l'URL renvoie le classement
         // FINAL (palier + score) des 15 premiers candidats, apres tri.
