@@ -14,6 +14,10 @@ test('merchant page is canonical, escaped and paginated',()=>{
   assert.match(html,/99,00 €/);
   assert.match(html,/2 marchands comparés/);
   assert.match(html,/Casques et écouteurs/);
+  assert.match(html,/Marchand référencé/);
+  assert.match(html,/Comparaison indépendante/);
+  assert.match(html,/id="catalogueSearch"/);
+  assert.match(html,/au meilleur prix sur cette page/);
   assert.doesNotMatch(html,/tv-audio-video/);
 });
 
