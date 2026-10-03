@@ -275,6 +275,11 @@ const TYPE_RULES = [
   ['computer_accessory', /\b(clavier|souris|surface arc mouse|webcam|routeur|cle usb)\b/],
   ['headphones', /\b(ecouteurs|openfit|openrun|open swim|openswim|quietcomfort|soundform|galaxy buds|casque stereo|casque filaire|casque avec micro)\b/],
   ['speaker', /\b(enceinte (bluetooth|connectee)|barre de son)\b/],
+  // A specification such as "caméra 200 MP" describes a phone feature,
+  // not the product family. Phone subjects must therefore win before the
+  // generic camera rule below. Accessories remain more specific still.
+  ['smartphone_accessory', /\b(coque|etui|housse|case|cover|verre trempe|film protecteur|protection d ecran)\b(?=.*\b(iphone|galaxy|smartphone|pixel|redmi|poco)\b)/],
+  ['smartphone', /\b(smartphone|iphone\s*\d+|galaxy\s*[saz]\d+|(?:google )?pixel\s*\d+|redmi (?:note )?\d+|poco\s*[a-z]*\d+)\b/],
   ['camera', /\b(appareil photo|objectif photo|pellicule|drone|camera|arlo essential)\b/],
   ['baby_equipment', /\b(poussette|biberon|tetine|couche|porte bebe|chaise haute|lit parapluie|siege auto bebe|table a langer)\b/],
 ];

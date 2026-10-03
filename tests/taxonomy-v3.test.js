@@ -30,6 +30,7 @@ const cases = [
  ['Sacs pour aspirateur','maison-jardin','appliance_accessory'],
  ['Sac pour aspirateur','maison-jardin','appliance_accessory'],
  ['Coque iPhone 17','high-tech','smartphone_accessory'],
+ ['Smartphone Redmi Note 14 Pro + 5G Caméra arrière 200 MP','high-tech','smartphone'],
  ['Pneu 205/55 R16','auto-moto','tyre'],
 ];
 for(const [title,category,type] of cases) test('taxonomy: '+title,()=>{
