@@ -96,7 +96,7 @@ export const INNOVATION_WHERE = `(
 )`;
 
 const MARKET_INTEREST_SQL = `CASE
-  WHEN lower(p.title) ~ '(coque|housse|etui|verre.{0,12}ecran|film protecteur|protection ecran|cartouche|toner|encre|cable|adaptateur|chargeur|support pour|manette|volant|sacoche)' THEN -30
+  WHEN lower(p.title) ~ '(coque|case|cover|housse|etui|verre.{0,18}(ecran|iphone|galaxy)|anti-rayures|antichocs|film protecteur|protection ecran|cartouche|toner|encre|cable|adaptateur|chargeur|support pour|manette|volant|sacoche)' THEN -30
   WHEN lower(p.title) ~ '(iphone [0-9]|galaxy [asz][0-9]|google pixel [0-9]|pixel [0-9]|redmi note [0-9]|smartphone .{0,20}(go|5g|4g))' THEN 40
   WHEN lower(p.title) ~ '(playstation 5|ps5 slim|xbox series [xs]|nintendo switch (2|oled))' THEN 34
   WHEN lower(p.title) ~ '(airpods|ecouteurs|casque audio|montre connectee|smartwatch|aspirateur robot|air ?fryer)' THEN 24
