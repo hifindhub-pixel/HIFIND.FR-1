@@ -271,7 +271,7 @@ const TYPE_RULES = [
   ['household_appliance', /\b(aspirateur|spotclean|crosswave|robot cuisine|robot patissier|lave linge|lave vaisselle|refrigerateur|congelateur|cafetiere|bouilloire|friteuse|blender|mixeur|micro ondes|four encastrable|chauffe eau|ventilateur|climatiseur|radiateur)\b/],
   // Explicit phone/tablet subjects precede component and camera features:
   // merchant titles routinely advertise their processor, camera and storage.
-  ['smartphone_accessory', /\b(coque|etui|housse|case|cover|protector|screen protector|wallet|folio|verre trempe|film protecteur|protection d ecran)\b(?=.*\b(iphone|galaxy|smartphone|pixel|redmi|poco)\b)/],
+  ['smartphone_accessory', /\b(coque|etui|housse|case|cover|protector|screen protector|camera lens protector|wallet|folio|verre trempe|verre camera|film protecteur|film de protection|protection d ecran)\b(?=.*\b(iphone|galaxy|smartphone|pixel|redmi|poco)\b)/],
   ['smartphone', /\b(smartphone|iphone\s*\d+|galaxy\s*[saz]\d+|galaxy z (?:fold|flip)|(?:google )?pixel\s*\d+|redmi (?:note )?\d+|poco\s*[a-z]*\d+|xiaomi\s*\d+)\b/],
   ['tablet', /\b(ipad|tablet|tablette tactile|galaxy tab|redmi pad)\b/],
   ['smartwatch', /\b(apple watch|galaxy watch|montre connectee|bracelet connecte|smart band \d+|forerunner)\b/],
