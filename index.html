@@ -1531,7 +1531,7 @@ async function runSearch(q) {
     if (data.meta && data.meta.noPrimaryTypeMatch && banner) {
       var notice = document.createElement('div');
       notice.style.cssText = 'background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:.9rem 1.1rem;margin-bottom:1rem;font-size:.85rem;color:var(--sub)';
-      notice.innerHTML = '<strong style="color:var(--text)">Aucun « ' + escHtml(q) + ' » compar\u00e9 chez au moins 3 marchands actuellement.</strong><br>Les r\u00e9sultats ci-dessous sont des produits connexes (accessoires, variantes...).';
+      notice.innerHTML = '<strong style="color:var(--text)">Aucun « ' + escHtml(q) + ' » compar\u00e9 chez au moins deux marchands actuellement.</strong><br>Les r\u00e9sultats ci-dessous sont des produits connexes (accessoires, variantes...).';
       banner.insertBefore(notice, banner.firstChild);
     }
   } else {
