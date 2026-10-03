@@ -227,7 +227,7 @@ function stripKnownAmbiguity(title) {
 // A brand, a description ingredient, or the merchant must not decide alone.
 const AMBIGUOUS = new Set(['bridgestone','goodyear','pirelli','hankook','yokohama','falken','nexen','vredestein','uniroyal','firestone','kumho','toyo tires','nokian','cooper tires','sailun','landsail','laufenn','ballon','arc','cible','tome','integrale','roman','livre','livres','edition collector','album','poche','broche','essai','one shot','strip','foret','niche','scorpion','wrangler','continental','dunlop','frontale','rechaud','tapis de sol','pince','meche','cheville','store','body','combinaison','mule','couche','console','veilleuse','collagene','miel','the vert','riz','pates','sirop']);
 const TYPES = [
-  ['high-tech', /\b(bracelet connecte|smart band \d+|galaxy (?:[saz]\d+|tab|watch|buds)|(?:google )?pixel \d+|redmi (?:note )?\d+|ecouteurs|openfit|openrun|open swim|openswim|soundform|forerunner|ps5|ps4|xbox|jeu (nintendo|video)|drone miniature|casque stereo|casque filaire|casque avec micro)\b/],
+  ['high-tech', /\b(bracelet connecte|smart band \d+|galaxy (?:[saz]\d+|z (?:fold|flip)|tab|watch|buds)|(?:google )?pixel \d+|redmi (?:note |pad )?\d+|poco [a-z]+\d+|xiaomi \d+|ecouteurs|enceintes? (?:sans fil|bluetooth|multimedia|de bureau)|openfit|openrun|open swim|openswim|soundform|forerunner|ps5|ps4|xbox|jeu (nintendo|video)|drone miniature|casque stereo|casque filaire|casque avec micro)\b/],
   ['maison-jardin', /\b(reveil|compresseur sans fil)\b/],
 
   ['auto-moto', /\b(desodorisant voiture|parfum (pour )?voiture|booster de demarrage|anti fuite metallique pour radiateur|chargeur de batterie (de )?voiture)\b/],

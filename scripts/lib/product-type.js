@@ -63,7 +63,8 @@ const GENERIC_ACCESSORY_WORDS = [
   // et retombaient a tort sur le type "smartphone" plein, comme si
   // c'etait le telephone lui-meme. Verifie sur donnees reelles (Apple
   // Silicone Case / Clear Case, iPhone 17 Pro / iPhone 16).
-  'case', 'cover', 'charger', 'sleeve', 'strap',
+  'case', 'cover', 'charger', 'sleeve', 'strap', 'protector',
+  'screen protector', 'wallet', 'folio',
   // Categorie d'accessoire non couverte : microphones/objectifs
   // compatibles smartphone, vendus comme accessoire du telephone plutot
   // que comme le telephone lui-meme.
@@ -268,18 +269,17 @@ const TYPE_RULES = [
   ['appliance_accessory', /\b(sacs?|filtres?|brosses?|accessoires?) (pour )?aspirateur\b/],
   ['furniture', /\b(console (murale|d entree|extensible)|meuble|commode|matelas|sommier|rideau|couette|serre livres)\b/],
   ['household_appliance', /\b(aspirateur|spotclean|crosswave|robot cuisine|robot patissier|lave linge|lave vaisselle|refrigerateur|congelateur|cafetiere|bouilloire|friteuse|blender|mixeur|micro ondes|four encastrable|chauffe eau|ventilateur|climatiseur|radiateur)\b/],
-  ['tablet', /\b(ipad|tablette tactile|galaxy tab)\b/],
+  // Explicit phone/tablet subjects precede component and camera features:
+  // merchant titles routinely advertise their processor, camera and storage.
+  ['smartphone_accessory', /\b(coque|etui|housse|case|cover|protector|screen protector|wallet|folio|verre trempe|film protecteur|protection d ecran)\b(?=.*\b(iphone|galaxy|smartphone|pixel|redmi|poco)\b)/],
+  ['smartphone', /\b(smartphone|iphone\s*\d+|galaxy\s*[saz]\d+|galaxy z (?:fold|flip)|(?:google )?pixel\s*\d+|redmi (?:note )?\d+|poco\s*[a-z]*\d+|xiaomi\s*\d+)\b/],
+  ['tablet', /\b(ipad|tablet|tablette tactile|galaxy tab|redmi pad)\b/],
   ['smartwatch', /\b(apple watch|galaxy watch|montre connectee|bracelet connecte|smart band \d+|forerunner)\b/],
   ['printer', /\b(imprimante|cartouche d encre|toner|kit tambour|ultrachrome)\b/],
   ['computer_component', /\b(ssd|disque dur|carte graphique|carte mere|processeur|ram ddr|alimentation pc|ventirad)\b/],
   ['computer_accessory', /\b(clavier|souris|surface arc mouse|webcam|routeur|cle usb)\b/],
   ['headphones', /\b(ecouteurs|openfit|openrun|open swim|openswim|quietcomfort|soundform|galaxy buds|casque stereo|casque filaire|casque avec micro)\b/],
-  ['speaker', /\b(enceinte (bluetooth|connectee)|barre de son)\b/],
-  // A specification such as "caméra 200 MP" describes a phone feature,
-  // not the product family. Phone subjects must therefore win before the
-  // generic camera rule below. Accessories remain more specific still.
-  ['smartphone_accessory', /\b(coque|etui|housse|case|cover|verre trempe|film protecteur|protection d ecran)\b(?=.*\b(iphone|galaxy|smartphone|pixel|redmi|poco)\b)/],
-  ['smartphone', /\b(smartphone|iphone\s*\d+|galaxy\s*[saz]\d+|(?:google )?pixel\s*\d+|redmi (?:note )?\d+|poco\s*[a-z]*\d+)\b/],
+  ['speaker', /\b(enceintes? (bluetooth|connectee?s?|sans fil|multimedia|de bureau)|barre de son)\b/],
   ['camera', /\b(appareil photo|objectif photo|pellicule|drone|camera|arlo essential)\b/],
   ['baby_equipment', /\b(poussette|biberon|tetine|couche|porte bebe|chaise haute|lit parapluie|siege auto bebe|table a langer)\b/],
 ];

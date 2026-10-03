@@ -31,6 +31,12 @@ const cases = [
  ['Sac pour aspirateur','maison-jardin','appliance_accessory'],
  ['Coque iPhone 17','high-tech','smartphone_accessory'],
  ['Smartphone Redmi Note 14 Pro + 5G Caméra arrière 200 MP','high-tech','smartphone'],
+ ['Tablet Xiaomi Redmi Pad 2 9.7 4GB 64GB','high-tech','tablet'],
+ ['Xiaomi Poco X7 Pro 5G 12Go 512Go','high-tech','smartphone'],
+ ['Xiaomi 17 Ultra Leica Noir 16 Go 512 Go','high-tech','smartphone'],
+ ['Samsung Screen Protector Transparent Galaxy S24+','high-tech','smartphone_accessory'],
+ ['Smartphone realme 14 Pro 5G Processeur Dimensity 7300 Caméra 50MP','high-tech','smartphone'],
+ ['EDIFIER M60 Enceintes de bureau sans fil Bluetooth','high-tech','speaker'],
  ['Pneu 205/55 R16','auto-moto','tyre'],
 ];
 for(const [title,category,type] of cases) test('taxonomy: '+title,()=>{
