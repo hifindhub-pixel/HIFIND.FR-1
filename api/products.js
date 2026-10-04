@@ -75,6 +75,22 @@ export function formatRow(p) {
   };
 }
 
+// Pick the reference supported by the largest number of independent feeds
+// before looking at price. This prevents a cheap accessory carrying a reused
+// EAN from becoming the title/image of the actual product page.
+export function prioritizeProductReferences(rows) {
+  const support = new Map();
+  const typed = rows.map(row => ({ row, type: formatRow(row).product_type }));
+  typed.forEach(({ row, type }) => {
+    if (!support.has(type)) support.set(type, new Set());
+    support.get(type).add(row.program_id);
+  });
+  return typed.sort((a,b) =>
+    (support.get(b.type)?.size || 0) - (support.get(a.type)?.size || 0)
+      || Number(a.row.price || Infinity) - Number(b.row.price || Infinity)
+  ).map(item => item.row);
+}
+
 const MULTI_VENDOR_WHERE = `
   p.ean IS NOT NULL
   AND p.status = 'enabled'
@@ -368,6 +384,40 @@ export async function getPriceHistory(client, ean, days = 180) {
   }
 }
 
+/**
+ * Canonical product-detail loader shared by the JSON API and the indexable
+ * HTML route. Keeping this in one place guarantees the same reference,
+ * offers, merchant count and price intelligence in both renderers.
+ */
+export async function getComparableProductDetail(client, { id = '', ean = '', includeHistory = true } = {}) {
+  if (!id && !ean) return null;
+  const result = await client.query(`
+    SELECT p.*, pr.title AS program_title
+    FROM products p LEFT JOIN programs pr ON pr.id=p.program_id
+    WHERE ${id ? 'p.id=$1' : 'p.ean=$1'}
+      AND p.status='enabled' AND p.price>0
+      AND p.program_id NOT LIKE '%darty%'
+    ORDER BY p.price ASC
+  `, [id || ean]);
+  if (!result.rows.length) return null;
+
+  const references = id ? result.rows : prioritizeProductReferences(result.rows);
+  const product = formatRow(references[0]);
+  if (!product.ean) return null;
+
+  const offers = await getEanOffers(client, product.ean, product.category);
+  const merchantCount = await countDistinctMerchants(client, offers);
+  if (merchantCount < 2) return null;
+
+  product.ean_offers = offers;
+  product.offers_count = merchantCount;
+  if (includeHistory) {
+    product.price_history = await getPriceHistory(client, product.ean);
+    product.price_insight = computePriceInsights(offers, product.price_history, new Date(), { merchantCount });
+  }
+  return product;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -530,23 +580,8 @@ export default async function handler(req, res) {
       total = rows.length;
 
     } else if (action === 'product' && (id || ean)) {
-      const r = await client.query(`
-        SELECT p.*, pr.title as program_title FROM products p
-        LEFT JOIN programs pr ON p.program_id = pr.id
-        WHERE ${id ? 'p.id = $1' : 'p.ean = $1'}
-        ORDER BY p.price ASC LIMIT 1
-      `, [id || ean]);
-      if (r.rows.length > 0) {
-        const product = formatRow(r.rows[0]);
-        if (product.ean) {
-          const offers = await getEanOffers(client, product.ean, product.category);
-          product.ean_offers = offers;
-          product.offers_count = await countDistinctMerchants(client, offers);
-          product.price_history = await getPriceHistory(client, product.ean);
-          product.price_insight = computePriceInsights(offers, product.price_history, new Date(), { merchantCount: product.offers_count });
-        }
-        rows = [product];
-      }
+      const product = await getComparableProductDetail(client, { id, ean, includeHistory:true });
+      if (product) rows = [product];
 
     } else if (action === 'stats') {
       // LOT design : compteurs reels par categorie pour la grille de la

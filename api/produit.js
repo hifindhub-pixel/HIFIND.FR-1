@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { getPool, groupWithOffers, getEanOffers, formatRow } from './products.js';
-import { countDistinctMerchants } from '../scripts/lib/merchants.js';
+import { getPool, getComparableProductDetail } from './products.js';
 
 export const SITE_URL = 'https://hifind.fr';
 const APP_SHELL = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
@@ -73,44 +72,13 @@ ${image ? `<meta property="og:image" content="${esc(image)}"><meta name="twitter
     .replace('</head>', social + '\n</head>');
 }
 
-function prioritizeProductReferences(rows) {
-  const support = new Map();
-  rows.forEach(row => {
-    const type = formatRow(row).product_type;
-    if (!support.has(type)) support.set(type, new Set());
-    support.get(type).add(row.program_id);
-  });
-  return rows.slice().sort((a,b) => {
-    const aType = formatRow(a).product_type, bType = formatRow(b).product_type;
-    return (support.get(bType)?.size || 0) - (support.get(aType)?.size || 0)
-      || Number(a.price || Infinity) - Number(b.price || Infinity);
-  });
-}
-
 export default async function handler(req, res) {
   const ean = extractEanFromSlug(req.query.slug);
   if (!ean) return res.status(404).send('Produit introuvable');
   const client = await getPool().connect();
   try {
-    const result = await client.query(`
-      SELECT p.*, pr.title AS program_title
-      FROM products p LEFT JOIN programs pr ON pr.id=p.program_id
-      WHERE p.ean=$1 AND p.status='enabled' AND p.price>0
-        AND p.program_id NOT LIKE '%darty%'
-      ORDER BY p.price ASC
-    `, [ean]);
-    if (!result.rows.length) return res.status(404).send('Produit introuvable');
-    const products = await groupWithOffers(client, prioritizeProductReferences(result.rows));
-    const product = products[0];
+    const product = await getComparableProductDetail(client, { ean, includeHistory:false });
     if (!product) return res.status(404).send('Produit non comparable');
-    // Keep server-rendered SEO data on exactly the same offer path as
-    // action=product, which hydrates the interactive page in the browser.
-    // groupWithOffers still selects a safe reference title/type first.
-    const offers = await getEanOffers(client, ean, product.category);
-    const merchantCount = await countDistinctMerchants(client, offers);
-    if (merchantCount < 2) return res.status(404).send('Produit non comparable');
-    product.ean_offers = offers;
-    product.offers_count = merchantCount;
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=1800');
     return res.status(200).send(renderProductShell(product));
