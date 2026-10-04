@@ -9,7 +9,7 @@ import { EanIndex, HarvestWriter, resetHarvest, harvestedPrograms, selectMatchin
 import { reconcileCategories } from './lib/category-consensus.js';
 import { categorize } from './lib/categorize.js';
 import { FeedLifecycle } from './lib/feed-lifecycle.js';
-import { budgetCatalogue } from './lib/catalogue-budget.js';
+import { budgetCatalogue, compactCatalogueRows } from './lib/catalogue-budget.js';
 import { writeFileSync } from 'node:fs';
 import pkg from 'pg';
 const { Client } = pkg;
@@ -215,18 +215,18 @@ async function supabaseUpsert(table, rows) {
   }
 }
 
-async function prepareCatalogueStorage(selectedEans) {
-  if (!selectedEans?.size) throw new Error('Refus de préparer le stockage sans EAN sélectionné');
+async function prepareCatalogueStorage(selectedRows) {
+  if (!selectedRows?.length) throw new Error('Refus de préparer le stockage sans offre sélectionnée');
   const client = await getNeon();
   // This GIN index duplicated the full-text index and consumed a large share
   // of the 1 GB quota. Search still uses search_vector; typo-free substring
   // fallback remains available without storing another copy of every title.
   await client.query('DROP INDEX IF EXISTS idx_products_title_trgm');
-  await client.query('CREATE TEMP TABLE sync_selected_eans (ean TEXT PRIMARY KEY) ON COMMIT PRESERVE ROWS');
-  const eans = [...selectedEans];
-  for (let i = 0; i < eans.length; i += 1000) {
-    await client.query(`INSERT INTO sync_selected_eans (ean)
-      SELECT DISTINCT unnest($1::text[]) ON CONFLICT DO NOTHING`, [eans.slice(i, i + 1000)]);
+  await client.query('CREATE TEMP TABLE sync_selected_offers (id TEXT PRIMARY KEY) ON COMMIT PRESERVE ROWS');
+  const ids = selectedRows.map(row => row.id);
+  for (let i = 0; i < ids.length; i += 1000) {
+    await client.query(`INSERT INTO sync_selected_offers (id)
+      SELECT DISTINCT unnest($1::text[]) ON CONFLICT DO NOTHING`, [ids.slice(i, i + 1000)]);
   }
   await client.query(`DELETE FROM products WHERE status <> 'enabled' OR ean IS NULL`);
   const safePrograms = LIFECYCLE.safePrograms();
@@ -234,11 +234,12 @@ async function prepareCatalogueStorage(selectedEans) {
   if (safePrograms.length) {
     const result = await client.query(`DELETE FROM products p
       WHERE p.program_id = ANY($1::text[])
-      AND NOT EXISTS (SELECT 1 FROM sync_selected_eans s WHERE s.ean = p.ean)`, [safePrograms]);
+      AND NOT EXISTS (SELECT 1 FROM sync_selected_offers s WHERE s.id = p.id)`, [safePrograms]);
     pruned = result.rowCount;
   }
   await client.query('VACUUM (ANALYZE) products');
   console.log('🧹 Budget stockage : ' + pruned.toLocaleString('fr-FR') + ' anciennes offres retirées avant ingestion');
+  return pruned;
 }
 
 async function syncAffilae() {
@@ -1251,11 +1252,12 @@ async function ingestHarvest() {
   const budget = budgetCatalogue(categoryRows, MAX_STORED_OFFERS, MAX_OFFERS_PER_EAN);
   const selectedRows = new Set(budget.rows);
   PENDING.forEach(batch => { batch.rows = batch.rows.filter(row => selectedRows.has(row)); });
+  budget.stats.metadata_compaction = compactCatalogueRows(budget.rows);
   totalKept = budget.rows.length;
   console.log('💾 Budget catalogue : ' + budget.stats.selected_eans.toLocaleString('fr-FR') + ' EAN, '
     + budget.stats.selected_offers.toLocaleString('fr-FR') + ' offres conservées sur '
     + budget.stats.candidate_offers.toLocaleString('fr-FR'));
-  await prepareCatalogueStorage(budget.eans);
+  budget.stats.pruned_stale_offers = await prepareCatalogueStorage(budget.rows);
 
   // ── Insertion ──
   for (const b of PENDING) {

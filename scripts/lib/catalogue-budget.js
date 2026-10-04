@@ -59,3 +59,34 @@ export function budgetCatalogue(rows, maxRows = Infinity, maxOffersPerEan = 4) {
     },
   };
 }
+
+/**
+ * Descriptions are product metadata, not offer metadata. Keeping the same long
+ * text on every merchant row also duplicates its generated search vector.
+ * Preserve one searchable description per EAN and clear only the repetitions;
+ * prices, merchant URLs, titles, images and brands remain untouched.
+ */
+export function compactCatalogueRows(rows, maxDescriptionLength = 600) {
+  const grouped = new Map();
+  for (const row of rows || []) {
+    if (!row?.ean) continue;
+    if (!grouped.has(row.ean)) grouped.set(row.ean, []);
+    grouped.get(row.ean).push(row);
+  }
+  let descriptionsBefore = 0, descriptionsAfter = 0, charactersBefore = 0, charactersAfter = 0;
+  for (const offers of grouped.values()) {
+    const described = offers.filter(row => String(row.description || '').trim());
+    described.forEach(row => { descriptionsBefore += 1; charactersBefore += String(row.description).length; });
+    const keeper = described.sort((a,b) => Number(a.price || Infinity) - Number(b.price || Infinity))[0];
+    offers.forEach(row => {
+      if (row !== keeper) row.description = null;
+    });
+    if (keeper) {
+      keeper.description = String(keeper.description).slice(0, Math.max(80, Number(maxDescriptionLength) || 600));
+      descriptionsAfter += 1; charactersAfter += keeper.description.length;
+    }
+  }
+  return { descriptions_before:descriptionsBefore, descriptions_after:descriptionsAfter,
+    characters_before:charactersBefore, characters_after:charactersAfter,
+    characters_saved:Math.max(0, charactersBefore - charactersAfter) };
+}
