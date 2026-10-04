@@ -10,6 +10,50 @@ const median = values => {
   return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
 };
 
+function windowStats(observations, currentPrice, now, days) {
+  if (!observations.length) return null;
+  const nowMs = now.getTime();
+  const startMs = nowMs - days * 86400000;
+  const timed = observations.map(item => ({ ...item, time:new Date(item.date).getTime() }))
+    .filter(item => Number.isFinite(item.time) && item.time <= nowMs);
+  if (!timed.length) return null;
+
+  const before = timed.filter(item => item.time <= startMs).at(-1);
+  const firstInside = timed.find(item => item.time > startMs);
+  const first = before || firstInside;
+  if (!first) return null;
+  const effectiveStart = before ? startMs : first.time;
+  const coverageDays = Math.max(0, (nowMs - effectiveStart) / 86400000);
+  // Une valeur « 30 j » ou « 90 j » n'est publiée que si au moins 70 %
+  // de la période est réellement couverte. Pas d'extrapolation marketing.
+  if (coverageDays < days * 0.7) return null;
+
+  let cursor = effectiveStart;
+  let activePrice = first.min_price;
+  let weighted = 0;
+  const prices = [activePrice];
+  for (const item of timed) {
+    if (item.time <= effectiveStart) continue;
+    weighted += activePrice * (item.time - cursor);
+    cursor = item.time;
+    activePrice = item.min_price;
+    prices.push(activePrice);
+  }
+  weighted += activePrice * Math.max(0, nowMs - cursor);
+  prices.push(currentPrice);
+  const duration = Math.max(1, nowMs - effectiveStart);
+  const average = weighted / duration;
+  return {
+    days,
+    coverage_days: Math.round(coverageDays),
+    average,
+    low:Math.min(...prices),
+    high:Math.max(...prices),
+    change_pct:first.min_price > 0 ? (currentPrice - first.min_price) / first.min_price * 100 : null,
+    vs_average_pct:average > 0 ? (currentPrice - average) / average * 100 : null,
+  };
+}
+
 export function computePriceInsights(offers = [], history = [], now = new Date(), options = {}) {
   const prices = offers.map(offer => numeric(offer.price)).filter(Boolean).sort((a, b) => a - b);
   if (!prices.length) return null;
@@ -33,7 +77,7 @@ export function computePriceInsights(offers = [], history = [], now = new Date()
     ? (new Date(observations.at(-1).date) - new Date(observations[0].date)) / 86400000 : 0;
   const historyReady = observations.length >= 3 && spanDays >= 7;
   let historyPoints = 0;
-  let historyLow = null, historyHigh = null, historyAverage = null, historyMedian = null, change30d = null;
+  let historyLow = null, historyHigh = null, historyAverage = null, historyMedian = null;
   let lowestObservedAt = null, historyPositionPct = null, vsTypicalPct = null;
 
   if (observations.length) {
@@ -45,14 +89,14 @@ export function computePriceInsights(offers = [], history = [], now = new Date()
     const lowObservation = observations.reduce((best, item) => item.min_price < best.min_price ? item : best, observations[0]);
     lowestObservedAt = lowObservation.date;
   }
+  const stats30 = windowStats(observations, currentPrice, now, 30);
+  const stats90 = windowStats(observations, currentPrice, now, 90);
   if (historyReady) {
     const range = historyHigh - historyLow;
     historyPoints = range < 0.01 ? 18 : Math.max(0, Math.min(30, 30 * (historyHigh - currentPrice) / range));
     historyPositionPct = range < 0.01 ? 50 : Math.max(0, Math.min(100, (currentPrice - historyLow) / range * 100));
-    vsTypicalPct = historyMedian > 0 ? (currentPrice - historyMedian) / historyMedian * 100 : null;
-    const cutoff = now.getTime() - 30 * 86400000;
-    const baseline = observations.find(item => new Date(item.date).getTime() >= cutoff) || observations[0];
-    change30d = baseline.min_price > 0 ? ((currentPrice - baseline.min_price) / baseline.min_price) * 100 : null;
+    const typicalPrice = stats90?.average || historyMedian;
+    vsTypicalPct = typicalPrice > 0 ? (currentPrice - typicalPrice) / typicalPrice * 100 : null;
   }
 
   const availablePoints = 70 + (historyReady ? 30 : 0);
@@ -88,7 +132,13 @@ export function computePriceInsights(offers = [], history = [], now = new Date()
     at_history_low: atHistoryLow,
     lowest_observed_at: lowestObservedAt,
     history_span_days: Math.max(0, Math.round(spanDays)),
-    change_30d_pct: change30d == null ? null : Math.round(change30d * 10) / 10,
+    average_30d:stats30 ? Math.round(stats30.average * 100) / 100 : null,
+    average_90d:stats90 ? Math.round(stats90.average * 100) / 100 : null,
+    change_30d_pct:stats30?.change_pct == null ? null : Math.round(stats30.change_pct * 10) / 10,
+    change_90d_pct:stats90?.change_pct == null ? null : Math.round(stats90.change_pct * 10) / 10,
+    vs_average_90d_pct:stats90?.vs_average_pct == null ? null : Math.round(stats90.vs_average_pct * 10) / 10,
+    history_coverage_30d:stats30?.coverage_days || 0,
+    history_coverage_90d:stats90?.coverage_days || 0,
     observation_count: observations.length,
     components: {
       merchant_coverage: Math.round(coveragePoints),

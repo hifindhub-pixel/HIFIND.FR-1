@@ -1807,8 +1807,8 @@ function renderPriceIntelligence(product, requestedPeriod) {
       + '<polygon class="pd-chart-area" points="10,100 ' + points + ' 690,100"></polygon>'
       + '<polyline class="pd-chart-average" points="' + avgPoints + '"></polyline><polyline class="pd-chart-line" points="' + points + '"></polyline>' + dots + '</svg>'
       + '<div class="pd-chart-labels"><span>' + firstDate + '</span><span>' + lastDate + '</span></div><div class="pd-chart-legend"><span><i></i>Meilleur prix</span><span><i class="avg"></i>Prix moyen</span></div>'
-      + '<div class="pd-history-stats"><span>Plus bas <b>' + fmtEur(insight.history_low) + '</b></span><span>Moyenne <b>' + fmtEur(insight.history_average) + '</b></span>'
-      + (insight.change_30d_pct != null ? '<span>Variation 30 j <b>' + (insight.change_30d_pct > 0 ? '+' : '') + insight.change_30d_pct.toLocaleString('fr-FR') + ' %</b></span>' : '') + '</div>';
+      + '<div class="pd-history-stats"><span>Plus bas <b>' + fmtEur(insight.history_low) + '</b></span><span>' + (insight.average_90d != null ? 'Moyenne 90 j' : 'Moyenne observée') + ' <b>' + fmtEur(insight.average_90d != null ? insight.average_90d : insight.history_average) + '</b></span>'
+      + ((period===30 ? insight.change_30d_pct : period===90 ? insight.change_90d_pct : null) != null ? '<span>Variation ' + period + ' j <b>' + ((period===30 ? insight.change_30d_pct : insight.change_90d_pct) > 0 ? '+' : '') + (period===30 ? insight.change_30d_pct : insight.change_90d_pct).toLocaleString('fr-FR') + ' %</b></span>' : '') + '</div>';
   } else {
     chart = '<div class="pd-history-empty">La collecte de l’historique vient de commencer. HiFind affichera ici l’évolution réelle du meilleur prix dès que plusieurs observations seront disponibles.</div>';
   }

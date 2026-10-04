@@ -29,12 +29,40 @@ test('mature history contributes to the score and real trend',()=>{
   assert.equal(insight.history_status,'ready');
   assert.equal(insight.history_low,80);
   assert.equal(insight.history_high,110);
-  assert.equal(insight.change_30d_pct,-15.8);
+  assert.equal(insight.change_30d_pct,-27.3);
+  assert.equal(insight.history_coverage_30d,30);
+  assert.equal(insight.change_90d_pct,null);
   assert.equal(insight.at_history_low,true);
   assert.equal(insight.label,'Au plus bas observé');
   assert.equal(insight.history_median,95);
   assert.equal(insight.lowest_observed_at,'2026-10-01');
   assert.ok(insight.components.history>0);
+});
+
+test('short history never manufactures a 30 or 90 day discount',()=>{
+  const history=[
+    {observed_at:'2026-09-25',min_price:120},
+    {observed_at:'2026-09-29',min_price:100},
+    {observed_at:'2026-10-01',min_price:80},
+  ];
+  const insight=computePriceInsights(offers,history,now);
+  assert.equal(insight.change_30d_pct,null);
+  assert.equal(insight.average_30d,null);
+  assert.equal(insight.change_90d_pct,null);
+});
+
+test('90 day average is weighted by time instead of change frequency',()=>{
+  const history=[
+    {observed_at:'2026-07-01',min_price:100},
+    {observed_at:'2026-09-20',min_price:200},
+    {observed_at:'2026-09-25',min_price:180},
+    {observed_at:'2026-10-01',min_price:80},
+  ];
+  const insight=computePriceInsights(offers,history,now);
+  assert.equal(insight.history_coverage_90d,90);
+  assert.ok(insight.average_90d < 120, `moyenne pondérée inattendue: ${insight.average_90d}`);
+  assert.equal(insight.change_90d_pct,-20);
+  assert.ok(insight.vs_average_90d_pct < 0);
 });
 
 test('a high current price is never presented as a bargain',()=>{
