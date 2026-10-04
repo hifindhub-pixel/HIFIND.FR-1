@@ -591,6 +591,12 @@ nav {
   font-size:.85rem; transition:all .2s;
 }
 .pcard-btn-fav:hover { border-color:var(--coral); }
+.compare-card-btn{
+  border:1px solid var(--border2);background:var(--bg2);color:var(--sub);border-radius:8px;
+  padding:.46rem .62rem;font-size:.7rem;font-weight:800;cursor:pointer;white-space:nowrap
+}
+.compare-card-btn:hover,.compare-card-btn.on{border-color:var(--coral);color:var(--coral);background:rgba(244,98,75,.08)}
+.prod-card .compare-card-btn{width:100%;margin-top:.65rem}
 
 /* ═══════════════════════════════════════
    DETAIL PAGE
@@ -935,6 +941,16 @@ nav {
 .pd-action-row{display:flex;gap:.55rem;align-items:center;margin-top:.8rem;flex-wrap:wrap}
 .pd-share-btn{border:1px solid var(--border2);background:var(--bg2);color:var(--text);border-radius:10px;padding:.72rem .9rem;font-weight:750;font-size:.76rem;cursor:pointer}
 .pd-share-btn:hover{background:var(--bg3)}
+.compare-dock{position:fixed;z-index:80;left:50%;bottom:18px;transform:translateX(-50%);width:min(920px,calc(100% - 28px));display:flex;align-items:center;gap:.8rem;padding:.72rem .8rem;background:color-mix(in srgb,var(--bg2) 94%,transparent);border:1px solid var(--border2);border-radius:15px;box-shadow:0 16px 50px rgba(0,0,0,.22);backdrop-filter:blur(18px)}
+.compare-dock-copy{min-width:115px}.compare-dock-copy strong{display:block;font-size:.79rem}.compare-dock-copy span{display:block;color:var(--sub);font-size:.64rem;margin-top:.1rem}
+.compare-dock-items{display:flex;gap:.4rem;flex:1;min-width:0;overflow:auto}.compare-chip{display:flex;align-items:center;gap:.45rem;min-width:0;max-width:165px;padding:.38rem .45rem;background:var(--bg3);border:1px solid var(--border);border-radius:9px}.compare-chip img{width:30px;height:30px;object-fit:contain;background:#fff;border-radius:6px}.compare-chip span{font-size:.65rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.compare-chip button{border:0;background:none;color:var(--sub);cursor:pointer;font-size:1rem}
+.compare-dock-action{border:0;background:var(--coral);color:#fff;border-radius:9px;padding:.65rem .9rem;font-size:.73rem;font-weight:850;cursor:pointer;white-space:nowrap}.compare-dock-action:disabled{opacity:.45;cursor:not-allowed}
+.compare-backdrop{position:fixed;z-index:100;inset:0;background:rgba(5,12,23,.68);display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(5px)}
+.compare-modal{width:min(1120px,100%);max-height:calc(100vh - 48px);overflow:auto;background:var(--bg);border:1px solid var(--border2);border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.35)}
+.compare-modal-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.2rem;background:color-mix(in srgb,var(--bg) 94%,transparent);border-bottom:1px solid var(--border);backdrop-filter:blur(16px)}
+.compare-modal-head h2{font-family:'Barlow Condensed',sans-serif;font-size:1.45rem}.compare-modal-head p{color:var(--sub);font-size:.7rem;margin-top:.15rem}.compare-close{border:1px solid var(--border);background:var(--bg2);color:var(--text);width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:1.15rem}
+.compare-table{display:grid;min-width:720px;padding:1rem 1.2rem 1.3rem}.compare-row{display:grid;grid-template-columns:150px repeat(var(--compare-cols),minmax(150px,1fr));border-bottom:1px solid var(--border)}.compare-row:last-child{border-bottom:0}.compare-label,.compare-value{padding:.78rem .7rem}.compare-label{color:var(--sub);font-size:.67rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em}.compare-value{border-left:1px solid var(--border);font-size:.78rem;font-weight:700}.compare-product img{display:block;width:90px;height:90px;object-fit:contain;background:#fff;border-radius:10px;margin-bottom:.55rem}.compare-product strong{display:block;line-height:1.35}.compare-product span{display:block;color:var(--sub);font-size:.67rem;margin-top:.25rem}.compare-best{color:var(--jade);font-size:1rem}.compare-open{display:inline-flex;margin-top:.65rem;color:var(--coral);font-size:.7rem;text-decoration:none}.compare-loading{padding:3rem;text-align:center;color:var(--sub)}
+@media(max-width:700px){.compare-dock-copy{display:none}.compare-chip{max-width:105px}.compare-chip span{display:none}.compare-dock{bottom:10px}.compare-backdrop{padding:10px}.compare-modal{max-height:calc(100vh - 20px)}}
 .pd-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem;margin-top:.8rem}
 .pd-summary-item{border:1px solid var(--border);background:var(--bg2);border-radius:11px;padding:.72rem .8rem;min-width:0}
 .pd-summary-item span{display:block;color:var(--sub);font-size:.62rem;text-transform:uppercase;letter-spacing:.055em;font-weight:800}
@@ -1388,6 +1404,10 @@ var allResults = [];
 var currentResults = [];
 var currentProduct = null;
 var favorites = JSON.parse(localStorage.getItem('hf_favs') || '[]');
+var compareProducts = (function(){
+  try { var saved = JSON.parse(localStorage.getItem('hf_compare') || '[]'); return Array.isArray(saved) ? saved.slice(0, 4) : []; }
+  catch (error) { return []; }
+})();
 var lastQuery = '';
 var lastCat = '';
 var homeProductsCache = {};
@@ -1766,6 +1786,7 @@ function pcardHTML(p) {
           + '<div class="pcard-price">' + price.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €</div>'
         + '</div>'
         + '<div class="pcard-actions">'
+          + '<button class="compare-card-btn' + (compareProducts.some(function(item){ return item.id === p.id; }) ? ' on' : '') + '" data-compare-id="' + escHtml(p.id) + '" onclick="event.stopPropagation();event.preventDefault();toggleCompare(\'' + safeId + '\')">' + (compareProducts.some(function(item){ return item.id === p.id; }) ? 'Ajouté' : 'Comparer') + '</button>'
           + '<button class="pcard-btn" onclick="event.stopPropagation();event.preventDefault();openDetail(\'' + safeId + '\')">Comparer →</button>'
         + '</div>'
       + '</div>'
@@ -1833,6 +1854,128 @@ function offersLabel(count) {
   count = Number(count) || 0;
   return count + ' marchand' + (count > 1 ? 's' : '') + ' comparé' + (count > 1 ? 's' : '');
 }
+
+// ══ PRODUCT COMPARE ══
+var compareNoticeTimer = null;
+function comparableType(product) {
+  var value = String(product && product.product_type || '').trim().toLowerCase();
+  return value && value !== 'other' && value !== 'autres' ? value : '';
+}
+function comparableCategory(product) {
+  var value = String(product && product.category || '').trim().toLowerCase();
+  return value && value !== 'other' && value !== 'autres' ? value : '';
+}
+function productsCompatible(first, next) {
+  var firstType = comparableType(first), nextType = comparableType(next);
+  if (firstType && nextType) return firstType === nextType;
+  var firstCategory = comparableCategory(first), nextCategory = comparableCategory(next);
+  return !firstCategory || !nextCategory || firstCategory === nextCategory;
+}
+function compactCompareProduct(product) {
+  var fields = ['id','ean','title','brand','program_title','category','product_type','price','offers_count','image_url','image','image_link'];
+  return fields.reduce(function(copy, key){ if (product[key] != null) copy[key] = product[key]; return copy; }, {});
+}
+function findCompareProduct(id) {
+  if (currentProduct && currentProduct.id === id) return currentProduct;
+  return currentResults.find(function(product){ return product.id === id; })
+    || favorites.find(function(product){ return product.id === id; })
+    || homeProductsCache[id];
+}
+function persistCompareProducts() {
+  localStorage.setItem('hf_compare', JSON.stringify(compareProducts.map(compactCompareProduct)));
+}
+function setCompareNotice(message) {
+  var notice = document.getElementById('compareDockNotice');
+  if (!notice) return;
+  notice.textContent = message;
+  clearTimeout(compareNoticeTimer);
+  compareNoticeTimer = setTimeout(function(){ renderCompareDock(); }, 3200);
+}
+function syncCompareButtons() {
+  document.querySelectorAll('[data-compare-id]').forEach(function(button){
+    var selected = compareProducts.some(function(product){ return String(product.id) === button.getAttribute('data-compare-id'); });
+    button.classList.toggle('on', selected);
+    button.textContent = selected ? (button.closest('.prod-card') ? 'Retirer du comparatif' : 'Ajouté') : (button.closest('.prod-card') ? 'Ajouter au comparatif' : 'Comparer');
+  });
+}
+function toggleCompare(id) {
+  var index = compareProducts.findIndex(function(product){ return product.id === id; });
+  if (index >= 0) {
+    compareProducts.splice(index, 1);
+  } else {
+    var product = findCompareProduct(id);
+    if (!product) return;
+    if (compareProducts.length >= 4) { setCompareNotice('Le comparatif est limité à 4 produits.'); return; }
+    if (compareProducts.length && !productsCompatible(compareProducts[0], product)) {
+      setCompareNotice('Choisissez des produits du même type pour une comparaison utile.'); return;
+    }
+    compareProducts.push(compactCompareProduct(product));
+  }
+  persistCompareProducts();
+  renderCompareDock();
+  syncCompareButtons();
+}
+function renderCompareDock() {
+  var dock = document.getElementById('compareDock');
+  if (!compareProducts.length) { if (dock) dock.remove(); return; }
+  if (!dock) { dock = document.createElement('aside'); dock.id = 'compareDock'; dock.className = 'compare-dock'; dock.setAttribute('aria-label','Produits à comparer'); document.body.append(dock); }
+  dock.innerHTML = '<div class="compare-dock-copy"><strong>Votre comparatif</strong><span id="compareDockNotice">' + compareProducts.length + ' produit' + (compareProducts.length > 1 ? 's' : '') + ' sélectionné' + (compareProducts.length > 1 ? 's' : '') + '</span></div>'
+    + '<div class="compare-dock-items">' + compareProducts.map(function(product){
+      var img = getImageUrl(product);
+      return '<div class="compare-chip">' + (img ? '<img src="' + escHtml(img) + '" alt="" onerror="this.remove()">' : '') + '<span>' + escHtml(product.title || 'Produit') + '</span><button onclick="toggleCompare(\'' + String(product.id).replace(/'/g,"\\'") + '\')" aria-label="Retirer">×</button></div>';
+    }).join('') + '</div>'
+    + '<button class="compare-dock-action" onclick="openProductComparison()"' + (compareProducts.length < 2 ? ' disabled' : '') + '>Comparer ' + compareProducts.length + '/4</button>';
+}
+function compareMetrics(product) {
+  var merchants = {};
+  (product.ean_offers || []).forEach(function(offer){
+    var price = Number(offer.price);
+    if (!(price > 0) || !Number.isFinite(price)) return;
+    var merchant = normalizeMerchant(offer.program_title || (offer.programs && offer.programs.title) || 'Marchand');
+    var shipping = offer.shipping_cost == null || offer.shipping_cost === '' ? null : Number(offer.shipping_cost);
+    if (shipping != null && (!Number.isFinite(shipping) || shipping < 0)) shipping = null;
+    var row = { price:price, total:shipping == null ? null : price + shipping };
+    if (!merchants[merchant] || price < merchants[merchant].price) merchants[merchant] = row;
+  });
+  var offers = Object.keys(merchants).map(function(name){ return merchants[name]; });
+  var prices = offers.map(function(offer){ return offer.price; }).sort(function(a,b){ return a-b; });
+  var totals = offers.map(function(offer){ return offer.total; }).filter(function(total){ return total != null; }).sort(function(a,b){ return a-b; });
+  var fallbackPrice = Number(product.price);
+  return { merchants:offers.length || Number(product.offers_count) || 0, best:prices[0] || (fallbackPrice > 0 ? fallbackPrice : null), delivered:totals[0] || null, spread:prices.length > 1 ? prices[prices.length-1] - prices[0] : null };
+}
+function compareRow(label, products, render) {
+  return '<div class="compare-row"><div class="compare-label">' + label + '</div>' + products.map(function(product,index){ return '<div class="compare-value">' + render(product,index) + '</div>'; }).join('') + '</div>';
+}
+async function openProductComparison() {
+  if (compareProducts.length < 2) return;
+  var backdrop = document.getElementById('compareBackdrop');
+  if (!backdrop) { backdrop = document.createElement('div'); backdrop.id = 'compareBackdrop'; backdrop.className = 'compare-backdrop'; backdrop.onclick = function(event){ if (event.target === backdrop) closeProductComparison(); }; document.body.append(backdrop); }
+  backdrop.innerHTML = '<section class="compare-modal" role="dialog" aria-modal="true" aria-labelledby="compareTitle"><div class="compare-modal-head"><div><h2 id="compareTitle">Comparatif HiFind</h2><p>Prix et disponibilité issus des offres actuellement référencées.</p></div><button class="compare-close" onclick="closeProductComparison()" aria-label="Fermer">×</button></div><div class="compare-loading">Actualisation des offres…</div></section>';
+  document.body.style.overflow = 'hidden';
+  var detailed = await Promise.all(compareProducts.map(async function(product){
+    try { var response = await apiFetch('action=product&id=' + encodeURIComponent(product.id)); return response && response.data && response.data[0] ? response.data[0] : product; }
+    catch (error) { return product; }
+  }));
+  compareProducts = detailed.map(compactCompareProduct);
+  persistCompareProducts();
+  var modal = backdrop.querySelector('.compare-modal');
+  var metrics = detailed.map(compareMetrics);
+  modal.innerHTML = '<div class="compare-modal-head"><div><h2 id="compareTitle">Comparatif HiFind</h2><p>' + detailed.length + ' produits · données issues des offres disponibles</p></div><button class="compare-close" onclick="closeProductComparison()" aria-label="Fermer">×</button></div>'
+    + '<div class="compare-table" style="--compare-cols:' + detailed.length + '">'
+    + compareRow('Produit', detailed, function(product){ var img=getImageUrl(product); return '<div class="compare-product">' + (img ? '<img src="'+escHtml(img)+'" alt="">' : '') + '<strong>'+escHtml(product.title || 'Produit')+'</strong><span>'+escHtml(product.brand || product.program_title || '')+'</span><a class="compare-open" href="'+escHtml(productUrl(product))+'">Voir la fiche →</a></div>'; })
+    + compareRow('Meilleur prix', detailed, function(product,index){ return metrics[index].best != null ? '<span class="compare-best">'+fmtEur(metrics[index].best)+'</span>' : 'Non disponible'; })
+    + compareRow('Total livré connu', detailed, function(product,index){ return metrics[index].delivered != null ? fmtEur(metrics[index].delivered) : 'Frais non renseignés'; })
+    + compareRow('Marchands comparés', detailed, function(product,index){ return String(metrics[index].merchants); })
+    + compareRow('Écart entre offres', detailed, function(product,index){ return metrics[index].spread != null ? fmtEur(metrics[index].spread) : 'Une seule offre'; })
+    + compareRow('Score prix HiFind', detailed, function(product){ var insight=product.price_insight; return insight && Number.isFinite(Number(insight.score)) ? Math.round(Number(insight.score))+'/100<br><span style="color:var(--sub);font-size:.65rem">Confiance '+escHtml(insight.confidence || 'limitée')+'</span>' : 'Données insuffisantes'; })
+    + '</div>';
+}
+function closeProductComparison() {
+  var backdrop = document.getElementById('compareBackdrop');
+  if (backdrop) backdrop.remove();
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(event){ if (event.key === 'Escape') closeProductComparison(); });
 
 // ══ DETAIL ══
 var DETAIL_REQUEST = 0;
@@ -1924,7 +2067,7 @@ async function openDetail(id, options) {
           + '<div class="pd-summary-item"><span>Écart de prix</span><strong>' + fmtEur(Math.max(0, hi-lo)) + '</strong></div>'
           + '<div class="pd-summary-item"><span>' + (bestDelivered ? 'Total livré connu' : 'Meilleure offre') + '</span><strong>' + (bestDelivered ? fmtEur(bestDelivered.total) : escHtml(cheapestMerchant)) + '</strong></div>'
         + '</div>'
-        + '<div class="pd-action-row"><button class="pd-share-btn" onclick="shareCurrentProduct()">Partager cette comparaison</button></div>'
+        + '<div class="pd-action-row"><button class="pd-share-btn" onclick="shareCurrentProduct()">Partager cette comparaison</button><button class="compare-card-btn' + (typeof compareProducts !== 'undefined' && compareProducts.some(function(item){ return item.id === p.id; }) ? ' on' : '') + '" data-compare-id="' + escHtml(p.id) + '" onclick="toggleCompare(\'' + sid + '\')">' + (typeof compareProducts !== 'undefined' && compareProducts.some(function(item){ return item.id === p.id; }) ? 'Retirer du comparatif' : 'Ajouter au comparatif') + '</button></div>'
         + '<div class="pd-decision-note"><strong>Conseil HiFind</strong><span>Comparez le prix livré lorsqu’il est disponible. Le prix et le stock définitifs restent ceux affichés chez le marchand.</span></div>'
       + '</div>'
     + '</div>'
@@ -2015,6 +2158,7 @@ function prodCardSmall(p, showBadge) {
         + '<span class="prod-card-amount">' + price.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €</span>'
       + '</div>'
       + '<div class="prod-card-offers"><span>' + offers + ' offre' + (offers > 1 ? 's' : '') + '</span> comparée' + (offers > 1 ? 's' : '') + '</div>'
+      + '<button class="compare-card-btn' + (compareProducts.some(function(item){ return item.id === p.id; }) ? ' on' : '') + '" data-compare-id="' + escHtml(p.id) + '" onclick="event.stopPropagation();event.preventDefault();toggleCompare(\'' + safeId + '\')">' + (compareProducts.some(function(item){ return item.id === p.id; }) ? 'Retirer du comparatif' : 'Ajouter au comparatif') + '</button>'
     + '</div>'
   + '</a>';
 }
@@ -2399,6 +2543,7 @@ document.querySelectorAll('.cat-card[onclick], .nav-cats > .nav-cat').forEach(fu
 });
 var initialMerchants = Array.from(document.querySelectorAll('.marchand-item')).map(function(el) { return el.textContent; });
 renderMerchantMarquee(initialMerchants);
+renderCompareDock();
 initHome();
 loadMerchantMarquee();
 
