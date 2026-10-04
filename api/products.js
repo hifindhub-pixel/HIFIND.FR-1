@@ -405,7 +405,10 @@ export async function getComparableProductDetail(client, { id = '', ean = '', in
   const product = formatRow(references[0]);
   if (!product.ean) return null;
 
-  const offers = await getEanOffers(client, product.ean, product.category);
+  const rawOffers = await getEanOffers(client, product.ean, product.category);
+  const merchantAliases = await loadMerchantAliases(client);
+  const offers = filterOffersByProductType(product, rawOffers, merchantAliases);
+  if (!offers.length) return null;
   const merchantCount = await countDistinctMerchants(client, offers);
   if (merchantCount < 2) return null;
 

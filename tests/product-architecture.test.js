@@ -23,7 +23,7 @@ test('SEO and interactive detail share one comparable-product loader', async () 
   }};
   const product = await getComparableProductDetail(client, { ean:'1234567890123', includeHistory:false });
   assert.equal(product.id, 'phone-a');
-  assert.equal(product.offers_count, 3);
-  assert.equal(product.ean_offers.length, 3);
+  assert.equal(product.offers_count, 2);
+  assert.deepEqual(product.ean_offers.map(offer => offer.id), ['phone-a', 'phone-b']);
   assert.equal('price_history' in product, false);
 });

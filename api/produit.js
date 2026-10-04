@@ -24,6 +24,13 @@ const esc = value => String(value ?? '').replace(/[&<>"']/g, character => ({
 }[character]));
 const jsonLd = value => JSON.stringify(value).replace(/</g, '\\u003c');
 const euros = value => Number(value).toLocaleString('fr-FR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+const CATEGORY_LABELS = {
+  'high-tech':'High-Tech', 'auto-moto':'Auto & Moto', 'maison-jardin':'Maison & Jardin',
+  'mode-vetements':'Mode & Vêtements', 'beaute-bienetre':'Beauté & Bien-être',
+  'sante-nutrition':'Santé & Nutrition', 'enfants-bebes':'Enfants & Bébés',
+  'sport-outdoor':'Sport & Outdoor', 'animaux':'Animalerie',
+  'alimentation-bio':'Alimentation', 'livres-bd':'Livres & BD', 'autres':'Autres produits',
+};
 const truncate = (value, limit) => {
   const text = String(value || '').replace(/\s+/g, ' ').trim();
   if (text.length <= limit) return text;
@@ -38,25 +45,51 @@ export function renderProductShell(product, shell = APP_SHELL) {
   const high = prices.at(-1) || low;
   // ean_offers is the live, deduplicated list rendered by the interactive
   // page. Prefer it over a potentially stale aggregate stored on the product.
-  const count = offers.length || Number(product.offers_count) || 1;
+  const count = Number(product.offers_count) || offers.length || 1;
   const canonical = SITE_URL + productPath(product);
   const fullTitle = String(product.title || 'Produit').replace(/\s+/g, ' ').trim();
   const title = `${truncate(fullTitle, 48)} : comparez ${count} prix | HiFind`;
   const description = truncate(`Comparez ${count} offres pour ${fullTitle}. Meilleur prix relevé : ${euros(low)} €. Historique et vendeurs disponibles sur HiFind.`, 158);
   const image = product.image_url ? `${SITE_URL}/api/img?url=${encodeURIComponent(product.image_url)}` : '';
+  const gtin = String(product.ean || '');
+  const gtinProperty = ['8','12','13','14'].includes(String(gtin.length)) ? `gtin${gtin.length}` : 'sku';
+  const individualOffers = offers.map(offer => {
+    const price = Number(offer.price);
+    const merchant = offer.program_title || offer.programs?.title || '';
+    const shipping = offer.shipping_cost == null || offer.shipping_cost === '' ? null : Number(offer.shipping_cost);
+    return {
+      '@type':'Offer', price:price.toFixed(2), priceCurrency:'EUR',
+      url:offer.tracking_url || offer.url || canonical,
+      ...(merchant ? { seller:{ '@type':'Organization', name:merchant } } : {}),
+      ...(offer.in_stock === true ? { availability:'https://schema.org/InStock' }
+        : offer.in_stock === false ? { availability:'https://schema.org/OutOfStock' } : {}),
+      ...(Number.isFinite(shipping) && shipping >= 0 ? { shippingDetails:{
+        '@type':'OfferShippingDetails',
+        shippingRate:{ '@type':'MonetaryAmount', value:shipping.toFixed(2), currency:'EUR' },
+        shippingDestination:{ '@type':'DefinedRegion', addressCountry:'FR' },
+      } } : {}),
+    };
+  });
+  const category = CATEGORY_LABELS[product.category] || product.category_family || '';
   const structured = {
     '@context':'https://schema.org', '@type':'Product', name:product.title,
     description:truncate(product.description || description, 500), url:canonical,
     ...(image ? { image:[image] } : {}),
     ...(product.brand ? { brand:{ '@type':'Brand', name:product.brand } } : {}),
-    ...(String(product.ean || '').length === 13 ? { gtin13:String(product.ean) } : { sku:String(product.ean) }),
-    offers:{ '@type':'AggregateOffer', priceCurrency:'EUR', lowPrice:low, highPrice:high, offerCount:count, url:canonical },
+    ...(category ? { category } : {}),
+    [gtinProperty]:gtin,
+    offers:{ '@type':'AggregateOffer', priceCurrency:'EUR', lowPrice:low, highPrice:high,
+      offerCount:count, url:canonical, ...(individualOffers.length ? { offers:individualOffers } : {}) },
   };
+  const categoryCrumb = category && product.category && product.category !== 'autres'
+    ? { '@type':'ListItem', position:2, name:category, item:`${SITE_URL}/categorie/${product.category}` }
+    : null;
   const breadcrumb = {
     '@context':'https://schema.org', '@type':'BreadcrumbList', itemListElement:[
       { '@type':'ListItem', position:1, name:'Accueil', item:SITE_URL + '/' },
-      { '@type':'ListItem', position:2, name:product.title, item:canonical },
-    ],
+      ...(categoryCrumb ? [categoryCrumb] : []),
+      { '@type':'ListItem', position:categoryCrumb ? 3 : 2, name:product.title, item:canonical },
+    ]
   };
   const social = `
 <link rel="canonical" href="${esc(canonical)}">
