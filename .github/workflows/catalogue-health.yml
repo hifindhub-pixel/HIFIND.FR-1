@@ -1,4 +1,4 @@
-name: Catalogue health and price observations
+name: Catalogue quality monitoring
 on:
   workflow_dispatch:
   schedule:
@@ -7,6 +7,7 @@ on:
     branches: [main]
     paths:
       - scripts/catalogue-health.js
+      - scripts/lib/catalogue-quality.js
       - .github/workflows/catalogue-health.yml
 permissions:
   contents: read
@@ -23,14 +24,7 @@ jobs:
         with:
           node-version: '20'
       - run: npm install --ignore-scripts
-      - name: Export catalogue observations and freshness
+      - name: Analyse catalogue quality and freshness
         env:
           NEON_URL: ${{ secrets.NEON_URL }}
         run: node scripts/catalogue-health.js
-      - uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: catalogue-observations-${{ github.run_id }}
-          path: reports/catalogue-health/
-          retention-days: 90
-          if-no-files-found: error
