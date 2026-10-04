@@ -10,6 +10,8 @@ const context = {
   localStorage: { setItem() {} },
   document: { addEventListener() {}, getElementById() { return null; }, querySelectorAll() { return []; }, body: { append() {}, style: {} } },
   normalizeMerchant(value) { return String(value || '').trim(); },
+  URL, URLSearchParams,
+  window: { location: { origin:'https://hifind.fr', search:'' } },
   setTimeout() { return 1; }, clearTimeout() {}, console
 };
 vm.createContext(context);
@@ -36,4 +38,9 @@ test('comparison metrics deduplicate merchants and never invent shipping', () =>
 test('persisted comparison strips heavy offer payloads', () => {
   const compact = context.compactCompareProduct({ id:'p1', title:'Produit', category:'high-tech', ean_offers:[{ price:10 }], description:'longue' });
   assert.deepEqual(Object.keys(compact).sort(), ['category','id','title']);
+});
+
+test('shared comparison URL contains only selected product identifiers', () => {
+  context.compareProducts = [{ id:'phone-1' }, { id:'phone 2' }];
+  assert.equal(context.productComparisonUrl(), 'https://hifind.fr/?compare=phone-1%2Cphone+2');
 });

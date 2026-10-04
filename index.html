@@ -949,6 +949,7 @@ nav {
 .compare-modal{width:min(1120px,100%);max-height:calc(100vh - 48px);overflow:auto;background:var(--bg);border:1px solid var(--border2);border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.35)}
 .compare-modal-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.2rem;background:color-mix(in srgb,var(--bg) 94%,transparent);border-bottom:1px solid var(--border);backdrop-filter:blur(16px)}
 .compare-modal-head h2{font-family:'Barlow Condensed',sans-serif;font-size:1.45rem}.compare-modal-head p{color:var(--sub);font-size:.7rem;margin-top:.15rem}.compare-close{border:1px solid var(--border);background:var(--bg2);color:var(--text);width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:1.15rem}
+.compare-head-actions{display:flex;align-items:center;gap:.45rem}.compare-share{border:1px solid var(--border2);background:var(--bg2);color:var(--text);border-radius:9px;padding:.55rem .75rem;font-size:.7rem;font-weight:800;cursor:pointer}.compare-share:hover{border-color:var(--coral);color:var(--coral)}
 .compare-table{display:grid;min-width:720px;padding:1rem 1.2rem 1.3rem}.compare-row{display:grid;grid-template-columns:150px repeat(var(--compare-cols),minmax(150px,1fr));border-bottom:1px solid var(--border)}.compare-row:last-child{border-bottom:0}.compare-label,.compare-value{padding:.78rem .7rem}.compare-label{color:var(--sub);font-size:.67rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em}.compare-value{border-left:1px solid var(--border);font-size:.78rem;font-weight:700}.compare-product img{display:block;width:90px;height:90px;object-fit:contain;background:#fff;border-radius:10px;margin-bottom:.55rem}.compare-product strong{display:block;line-height:1.35}.compare-product span{display:block;color:var(--sub);font-size:.67rem;margin-top:.25rem}.compare-best{color:var(--jade);font-size:1rem}.compare-open{display:inline-flex;margin-top:.65rem;color:var(--coral);font-size:.7rem;text-decoration:none}.compare-loading{padding:3rem;text-align:center;color:var(--sub)}
 @media(max-width:700px){.compare-dock-copy{display:none}.compare-chip{max-width:105px}.compare-chip span{display:none}.compare-dock{bottom:10px}.compare-backdrop{padding:10px}.compare-modal{max-height:calc(100vh - 20px)}}
 .pd-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem;margin-top:.8rem}
@@ -1946,13 +1947,48 @@ function compareMetrics(product) {
 function compareRow(label, products, render) {
   return '<div class="compare-row"><div class="compare-label">' + label + '</div>' + products.map(function(product,index){ return '<div class="compare-value">' + render(product,index) + '</div>'; }).join('') + '</div>';
 }
-async function openProductComparison() {
+function productComparisonUrl() {
+  var url = new URL('/', window.location.origin);
+  url.searchParams.set('compare', compareProducts.map(function(product){ return product.id; }).join(','));
+  return url.toString();
+}
+async function shareProductComparison() {
+  if (compareProducts.length < 2) return;
+  var url = productComparisonUrl(), shared = false;
+  if (navigator.share) {
+    try { await navigator.share({ title:'Mon comparatif HiFind', text:'Comparez ces produits et leurs offres sur HiFind.', url:url }); shared = true; }
+    catch (error) { if (error && error.name !== 'AbortError') shared = false; else return; }
+  }
+  if (!shared && navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(url); }
+  history.replaceState(history.state, '', url);
+  var button = document.getElementById('compareShareButton');
+  if (button) { button.textContent = shared ? 'Partagé' : 'Lien copié'; setTimeout(function(){ if (button) button.textContent = 'Partager'; }, 2200); }
+}
+async function restoreSharedComparison() {
+  var raw = new URLSearchParams(window.location.search).get('compare');
+  if (!raw) return;
+  var ids = raw.split(',').map(function(id){ return id.trim(); }).filter(Boolean).filter(function(id,index,list){ return list.indexOf(id) === index; }).slice(0,4);
+  if (ids.length < 2) return;
+  var detailed = (await Promise.all(ids.map(async function(id){
+    try { var response = await apiFetch('action=product&id=' + encodeURIComponent(id)); return response && response.data && response.data[0] ? response.data[0] : null; }
+    catch (error) { return null; }
+  }))).filter(Boolean);
+  if (detailed.length < 2) return;
+  var compatible = [detailed[0]].concat(detailed.slice(1).filter(function(product){ return productsCompatible(detailed[0], product); }));
+  if (compatible.length < 2) return;
+  compareProducts = compatible.map(compactCompareProduct);
+  persistCompareProducts();
+  renderCompareDock();
+  syncCompareButtons();
+  openProductComparison(compatible);
+}
+async function openProductComparison(prefetchedProducts) {
   if (compareProducts.length < 2) return;
   var backdrop = document.getElementById('compareBackdrop');
   if (!backdrop) { backdrop = document.createElement('div'); backdrop.id = 'compareBackdrop'; backdrop.className = 'compare-backdrop'; backdrop.onclick = function(event){ if (event.target === backdrop) closeProductComparison(); }; document.body.append(backdrop); }
   backdrop.innerHTML = '<section class="compare-modal" role="dialog" aria-modal="true" aria-labelledby="compareTitle"><div class="compare-modal-head"><div><h2 id="compareTitle">Comparatif HiFind</h2><p>Prix et disponibilité issus des offres actuellement référencées.</p></div><button class="compare-close" onclick="closeProductComparison()" aria-label="Fermer">×</button></div><div class="compare-loading">Actualisation des offres…</div></section>';
   document.body.style.overflow = 'hidden';
-  var detailed = await Promise.all(compareProducts.map(async function(product){
+  var detailed = Array.isArray(prefetchedProducts) ? prefetchedProducts : await Promise.all(compareProducts.map(async function(product){
     try { var response = await apiFetch('action=product&id=' + encodeURIComponent(product.id)); return response && response.data && response.data[0] ? response.data[0] : product; }
     catch (error) { return product; }
   }));
@@ -1960,7 +1996,7 @@ async function openProductComparison() {
   persistCompareProducts();
   var modal = backdrop.querySelector('.compare-modal');
   var metrics = detailed.map(compareMetrics);
-  modal.innerHTML = '<div class="compare-modal-head"><div><h2 id="compareTitle">Comparatif HiFind</h2><p>' + detailed.length + ' produits · données issues des offres disponibles</p></div><button class="compare-close" onclick="closeProductComparison()" aria-label="Fermer">×</button></div>'
+  modal.innerHTML = '<div class="compare-modal-head"><div><h2 id="compareTitle">Comparatif HiFind</h2><p>' + detailed.length + ' produits · données issues des offres disponibles</p></div><div class="compare-head-actions"><button class="compare-share" id="compareShareButton" onclick="shareProductComparison()">Partager</button><button class="compare-close" onclick="closeProductComparison()" aria-label="Fermer">×</button></div></div>'
     + '<div class="compare-table" style="--compare-cols:' + detailed.length + '">'
     + compareRow('Produit', detailed, function(product){ var img=getImageUrl(product); return '<div class="compare-product">' + (img ? '<img src="'+escHtml(img)+'" alt="">' : '') + '<strong>'+escHtml(product.title || 'Produit')+'</strong><span>'+escHtml(product.brand || product.program_title || '')+'</span><a class="compare-open" href="'+escHtml(productUrl(product))+'">Voir la fiche →</a></div>'; })
     + compareRow('Meilleur prix', detailed, function(product,index){ return metrics[index].best != null ? '<span class="compare-best">'+fmtEur(metrics[index].best)+'</span>' : 'Non disponible'; })
@@ -2546,6 +2582,7 @@ renderMerchantMarquee(initialMerchants);
 renderCompareDock();
 initHome();
 loadMerchantMarquee();
+restoreSharedComparison();
 
 // Routes d'entree depuis les pages SEO. Les fiches produit gardent la
 // priorite ; une recherche envoyee par une page categorie ouvre directement
