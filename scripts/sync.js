@@ -8,6 +8,7 @@ import { streamFeed, parseCSVLine } from './lib/stream-feed.js';
 import { EanIndex, HarvestWriter, resetHarvest, harvestedPrograms, selectMatching, harvestDiskUsage, merchantIdentity } from './lib/ean-index.js';
 import { reconcileCategories } from './lib/category-consensus.js';
 import { categorize } from './lib/categorize.js';
+import { FeedLifecycle } from './lib/feed-lifecycle.js';
 import { writeFileSync } from 'node:fs';
 import pkg from 'pg';
 const { Client } = pkg;
@@ -40,6 +41,7 @@ const CATEGORY_RULES = [
 const EAN_INDEX = new EanIndex();
 const CAT_STATS = {};
 const PROGRAM_META = new Map();   // programId -> { title, category }
+const LIFECYCLE = new FeedLifecycle();
 
 const FEED_REPORT = { ok: [], empty: [], failed: [] };
 const SYNC_STARTED_AT = new Date().toISOString();
@@ -201,7 +203,7 @@ async function supabaseUpsert(table, rows) {
       await client.query(`
         INSERT INTO products (id,affilae_id,program_id,title,description,price,currency,url,tracking_id,image_url,category,lang,status,ean,brand,updated_at,shipping_cost,delivery_time,in_stock)
         VALUES ${vals}
-        ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,price=EXCLUDED.price,ean=EXCLUDED.ean,brand=EXCLUDED.brand,category=EXCLUDED.category,image_url=EXCLUDED.image_url,url=EXCLUDED.url,updated_at=EXCLUDED.updated_at,shipping_cost=EXCLUDED.shipping_cost,delivery_time=EXCLUDED.delivery_time,in_stock=EXCLUDED.in_stock
+        ON CONFLICT (id) DO UPDATE SET title=EXCLUDED.title,description=EXCLUDED.description,price=EXCLUDED.price,ean=EXCLUDED.ean,brand=EXCLUDED.brand,category=EXCLUDED.category,image_url=EXCLUDED.image_url,url=EXCLUDED.url,status=EXCLUDED.status,updated_at=EXCLUDED.updated_at,shipping_cost=EXCLUDED.shipping_cost,delivery_time=EXCLUDED.delivery_time,in_stock=EXCLUDED.in_stock
       `, params);
     }
   }
@@ -285,6 +287,8 @@ async function syncEffinity() {
   try { feeds = JSON.parse(EFFINITY_FEEDS_JSON); } catch(e) { console.log('❌ JSON invalide'); return; }
 
   for (const feed of feeds) {
+    const programId = 'effinity_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
+    PROGRAM_META.set(programId, { title: feed.name, category: feed.category });
     try {
       console.log('  →', feed.name, '(lecture intégrale)');
 
@@ -343,8 +347,6 @@ async function syncEffinity() {
         };
       };
 
-      const programId = 'effinity_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
-      PROGRAM_META.set(programId, { title: feed.name, category: feed.category });
       const writer = new HarvestWriter(programId);
 
       const collect = (p) => {
@@ -388,8 +390,10 @@ async function syncEffinity() {
       console.log('  📦', feed.name, ':', writer.count, 'lignes recoltees ('
                   + writer.skippedNoEan + ' sans EAN ignorees)');
       reportFeed(feed.name, writer.count);
+      LIFECYCLE.feedSucceeded(programId, writer.count);
 
     } catch(e) {
+      LIFECYCLE.feedIncomplete(programId);
       reportFeed(feed.name, 0, e.message);
       console.log('  ⚠️', feed.name, ':', e.message, '\n  Stack:', e.stack?.split('\n')[1]?.trim());
     }
@@ -589,6 +593,8 @@ async function syncAffilaeFeeds() {
   try { feeds = JSON.parse(AFFILAE_FEEDS_JSON); } catch(e) { console.log('❌ AFFILAE_FEEDS JSON invalide'); return; }
 
   for (const feed of feeds) {
+    const programId = 'affilae_feed_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
+    PROGRAM_META.set(programId, { title: feed.name, category: feed.category });
     try {
       console.log('  →', feed.name, '(lecture intégrale)');
 
@@ -636,8 +642,6 @@ async function syncAffilaeFeeds() {
         };
       };
 
-      const programId = 'affilae_feed_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
-      PROGRAM_META.set(programId, { title: feed.name, category: feed.category });
       const writer = new HarvestWriter(programId);
 
       const collect = (p) => {
@@ -677,8 +681,9 @@ async function syncAffilaeFeeds() {
       console.log('  📦', feed.name, ':', writer.count, 'lignes recoltees ('
                   + writer.skippedNoEan + ' sans EAN ignorees)');
       reportFeed(feed.name, writer.count);
+      LIFECYCLE.feedSucceeded(programId, writer.count);
 
-    } catch(e) { reportFeed(feed.name, 0, e.message); console.log('  ⚠️', feed.name, ':', e.message); }
+    } catch(e) { LIFECYCLE.feedIncomplete(programId); reportFeed(feed.name, 0, e.message); console.log('  ⚠️', feed.name, ':', e.message); }
   }
   console.log('🎉 Affilae Feeds done');
 }
@@ -692,20 +697,19 @@ async function syncAwin() {
   try { feeds = JSON.parse(AWIN_FEEDS_JSON); } catch(e) { console.log('❌ AWIN_FEEDS JSON invalide'); return; }
 
   for (const feed of feeds) {
+    // Normalise les noms de vendeurs splittes AVANT la recolte.
+    let feedDisplayName = feed.name;
+    if (feed.name.match(/^Rue du Commerce [A-Z]/)) feedDisplayName = 'Rue du Commerce';
+    if (feed.name.match(/^Rakuten FR\d/)) feedDisplayName = 'Rakuten';
+    if (feed.name.match(/^AliExpress [A-Z]/)) feedDisplayName = 'AliExpress';
+    if (feed.name.match(/^ManoMano [A-Z]/)) feedDisplayName = 'ManoMano';
+    if (feed.name.match(/^Whirlpool [A-Z]/)) feedDisplayName = 'Whirlpool';
+    if (feed.name.match(/^Velostore [A-Z]/)) feedDisplayName = 'Velostore';
+    if (feed.name === 'Foot Store 2') feedDisplayName = 'Footstore';
+    const programId = 'awin_' + feedDisplayName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    PROGRAM_META.set(programId, { title: feedDisplayName, category: feed.category });
     try {
       console.log('  →', feed.name, '(lecture intégrale)');
-
-      // Normalise les noms de vendeurs splittes AVANT la recolte
-      let feedDisplayName = feed.name;
-      if (feed.name.match(/^Rue du Commerce [A-Z]/)) feedDisplayName = 'Rue du Commerce';
-      if (feed.name.match(/^Rakuten FR\d/)) feedDisplayName = 'Rakuten';
-      if (feed.name.match(/^AliExpress [A-Z]/)) feedDisplayName = 'AliExpress';
-      if (feed.name.match(/^ManoMano [A-Z]/)) feedDisplayName = 'ManoMano';
-      if (feed.name.match(/^Whirlpool [A-Z]/)) feedDisplayName = 'Whirlpool';
-      if (feed.name.match(/^Velostore [A-Z]/)) feedDisplayName = 'Velostore';
-      if (feed.name === 'Foot Store 2') feedDisplayName = 'Footstore';
-      const programId = 'awin_' + feedDisplayName.toLowerCase().replace(/[^a-z0-9]/g, '_');
-      PROGRAM_META.set(programId, { title: feedDisplayName, category: feed.category });
       const writer = new HarvestWriter(programId);
 
       const seen = new Set();
@@ -764,8 +768,9 @@ async function syncAwin() {
       console.log('  📦', feedDisplayName, ':', writer.count, 'lignes recoltees ('
                   + writer.skippedNoEan + ' sans EAN ignorees)');
       reportFeed(feed.name, writer.count);
+      LIFECYCLE.feedSucceeded(programId, writer.count);
 
-    } catch(e) { reportFeed(feed.name, 0, e.message); console.log('  ⚠️', feed.name, ':', e.message); }
+    } catch(e) { LIFECYCLE.feedIncomplete(programId); reportFeed(feed.name, 0, e.message); console.log('  ⚠️', feed.name, ':', e.message); }
   }
   console.log('🎉 Awin done');
 }
@@ -786,11 +791,11 @@ async function syncKwanko() {
   try { feeds = JSON.parse(KWANKO_FEEDS_JSON); } catch(e) { console.log('❌ KWANKO_FEEDS JSON invalide'); return; }
 
   for (const feed of feeds) {
+    const programId = 'kwanko_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    PROGRAM_META.set(programId, { title: feed.name, category: feed.category });
     try {
       console.log('  →', feed.name, '(lecture intégrale)');
 
-      const programId = 'kwanko_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-      PROGRAM_META.set(programId, { title: feed.name, category: feed.category });
       const writer = new HarvestWriter(programId);
       const seen = new Set();
       const feedEans = new Set();
@@ -852,8 +857,9 @@ async function syncKwanko() {
       console.log('  📦', feed.name, ':', writer.count, 'lignes recoltees ('
                   + writer.skippedNoEan + ' sans EAN ignorees)');
       reportFeed(feed.name, writer.count);
+      LIFECYCLE.feedSucceeded(programId, writer.count);
 
-    } catch(e) { reportFeed(feed.name, 0, e.message); console.log('  ⚠️', feed.name, ':', e.message); }
+    } catch(e) { LIFECYCLE.feedIncomplete(programId); reportFeed(feed.name, 0, e.message); console.log('  ⚠️', feed.name, ':', e.message); }
   }
   console.log('🎉 Kwanko done');
 }
@@ -1037,6 +1043,7 @@ async function syncCJ() {
 
     const all = [];
     let offset = 0;
+    let totalAvailable = null;
     const pageSize = 1000;
 
     try {
@@ -1048,6 +1055,7 @@ async function syncCJ() {
         if (!res) break;
         const items = res.resultList || [];
         if (offset === 0) {
+          totalAvailable = Number(res.totalCount);
           console.log('     total dispo: ' + res.totalCount);
           if (!res.totalCount) {
             console.log('     \u26a0\ufe0f aucun produit \u2014 verifier que partnerId est bien un advertiserId');
@@ -1060,6 +1068,7 @@ async function syncCJ() {
       }
     } catch (e) {
       console.log('     \u274c ' + e.message);
+      LIFECYCLE.feedIncomplete(programId);
       reportFeed(feed.name, 0, e.message);
       continue;
     }
@@ -1118,6 +1127,10 @@ async function syncCJ() {
     feedEans.forEach(ean => EAN_INDEX.add(ean, merchantId));
     console.log('     \ud83d\udce6 ' + writer.count + ' recoltees (' + writer.skippedNoEan + ' sans EAN ignorees)');
     reportFeed(feed.name, writer.count);
+    const fullCatalogue = !Number.isFinite(limit)
+      || (Number.isFinite(totalAvailable) && all.length >= totalAvailable);
+    if (fullCatalogue) LIFECYCLE.feedSucceeded(programId, writer.count);
+    else LIFECYCLE.feedIncomplete(programId);
   }
   console.log('\ud83c\udf89 CJ done');
 }
@@ -1190,6 +1203,7 @@ async function ingestHarvest() {
       console.log('  \u2705 ' + meta.title + ' : ' + mapped.length.toLocaleString('fr-FR')
                   + ' / ' + scanned.toLocaleString('fr-FR') + '  (' + pct + '%)');
     } catch (e) {
+      LIFECYCLE.ingestFailed(programId);
       console.log('  \u26a0\ufe0f ' + meta.title + ' : ' + e.message);
     }
   }
@@ -1212,7 +1226,7 @@ async function ingestHarvest() {
       for (let i = 0; i < b.rows.length; i += 50) {
         await supabaseUpsert('products', b.rows.slice(i, i + 50));
       }
-    } catch (e) { console.log('  \u26a0\ufe0f ' + b.meta.title + ' : ' + e.message); }
+    } catch (e) { LIFECYCLE.ingestFailed(b.programId); console.log('  \u26a0\ufe0f ' + b.meta.title + ' : ' + e.message); }
   }
   categoryRows.forEach(function(r){ CAT_STATS[r.category] = (CAT_STATS[r.category] || 0) + 1; });
 
@@ -1230,9 +1244,39 @@ async function ingestHarvest() {
   return { totalKept, matching:s };
 }
 
+async function archiveStaleOffers(cutoff) {
+  const programs = LIFECYCLE.safePrograms();
+  if (!programs.length) {
+    console.log('🛡️ Aucun marchand éligible à l’archivage des offres obsolètes');
+    return { ...LIFECYCLE.summary(), archived_offers:0 };
+  }
+  const client = await getNeon();
+  let archived = 0;
+  const changes = [];
+  await client.query('BEGIN');
+  try {
+    for (const programId of programs) {
+      const result = await client.query(`
+        UPDATE products SET status='disabled'
+        WHERE program_id=$1 AND status='enabled' AND updated_at < $2::timestamptz
+      `, [programId, cutoff]);
+      archived += result.rowCount;
+      if (result.rowCount) changes.push([programId, result.rowCount]);
+    }
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  }
+  changes.forEach(([programId, count]) => console.log('  🗄️ ' + programId + ' : ' + count + ' offres obsolètes désactivées'));
+  console.log('🛡️ Archivage contrôlé : ' + archived + ' offres sur ' + programs.length + ' marchands complets');
+  return { ...LIFECYCLE.summary(), archived_offers:archived };
+}
+
 async function main() {
   let matching = null;
   let ingestedProducts = 0;
+  let lifecycle = LIFECYCLE.summary();
   try {
     // ── PHASE A : récolte (aucune écriture en base) ──
     console.log('='.repeat(64));
@@ -1255,11 +1299,8 @@ async function main() {
     await syncBCDJeux();
     await syncRakuten();
     // await syncAliExpress(); // Désactivé - tracking_id invalide
+    lifecycle = await archiveStaleOffers(SYNC_STARTED_AT);
     if (_neonClient) await _neonClient.end();
-    // Never delete catalogue rows after a partial/failed feed run. Public
-    // queries already hide non-comparable EANs; destructive lifecycle cleanup
-    // requires a complete per-feed generation and belongs to a separate job.
-    console.log('🛡️ Aucun effacement destructif pendant le sync');
     console.log('\n' + '='.repeat(64));
     console.log('RECAPITULATIF DES FLUX');
     console.log('='.repeat(64));
@@ -1273,11 +1314,11 @@ async function main() {
       console.log('\n   >>> Liens expires : a regenerer sur la plateforme concernee.');
     }
     console.log('='.repeat(64));
-    saveSyncReport('success', { matching, ingested_products:ingestedProducts });
+    saveSyncReport('success', { matching, ingested_products:ingestedProducts, lifecycle });
     console.log('🎉 All done!');
   } catch(e) {
     console.error('❌ Failed:', e.message);
-    saveSyncReport('failed', { matching, ingested_products:ingestedProducts, error:e.message });
+    saveSyncReport('failed', { matching, ingested_products:ingestedProducts, lifecycle:LIFECYCLE.summary(), error:e.message });
     if (_neonClient) await _neonClient.end();
     process.exit(1);
   }
