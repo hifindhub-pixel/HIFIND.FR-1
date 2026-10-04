@@ -34,3 +34,11 @@ test('local alert copy clearly states that checks happen on later visits', () =>
   assert.match(context.priceAlertStatusHTML(product, 100), /prochaines visites/);
   assert.match(context.priceAlertStatusHTML(product, 75), /objectif de prix est atteint/);
 });
+
+test('a real product visit updates the last observed price', () => {
+  const product = { id:'p1', ean:'1234567890123' };
+  context.priceAlerts['1234567890123'] = { target:80, lastPrice:100 };
+  context.recordPriceAlertObservation(product, 74.5);
+  assert.equal(context.priceAlerts['1234567890123'].lastPrice, 74.5);
+  assert.ok(context.priceAlerts['1234567890123'].lastCheckedAt);
+});

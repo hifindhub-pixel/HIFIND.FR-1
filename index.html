@@ -631,6 +631,8 @@ nav {
 .page-header-back:hover { color:var(--text); }
 .page-header-title { font-family:'Barlow',sans-serif; font-size:1.3rem; font-weight:800; }
 .page-header-sub { font-size:.78rem; color:var(--sub); }
+.saved-section+.saved-section{margin-top:2.4rem}.saved-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-bottom:1rem}.saved-section-head h2{font-family:'Barlow Condensed',sans-serif;font-size:1.45rem}.saved-section-head p{font-size:.7rem;color:var(--sub);margin-top:.18rem}.saved-empty{border:1px dashed var(--border2);border-radius:13px;padding:1.4rem;text-align:center;color:var(--sub);font-size:.78rem}
+.alert-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:.7rem}.alert-card{display:flex;flex-direction:column;gap:.75rem;padding:1rem;border:1px solid var(--border);background:var(--bg2);border-radius:13px}.alert-card.reached{border-color:rgba(20,184,166,.35);background:var(--jade-bg)}.alert-card-title{font-size:.83rem;font-weight:800;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.alert-card-prices{display:grid;grid-template-columns:1fr 1fr;gap:.55rem}.alert-card-price{padding:.6rem;background:var(--bg3);border-radius:9px}.alert-card-price span{display:block;color:var(--sub);font-size:.59rem;text-transform:uppercase;font-weight:800}.alert-card-price strong{display:block;margin-top:.12rem;font-family:var(--num);font-size:1rem}.alert-card-state{font-size:.68rem;color:var(--sub)}.alert-card.reached .alert-card-state{color:var(--jade);font-weight:800}.alert-card-actions{display:flex;gap:.45rem;margin-top:auto}.alert-card-actions button{border-radius:8px;padding:.52rem .65rem;font-size:.68rem;font-weight:800;cursor:pointer}.alert-card-open{flex:1;border:0;background:var(--coral);color:#fff}.alert-card-remove{border:1px solid var(--border);background:var(--bg3);color:var(--sub)}
 
 /* ═══════════════════════════════════════
    EMPTY STATES & SPINNER
@@ -1343,13 +1345,14 @@ nav {
     <div class="page-header-inner">
       <div class="page-header-back" onclick="showPage('home')">←</div>
       <div>
-        <div class="page-header-title barlow">Mes Favoris</div>
+        <div class="page-header-title barlow">Mes favoris & alertes</div>
         <div class="page-header-sub" id="favCount">0 produit</div>
       </div>
     </div>
   </div>
   <div style="max-width:1400px;margin:0 auto;padding:2rem 1.5rem">
-    <div id="favsContainer"></div>
+    <section class="saved-section"><div class="saved-section-head"><div><h2>Produits sauvegardés</h2><p>Retrouvez rapidement les produits mis en favoris.</p></div></div><div id="favsContainer"></div></section>
+    <section class="saved-section"><div class="saved-section-head"><div><h2>Alertes de prix</h2><p>Les prix sont vérifiés lorsque vous ouvrez cette page.</p></div></div><div id="alertsContainer"></div></section>
   </div>
 </div>
 
@@ -2059,13 +2062,19 @@ function refreshPriceAlertUI() {
   if (button) button.textContent = alert ? 'Alerte à ' + fmtEur(alert.target) : 'Créer une alerte prix';
   if (status) status.innerHTML = priceAlertStatusHTML(currentProduct, currentPrice);
 }
+function recordPriceAlertObservation(product, currentPrice) {
+  var alert = getPriceAlert(product);
+  if (!alert || !(Number(currentPrice) > 0)) return;
+  alert.lastPrice = Number(currentPrice); alert.lastCheckedAt = new Date().toISOString();
+  localStorage.setItem('hf_price_alerts', JSON.stringify(priceAlerts));
+}
 function savePriceAlert() {
   if (!currentProduct) return;
   var input = document.getElementById('priceAlertTarget'), target = Number(input && input.value);
   if (!Number.isFinite(target) || target <= 0) { if (input) input.focus(); return; }
   var currentPrice = CURRENT_OFFERS.length ? Math.min.apply(null, CURRENT_OFFERS.map(function(offer){ return Number(offer.price); }).filter(function(price){ return price > 0; })) : Number(currentProduct.price);
   var key = priceAlertKey(currentProduct);
-  priceAlerts[key] = { id:currentProduct.id, ean:currentProduct.ean || '', title:currentProduct.title || '', target:Math.round(target * 100) / 100, lastPrice:currentPrice, createdAt:new Date().toISOString() };
+  priceAlerts[key] = { id:currentProduct.id, ean:currentProduct.ean || '', title:currentProduct.title || '', image_url:getImageUrl(currentProduct), target:Math.round(target * 100) / 100, lastPrice:currentPrice, createdAt:new Date().toISOString(), lastCheckedAt:new Date().toISOString() };
   localStorage.setItem('hf_price_alerts', JSON.stringify(priceAlerts));
   closePriceAlert(); refreshPriceAlertUI();
 }
@@ -2123,6 +2132,7 @@ async function openDetail(id, options) {
   }
   CURRENT_OFFERS = offers;
   var lo = offers[0].price, hi = offers[offers.length-1].price;
+  if (typeof recordPriceAlertObservation === 'function') recordPriceAlertObservation(p, lo);
   var isFav = favorites.some(function(f){return f.id === p.id;});
   var sid = escHtml(String(p.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
   var img = getImageUrl(p);
@@ -2219,15 +2229,47 @@ function toggleFav(id, btn) {
 function renderFavorites() {
   var c = document.getElementById('favsContainer');
   var cnt = document.getElementById('favCount');
-  cnt.textContent = favorites.length + ' produit' + (favorites.length !== 1 ? 's' : '');
+  var alertCount = Object.keys(priceAlerts).length;
+  cnt.textContent = favorites.length + ' favori' + (favorites.length !== 1 ? 's' : '') + ' · ' + alertCount + ' alerte' + (alertCount !== 1 ? 's' : '');
   if (!favorites.length) {
-    c.innerHTML = '<div class="empty-state"><div class="empty-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 14c1.5-1.5 3-3.4 3-5.5A5.5 5.5 0 0 0 12 5 5.5 5.5 0 0 0 2 8.5c0 2.1 1.5 4 3 5.5l7 7Z"/></svg></div><div class="empty-title">Aucun favori</div><div class="empty-sub">Cliquez sur <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M19 14c1.5-1.5 3-3.4 3-5.5A5.5 5.5 0 0 0 12 5 5.5 5.5 0 0 0 2 8.5c0 2.1 1.5 4 3 5.5l7 7Z"/></svg> pour sauvegarder des produits</div><button class="empty-btn" onclick="showPage(\'home\')">Découvrir</button></div>';
-    return;
+    c.innerHTML = '<div class="saved-empty">Aucun produit sauvegardé pour le moment.</div>';
+  } else {
+    var prev = currentResults;
+    currentResults = favorites;
+    c.innerHTML = favorites.map(p => pcardHTML(p)).join('');
+    currentResults = prev;
   }
-  var prev = currentResults;
-  currentResults = favorites;
-  c.innerHTML = favorites.map(p => pcardHTML(p)).join('');
-  currentResults = prev;
+  renderSavedPriceAlerts(true);
+}
+function openSavedPriceAlert(key) {
+  var alert = priceAlerts[key]; if (!alert) return;
+  if (alert.ean) openDetail(alert.ean, { ean:true }); else if (alert.id) openDetail(alert.id);
+}
+function removeSavedPriceAlert(key) {
+  delete priceAlerts[key]; localStorage.setItem('hf_price_alerts', JSON.stringify(priceAlerts)); renderFavorites();
+}
+function renderSavedPriceAlerts(refreshPrices) {
+  var container = document.getElementById('alertsContainer'); if (!container) return;
+  var entries = Object.keys(priceAlerts).map(function(key){ return [key, priceAlerts[key]]; });
+  if (!entries.length) { container.innerHTML = '<div class="saved-empty">Aucune alerte active. Créez-en une depuis une fiche produit.</div>'; return; }
+  container.innerHTML = '<div class="alert-list">' + entries.map(function(entry){
+    var key = entry[0], alert = entry[1], reached = isPriceTargetReached(alert, alert.lastPrice), safeKey = key.replace(/'/g,"\\'");
+    return '<article class="alert-card' + (reached ? ' reached' : '') + '"><div class="alert-card-title">' + escHtml(alert.title || 'Produit suivi') + '</div><div class="alert-card-prices"><div class="alert-card-price"><span>Prix cible</span><strong>' + fmtEur(alert.target) + '</strong></div><div class="alert-card-price"><span>Dernier prix</span><strong>' + (Number(alert.lastPrice) > 0 ? fmtEur(alert.lastPrice) : '—') + '</strong></div></div><div class="alert-card-state">' + (reached ? '✓ Objectif atteint' : 'Suivi sur cet appareil') + '</div><div class="alert-card-actions"><button class="alert-card-open" onclick="openSavedPriceAlert(\'' + safeKey + '\')">Voir le produit</button><button class="alert-card-remove" onclick="removeSavedPriceAlert(\'' + safeKey + '\')">Supprimer</button></div></article>';
+  }).join('') + '</div>';
+  if (!refreshPrices) return;
+  Promise.all(entries.slice(0,20).map(async function(entry){
+    var key = entry[0], alert = entry[1];
+    try {
+      var lookup = alert.ean ? 'ean=' + encodeURIComponent(alert.ean) : 'id=' + encodeURIComponent(alert.id);
+      var response = await apiFetch('action=product&' + lookup), product = response && response.data && response.data[0];
+      if (!product) return;
+      var prices = (product.ean_offers || []).map(function(offer){ return Number(offer.price); }).filter(function(price){ return price > 0; });
+      var latest = prices.length ? Math.min.apply(null, prices) : Number(product.price);
+      if (latest > 0) { alert.lastPrice = latest; alert.lastCheckedAt = new Date().toISOString(); }
+      alert.id = product.id || alert.id; alert.ean = product.ean || alert.ean; alert.title = product.title || alert.title;
+      priceAlerts[key] = alert;
+    } catch (error) {}
+  })).then(function(){ localStorage.setItem('hf_price_alerts', JSON.stringify(priceAlerts)); renderSavedPriceAlerts(false); });
 }
 
 // ══ HOME GRIDS ══
