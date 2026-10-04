@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
-import { getPool, groupWithOffers, formatRow } from './products.js';
+import { getPool, groupWithOffers, getEanOffers, formatRow } from './products.js';
+import { countDistinctMerchants } from '../scripts/lib/merchants.js';
 
 export const SITE_URL = 'https://hifind.fr';
 const APP_SHELL = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
@@ -101,7 +102,15 @@ export default async function handler(req, res) {
     if (!result.rows.length) return res.status(404).send('Produit introuvable');
     const products = await groupWithOffers(client, prioritizeProductReferences(result.rows));
     const product = products[0];
-    if (!product || Number(product.offers_count) < 2) return res.status(404).send('Produit non comparable');
+    if (!product) return res.status(404).send('Produit non comparable');
+    // Keep server-rendered SEO data on exactly the same offer path as
+    // action=product, which hydrates the interactive page in the browser.
+    // groupWithOffers still selects a safe reference title/type first.
+    const offers = await getEanOffers(client, ean, product.category);
+    const merchantCount = await countDistinctMerchants(client, offers);
+    if (merchantCount < 2) return res.status(404).send('Produit non comparable');
+    product.ean_offers = offers;
+    product.offers_count = merchantCount;
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=1800');
     return res.status(200).send(renderProductShell(product));
