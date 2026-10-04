@@ -132,6 +132,7 @@ export default async function handler(req, res) {
     const urls = [];
     if (requestedPart === 1) {
       urls.push({ loc:`${SITE_URL}/`, changefreq:'daily', priority:'1.0' });
+      urls.push({ loc:`${SITE_URL}/marchands`, changefreq:'daily', priority:'0.8' });
       CATEGORIES.forEach(category => urls.push({ loc:`${SITE_URL}/categorie/${category}`, changefreq:'daily', priority:'0.8' }));
       const seen = new Set();
       merchants.forEach(merchant => {
