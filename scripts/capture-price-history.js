@@ -40,7 +40,7 @@ try {
       GROUP BY p.ean
       HAVING COUNT(DISTINCT COALESCE(ma.merchant_id::text, p.program_id)) >= 2
     ), latest AS (
-      SELECT DISTINCT ON (ean) ean, min_price, avg_price, max_price, merchant_count
+      SELECT DISTINCT ON (ean) ean, observed_at, min_price, avg_price, max_price, merchant_count
       FROM price_history ORDER BY ean, observed_at DESC
     )
     INSERT INTO price_history (ean, observed_at, min_price, avg_price, max_price, merchant_count)
