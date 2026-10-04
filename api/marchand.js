@@ -1,5 +1,5 @@
 import { getPool, groupWithOffers, slugifyMerchant } from './products.js';
-import { SITE_URL, CATEGORY_META, esc, jsonLd, productCard } from './categorie.js';
+import { SITE_URL, CATEGORY_META, esc, jsonLd, productCard, slugify } from './categorie.js';
 
 const MULTI_VENDOR_WHERE = `
   p.ean IS NOT NULL AND p.status = 'enabled'
@@ -45,7 +45,7 @@ export function merchantPageHtml({ merchant, products, total, page = 1, pages = 
     about:{ '@type':'Organization', name:merchant },
     mainEntity:{ '@type':'ItemList', numberOfItems:products.length, itemListElement:products.map((p, i) => ({
       '@type':'ListItem', position:(page - 1) * 30 + i + 1,
-      url:`${SITE_URL}/?openEan=${encodeURIComponent(p.ean)}`, name:p.title
+      url:`${SITE_URL}/produit/${slugify(p.title) || 'produit'}-${encodeURIComponent(p.ean)}`, name:p.title
     }))}
   };
   const pagination = pages > 1 ? `<nav class="pagination" aria-label="Pagination">

@@ -1,20 +1,106 @@
-/**
- * Legacy product URL bridge.
- *
- * Product pages now live in the interactive HiFind application. Keeping this
- * endpoint as a permanent redirect preserves every existing /produit/... link
- * without maintaining a second, visually inconsistent product page.
- */
+import { readFileSync } from 'node:fs';
+import { getPool, groupWithOffers, formatRow } from './products.js';
+
+export const SITE_URL = 'https://hifind.fr';
+const APP_SHELL = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+
 export function extractEanFromSlug(slug) {
   const value = Array.isArray(slug) ? slug.join('/') : String(slug || '');
   const match = value.match(/(?:^|-)(\d{8,14})(?:\/)?$/);
   return match ? match[1] : null;
 }
 
-export default function handler(req, res) {
-  const ean = extractEanFromSlug(req.query.slug);
-  if (!ean) return res.redirect(308, '/');
+export function slugifyProduct(value) {
+  return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
+}
 
-  res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
-  return res.redirect(308, `/?openEan=${encodeURIComponent(ean)}`);
+export function productPath(product) {
+  return `/produit/${slugifyProduct(product.title) || 'produit'}-${product.ean}`;
+}
+
+const esc = value => String(value ?? '').replace(/[&<>"']/g, character => ({
+  '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+}[character]));
+const jsonLd = value => JSON.stringify(value).replace(/</g, '\\u003c');
+const euros = value => Number(value).toLocaleString('fr-FR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+
+export function renderProductShell(product, shell = APP_SHELL) {
+  const offers = (product.ean_offers || []).filter(offer => Number(offer.price) > 0);
+  const prices = offers.map(offer => Number(offer.price)).sort((a,b) => a-b);
+  const low = prices[0] || Number(product.price) || 0;
+  const high = prices.at(-1) || low;
+  const count = Number(product.offers_count) || offers.length;
+  const canonical = SITE_URL + productPath(product);
+  const shortTitle = String(product.title || 'Produit').replace(/\s+/g, ' ').trim().slice(0, 92);
+  const title = `${shortTitle} : comparez ${count} prix | HiFind`;
+  const description = `Comparez ${count} offres pour ${shortTitle}. Meilleur prix relevé : ${euros(low)} €. Historique et vendeurs disponibles sur HiFind.`.slice(0, 158);
+  const image = product.image_url ? `${SITE_URL}/api/img?url=${encodeURIComponent(product.image_url)}` : '';
+  const structured = {
+    '@context':'https://schema.org', '@type':'Product', name:product.title,
+    description:String(product.description || description).slice(0, 500), url:canonical,
+    ...(image ? { image:[image] } : {}),
+    ...(product.brand ? { brand:{ '@type':'Brand', name:product.brand } } : {}),
+    ...(String(product.ean || '').length === 13 ? { gtin13:String(product.ean) } : { sku:String(product.ean) }),
+    offers:{ '@type':'AggregateOffer', priceCurrency:'EUR', lowPrice:low, highPrice:high, offerCount:count, url:canonical },
+  };
+  const breadcrumb = {
+    '@context':'https://schema.org', '@type':'BreadcrumbList', itemListElement:[
+      { '@type':'ListItem', position:1, name:'Accueil', item:SITE_URL + '/' },
+      { '@type':'ListItem', position:2, name:product.title, item:canonical },
+    ],
+  };
+  const social = `
+<link rel="canonical" href="${esc(canonical)}">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="product"><meta property="og:site_name" content="HiFind">
+<meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(description)}"><meta property="og:url" content="${esc(canonical)}">
+${image ? `<meta property="og:image" content="${esc(image)}"><meta name="twitter:card" content="summary_large_image">` : '<meta name="twitter:card" content="summary">'}
+<meta property="product:price:amount" content="${low.toFixed(2)}"><meta property="product:price:currency" content="EUR">
+<script type="application/ld+json">${jsonLd(structured)}</script><script type="application/ld+json">${jsonLd(breadcrumb)}</script>`;
+  return shell
+    .replace(/<title>[\s\S]*?<\/title>/i, `<title>${esc(title)}</title>`)
+    .replace(/<meta name="description" content="[^"]*">/i, `<meta name="description" content="${esc(description)}">`)
+    .replace('</head>', social + '\n</head>');
+}
+
+function prioritizeProductReferences(rows) {
+  const support = new Map();
+  rows.forEach(row => {
+    const type = formatRow(row).product_type;
+    if (!support.has(type)) support.set(type, new Set());
+    support.get(type).add(row.program_id);
+  });
+  return rows.slice().sort((a,b) => {
+    const aType = formatRow(a).product_type, bType = formatRow(b).product_type;
+    return (support.get(bType)?.size || 0) - (support.get(aType)?.size || 0)
+      || Number(a.price || Infinity) - Number(b.price || Infinity);
+  });
+}
+
+export default async function handler(req, res) {
+  const ean = extractEanFromSlug(req.query.slug);
+  if (!ean) return res.status(404).send('Produit introuvable');
+  const client = await getPool().connect();
+  try {
+    const result = await client.query(`
+      SELECT p.*, pr.title AS program_title
+      FROM products p LEFT JOIN programs pr ON pr.id=p.program_id
+      WHERE p.ean=$1 AND p.status='enabled' AND p.price>0
+        AND p.program_id NOT LIKE '%darty%'
+      ORDER BY p.price ASC
+    `, [ean]);
+    if (!result.rows.length) return res.status(404).send('Produit introuvable');
+    const products = await groupWithOffers(client, prioritizeProductReferences(result.rows));
+    const product = products[0];
+    if (!product || Number(product.offers_count) < 2) return res.status(404).send('Produit non comparable');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=1800');
+    return res.status(200).send(renderProductShell(product));
+  } catch (error) {
+    console.error('Product SEO page error:', error.message);
+    return res.status(500).send('Page momentanément indisponible');
+  } finally {
+    client.release();
+  }
 }

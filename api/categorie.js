@@ -35,7 +35,7 @@ export const slugify = value => String(value || '').toLowerCase().normalize('NFD
   .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
 
 function productUrl(product) {
-  return `/?openEan=${encodeURIComponent(product.ean)}`;
+  return `/produit/${slugify(product.title) || 'produit'}-${encodeURIComponent(product.ean)}`;
 }
 
 export function productCard(product, rank = -1, page = 1) {

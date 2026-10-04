@@ -1469,7 +1469,7 @@ function trackOfferClick() {
 
 function shareCurrentProduct() {
   if (!currentProduct || !currentProduct.ean) return;
-  var url = location.origin + '/?openEan=' + encodeURIComponent(currentProduct.ean);
+  var url = location.origin + productUrl(currentProduct);
   var payload = { title:currentProduct.title || 'Comparaison HiFind', text:'Comparez les prix sur HiFind', url:url };
   if (navigator.share) navigator.share(payload).catch(function(){});
   else if (navigator.clipboard) navigator.clipboard.writeText(url).then(function(){
@@ -2405,7 +2405,8 @@ loadMerchantMarquee();
 (function(){
   var params = new URLSearchParams(window.location.search);
   var pid = params.get('openProduct');
-  var ean = params.get('openEan');
+  var pathMatch = window.location.pathname.match(/(?:^|-)\b(\d{8,14})\/?$/);
+  var ean = params.get('openEan') || (pathMatch ? pathMatch[1] : '');
   var query = (params.get('q') || '').trim();
   if (ean && /^\d{8,14}$/.test(ean)) openDetail(ean, { ean:true });
   else if (pid) openDetail(pid);
@@ -2514,7 +2515,9 @@ function escHtml(s){
 // serveur et cote client -- toute divergence casserait le lien).
 function productUrl(p) {
   if (!p || !p.ean) return '#';
-  return '/?openEan=' + encodeURIComponent(p.ean);
+  var slug = String(p.title || 'produit').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80) || 'produit';
+  return '/produit/' + slug + '-' + encodeURIComponent(p.ean);
 }
 
 // Intercepte un clic GAUCHE simple pour garder la transition SPA rapide
