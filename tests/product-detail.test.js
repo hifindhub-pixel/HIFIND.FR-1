@@ -25,3 +25,23 @@ test('premium detail fetches real offers, preserves unknown shipping and renders
  assert.match(host.innerHTML,/REAL_OFFERS/);assert.match(host.innerHTML,/100 €/);
  assert.equal(ctx.CURRENT_OFFERS[0].url,p.ean_offers[0].url);
 });
+
+test('offer comparison separates product price from known delivered total',()=>{
+ const rendered={innerHTML:''};
+ const ctx=vm.createContext({
+  document:{getElementById:()=>rendered},getFavicon:()=>'',escHtml:s=>String(s),fmtEur:n=>n+' €',
+  fmtRelativeDate:()=>'',CONDITION_LABELS:{new:'Neuf'},trackOfferClick(){}
+ });
+ const offerCode=html.slice(html.indexOf('var CURRENT_OFFERS = [];'),html.indexOf('async function renderSimilar'));
+ vm.runInContext(offerCode,ctx);
+ ctx.CURRENT_OFFERS=[
+  {merchant:'Port inconnu',price:90,shipping:null,total:null,url:'#',condition:'new'},
+  {merchant:'Livré moins cher',price:95,shipping:0,total:95,url:'#',condition:'new'},
+  {merchant:'Livré plus cher',price:92,shipping:10,total:102,url:'#',condition:'new'},
+ ];
+ vm.runInContext("sortOffers('total')",ctx);
+ assert.ok(rendered.innerHTML.indexOf('Livré moins cher') < rendered.innerHTML.indexOf('Livré plus cher'));
+ assert.ok(rendered.innerHTML.indexOf('Livré plus cher') < rendered.innerHTML.indexOf('Port inconnu'));
+ assert.match(rendered.innerHTML,/Meilleur prix total/);
+ assert.match(rendered.innerHTML,/Prix produit le plus bas/);
+});

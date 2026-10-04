@@ -1889,6 +1889,8 @@ async function openDetail(id, options) {
   var shippingKnown = offers.filter(function(o){ return o.shipping != null; }).length;
   var stockKnown = offers.filter(function(o){ return o.inStock != null; }).length;
   var cheapestMerchant = offers.length ? offers[0].merchant : 'Partenaire';
+  var deliveredOffers = offers.filter(function(o){ return o.total != null; }).sort(function(a,b){ return a.total-b.total; });
+  var bestDelivered = deliveredOffers.length ? deliveredOffers[0] : null;
 
   document.getElementById('detailContent').innerHTML =
     '<div class="pd-layout">'
@@ -1920,7 +1922,7 @@ async function openDetail(id, options) {
         + '<div class="pd-summary-grid">'
           + '<div class="pd-summary-item"><span>Couverture</span><strong>' + offers.length + ' marchand' + (offers.length > 1 ? 's' : '') + '</strong></div>'
           + '<div class="pd-summary-item"><span>Écart de prix</span><strong>' + fmtEur(Math.max(0, hi-lo)) + '</strong></div>'
-          + '<div class="pd-summary-item"><span>Meilleure offre</span><strong>' + escHtml(cheapestMerchant) + '</strong></div>'
+          + '<div class="pd-summary-item"><span>' + (bestDelivered ? 'Total livré connu' : 'Meilleure offre') + '</span><strong>' + (bestDelivered ? fmtEur(bestDelivered.total) : escHtml(cheapestMerchant)) + '</strong></div>'
         + '</div>'
         + '<div class="pd-action-row"><button class="pd-share-btn" onclick="shareCurrentProduct()">Partager cette comparaison</button></div>'
         + '<div class="pd-decision-note"><strong>Conseil HiFind</strong><span>Comparez le prix livré lorsqu’il est disponible. Le prix et le stock définitifs restent ceux affichés chez le marchand.</span></div>'
@@ -1944,7 +1946,8 @@ async function openDetail(id, options) {
       + '<div class="pd-offers-head">'
         + '<div><h2 class="pd-offers-title">Comparer les prix<span>' + offers.length + ' offre' + (offers.length > 1 ? 's' : '') + '</span></h2><div class="pd-section-sub">Prix produit et frais de livraison affichés séparément lorsque les données sont disponibles.</div></div>'
         + '<select class="sort-select" onchange="sortOffers(this.value)" aria-label="Trier les offres">'
-          + '<option value="price">Prix croissant</option>'
+          + '<option value="price">Prix produit croissant</option>'
+          + (shippingKnown ? '<option value="total">Total livré connu</option>' : '')
           + '<option value="name">Marchand A-Z</option>'
         + '</select>'
       + '</div>'
@@ -2788,9 +2791,11 @@ function renderOfferRows(offers){
   // Meme regle que bestKnownTotalId() dans api/produit.js.
   var knownTotals = offers.filter(function(o){ return o.total != null; });
   var bestTotal = knownTotals.length ? Math.min.apply(null, knownTotals.map(function(o){ return o.total; })) : null;
+  var bestProductPrice = offers.length ? Math.min.apply(null, offers.map(function(o){ return o.price; })) : null;
 
   return offers.map(function(o){
     var isBestTotal = bestTotal != null && o.total === bestTotal;
+    var isBestProductPrice = bestProductPrice != null && o.price === bestProductPrice;
     var fav = getFavicon(o.merchant);
     var merchantSafe = escHtml(o.merchant);
     var initials = escHtml(o.merchant.slice(0,2).toUpperCase());
@@ -2822,6 +2827,7 @@ function renderOfferRows(offers){
       + '<div class="pd-offer-merchant">' + logoEl
         + '<div><div class="pd-offer-name">' + merchantSafe + '</div>'
           + (isBestTotal ? '<span class="pd-offer-tag">Meilleur prix total</span>' : '')
+          + (isBestProductPrice && !isBestTotal ? '<span class="pd-offer-tag">Prix produit le plus bas</span>' : '')
           + conditionBadge
           + stockBadge
         + '</div>'
@@ -2841,16 +2847,18 @@ function renderOfferRows(offers){
 function sortOffers(mode){
   var arr = CURRENT_OFFERS.slice();
   if (mode === 'name') arr.sort(function(a,b){ return a.merchant.localeCompare(b.merchant, 'fr'); });
-  else {
-    // Trie par prix total quand TOUTES les offres l'ont connu, sinon par
-    // prix produit seul -- meme regle que le tri initial dans openDetail,
-    // pour ne jamais comparer un total a un prix produit brut.
-    var allTotalsKnown = arr.every(function(o){ return o.total != null; });
+  else if (mode === 'total') {
+    // Les totaux inconnus restent visibles, mais ne sont jamais présentés
+    // comme moins chers que des totaux réellement calculables.
     arr.sort(function(a,b){
-      var av = allTotalsKnown ? a.total : a.price;
-      var bv = allTotalsKnown ? b.total : b.price;
-      return av - bv;
+      if (a.total == null && b.total == null) return a.price - b.price;
+      if (a.total == null) return 1;
+      if (b.total == null) return -1;
+      return a.total - b.total || a.price - b.price;
     });
+  }
+  else {
+    arr.sort(function(a,b){ return a.price - b.price; });
   }
   var el = document.getElementById('pdOffersList');
   if (el) el.innerHTML = renderOfferRows(arr);
