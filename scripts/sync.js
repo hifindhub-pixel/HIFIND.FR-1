@@ -5,9 +5,10 @@ const EFFINITY_FEEDS_JSON = process.env.EFFINITY_FEEDS;
 const AFFILAE_BASE        = 'https://rest.affilae.com';
 
 import { streamFeed, parseCSVLine } from './lib/stream-feed.js';
-import { EanIndex, HarvestWriter, resetHarvest, harvestedPrograms, selectMatching, harvestDiskUsage } from './lib/ean-index.js';
+import { EanIndex, HarvestWriter, resetHarvest, harvestedPrograms, selectMatching, harvestDiskUsage, merchantIdentity } from './lib/ean-index.js';
 import { reconcileCategories } from './lib/category-consensus.js';
 import { categorize } from './lib/categorize.js';
+import { writeFileSync } from 'node:fs';
 import pkg from 'pg';
 const { Client } = pkg;
 
@@ -41,10 +42,21 @@ const CAT_STATS = {};
 const PROGRAM_META = new Map();   // programId -> { title, category }
 
 const FEED_REPORT = { ok: [], empty: [], failed: [] };
+const SYNC_STARTED_AT = new Date().toISOString();
 function reportFeed(name, count, err) {
   if (err) FEED_REPORT.failed.push(name + ' (' + err + ')');
   else if (!count) FEED_REPORT.empty.push(name);
   else FEED_REPORT.ok.push(name + ' (' + count + ')');
+}
+
+function saveSyncReport(status, details = {}) {
+  writeFileSync('sync-report.json', JSON.stringify({
+    status,
+    started_at: SYNC_STARTED_AT,
+    finished_at: new Date().toISOString(),
+    feeds: FEED_REPORT,
+    ...details,
+  }, null, 2));
 }
 
 function detectCategory(product) {
@@ -274,11 +286,11 @@ async function syncEffinity() {
 
   for (const feed of feeds) {
     try {
-      const feedLimit = feed.limit || 200;
-      console.log('  →', feed.name, '(limit:', feedLimit, ')');
+      console.log('  →', feed.name, '(lecture intégrale)');
 
       const products = [];
       const seen = new Set();
+      const feedEans = new Set();
 
       // Mapping XML → produit
       const mapXmlItem = (item) => {
@@ -344,7 +356,7 @@ async function syncEffinity() {
         p.feed_name = feed.name;
         p.feed_category = feed.category || null;
         writer.write(p);
-        EAN_INDEX.add(p.ean, programId);
+        feedEans.add(p.ean);
         return true;   // on lit le catalogue en entier
       };
 
@@ -370,11 +382,17 @@ async function syncEffinity() {
         console.log('  \u26a0\ufe0f aucune ligne de donnees exploitable');
       }
       await writer.close();
+      if (stat.stopped) throw new Error('lecture interrompue avant la fin du flux');
+      const merchantId = merchantIdentity(feed.name);
+      feedEans.forEach(ean => EAN_INDEX.add(ean, merchantId));
       console.log('  📦', feed.name, ':', writer.count, 'lignes recoltees ('
                   + writer.skippedNoEan + ' sans EAN ignorees)');
       reportFeed(feed.name, writer.count);
 
-    } catch(e) { console.log('  ⚠️', feed.name, ':', e.message, '\n  Stack:', e.stack?.split('\n')[1]?.trim()); }
+    } catch(e) {
+      reportFeed(feed.name, 0, e.message);
+      console.log('  ⚠️', feed.name, ':', e.message, '\n  Stack:', e.stack?.split('\n')[1]?.trim());
+    }
   }
   console.log('🎉 Effinity done');
 }
@@ -572,11 +590,11 @@ async function syncAffilaeFeeds() {
 
   for (const feed of feeds) {
     try {
-      const feedLimit = feed.limit || 2000;
-      console.log('  →', feed.name, '(limit:', feedLimit, ')');
+      console.log('  →', feed.name, '(lecture intégrale)');
 
       const products = [];
       const seen = new Set();
+      const feedEans = new Set();
 
       const mapXml = (item) => {
         const get = tag => {
@@ -631,7 +649,7 @@ async function syncAffilaeFeeds() {
         p.feed_name = feed.name;
         p.feed_category = feed.category || null;
         writer.write(p);
-        EAN_INDEX.add(p.ean, programId);
+        feedEans.add(p.ean);
         return true;
       };
 
@@ -653,11 +671,14 @@ async function syncAffilaeFeeds() {
                   stat.stopped ? '(arret anticipe)' : '');
 
       await writer.close();
+      if (stat.stopped) throw new Error('lecture interrompue avant la fin du flux');
+      const merchantId = merchantIdentity(feed.name);
+      feedEans.forEach(ean => EAN_INDEX.add(ean, merchantId));
       console.log('  📦', feed.name, ':', writer.count, 'lignes recoltees ('
                   + writer.skippedNoEan + ' sans EAN ignorees)');
       reportFeed(feed.name, writer.count);
 
-    } catch(e) { console.log('  ⚠️', feed.name, ':', e.message); }
+    } catch(e) { reportFeed(feed.name, 0, e.message); console.log('  ⚠️', feed.name, ':', e.message); }
   }
   console.log('🎉 Affilae Feeds done');
 }
@@ -672,8 +693,7 @@ async function syncAwin() {
 
   for (const feed of feeds) {
     try {
-      const feedLimit = feed.limit || 2000;
-      console.log('  →', feed.name, '(limit:', feedLimit, ')');
+      console.log('  →', feed.name, '(lecture intégrale)');
 
       // Normalise les noms de vendeurs splittes AVANT la recolte
       let feedDisplayName = feed.name;
@@ -689,6 +709,7 @@ async function syncAwin() {
       const writer = new HarvestWriter(programId);
 
       const seen = new Set();
+      const feedEans = new Set();
       let firstSample = null;
 
       const stat = await streamFeed(feed.url, {
@@ -727,7 +748,7 @@ async function syncAwin() {
                       feed_category: feed.category || null };
           if (!firstSample) firstSample = p;
           writer.write(p);
-          EAN_INDEX.add(ean, programId);
+          feedEans.add(ean);
           return true;
         },
       });
@@ -737,11 +758,14 @@ async function syncAwin() {
                   stat.stopped ? '(arret anticipe)' : '');
 
       await writer.close();
+      if (stat.stopped) throw new Error('lecture interrompue avant la fin du flux');
+      const merchantId = merchantIdentity(feedDisplayName);
+      feedEans.forEach(ean => EAN_INDEX.add(ean, merchantId));
       console.log('  📦', feedDisplayName, ':', writer.count, 'lignes recoltees ('
                   + writer.skippedNoEan + ' sans EAN ignorees)');
       reportFeed(feed.name, writer.count);
 
-    } catch(e) { console.log('  ⚠️', feed.name, ':', e.message); }
+    } catch(e) { reportFeed(feed.name, 0, e.message); console.log('  ⚠️', feed.name, ':', e.message); }
   }
   console.log('🎉 Awin done');
 }
@@ -763,13 +787,13 @@ async function syncKwanko() {
 
   for (const feed of feeds) {
     try {
-      const feedLimit = feed.limit || 2000;
-      console.log('  →', feed.name, '(limit:', feedLimit, ')');
+      console.log('  →', feed.name, '(lecture intégrale)');
 
       const programId = 'kwanko_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
       PROGRAM_META.set(programId, { title: feed.name, category: feed.category });
       const writer = new HarvestWriter(programId);
       const seen = new Set();
+      const feedEans = new Set();
       let firstSample = null;
 
       const stat = await streamFeed(feed.url, {
@@ -806,7 +830,7 @@ async function syncKwanko() {
                       feed_category: feed.category || null };
           if (!firstSample) firstSample = p;
           writer.write(p);
-          EAN_INDEX.add(ean, programId);
+          feedEans.add(ean);
           return true;
         },
       });
@@ -822,11 +846,14 @@ async function syncKwanko() {
         console.log('  \u26a0\ufe0f aucune ligne exploitable');
       }
       await writer.close();
+      if (stat.stopped) throw new Error('lecture interrompue avant la fin du flux');
+      const merchantId = merchantIdentity(feed.name);
+      feedEans.forEach(ean => EAN_INDEX.add(ean, merchantId));
       console.log('  📦', feed.name, ':', writer.count, 'lignes recoltees ('
                   + writer.skippedNoEan + ' sans EAN ignorees)');
       reportFeed(feed.name, writer.count);
 
-    } catch(e) { console.log('  ⚠️', feed.name, ':', e.message); }
+    } catch(e) { reportFeed(feed.name, 0, e.message); console.log('  ⚠️', feed.name, ':', e.message); }
   }
   console.log('🎉 Kwanko done');
 }
@@ -1000,9 +1027,10 @@ async function syncCJ() {
   }
 
   for (const feed of feeds) {
-    const limit = feed.limit || 3000;
+    const requestedLimit = Number.parseInt(feed.limit, 10);
+    const limit = Number.isFinite(requestedLimit) && requestedLimit > 0 ? requestedLimit : Infinity;
     const partnerId = feed.advertiserId || feed.adId;
-    console.log('  \u2192 ' + feed.name + ' (partnerId ' + partnerId + ', limit ' + limit + ')');
+    console.log('  \u2192 ' + feed.name + ' (partnerId ' + partnerId + ', ' + (Number.isFinite(limit) ? 'limit ' + limit : 'lecture intégrale') + ')');
 
     const programId = 'cj_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
     PROGRAM_META.set(programId, { title: feed.name, category: feed.category });
@@ -1013,7 +1041,8 @@ async function syncCJ() {
 
     try {
       while (all.length < limit) {
-        const query = '{ products(companyId: "' + CJ_PUBLISHER_ID + '", partnerIds: ["' + partnerId + '"], limit: ' + pageSize + ', offset: ' + offset + ') { totalCount count resultList { ' + CJ_FIELDS + ' } } }';
+        const requestSize = Number.isFinite(limit) ? Math.min(pageSize, limit - all.length) : pageSize;
+        const query = '{ products(companyId: "' + CJ_PUBLISHER_ID + '", partnerIds: ["' + partnerId + '"], limit: ' + requestSize + ', offset: ' + offset + ') { totalCount count resultList { ' + CJ_FIELDS + ' } } }';
         const data = await cjQuery(query);
         const res = data && data.products;
         if (!res) break;
@@ -1026,15 +1055,17 @@ async function syncCJ() {
         }
         if (!items.length) break;
         all.push.apply(all, items);
-        offset += pageSize;
-        if (items.length < pageSize) break;
+        offset += requestSize;
+        if (items.length < requestSize) break;
       }
     } catch (e) {
       console.log('     \u274c ' + e.message);
+      reportFeed(feed.name, 0, e.message);
       continue;
     }
 
-    const mapped = all.slice(0, limit).map(function (p, i) {
+    const selected = Number.isFinite(limit) ? all.slice(0, limit) : all;
+    const mapped = selected.map(function (p, i) {
       const priceObj = p.salePrice && p.salePrice.amount ? p.salePrice : p.price;
       const price = parseFloat((priceObj && priceObj.amount) || 0);
       // p.shipping peut etre un objet {amount,currency} comme price, ou une
@@ -1057,10 +1088,11 @@ async function syncCJ() {
       return p.title && p.url && p.price > 0 && p.currency === 'EUR';
     });
 
-    const dropped = all.slice(0, limit).length - mapped.length;
+    const dropped = selected.length - mapped.length;
     if (dropped > 0) console.log('     ' + dropped + ' ecartes (devise != EUR ou champs manquants)');
 
     const seen = new Set();
+    const feedEans = new Set();
     const writer = new HarvestWriter(programId);
     mapped.forEach(function (p) {
       const key = p.ean || p.product_id;
@@ -1070,7 +1102,7 @@ async function syncCJ() {
       p.feed_name = feed.name;
       p.feed_category = feed.category || null;
       writer.write(p);
-      if (p.ean) EAN_INDEX.add(p.ean, programId);
+      if (p.ean) feedEans.add(p.ean);
     });
 
     const withEan = mapped.filter(function (x) { return x.ean; }).length;
@@ -1082,32 +1114,13 @@ async function syncCJ() {
                   + ' mpn=' + JSON.stringify(s.mpn));
     }
     await writer.close();
+    const merchantId = merchantIdentity(feed.name);
+    feedEans.forEach(ean => EAN_INDEX.add(ean, merchantId));
     console.log('     \ud83d\udce6 ' + writer.count + ' recoltees (' + writer.skippedNoEan + ' sans EAN ignorees)');
     reportFeed(feed.name, writer.count);
   }
   console.log('\ud83c\udf89 CJ done');
 }
-
-async function cleanupMonoVendors(label) {
-  try {
-    const client = new Client({ connectionString: process.env.NEON_URL, ssl: { rejectUnauthorized: false } });
-    await client.connect();
-    const del = await client.query(`
-      DELETE FROM products
-      WHERE ean IS NULL
-      OR NOT EXISTS (
-        SELECT 1 FROM products p2
-        WHERE p2.ean = products.ean
-        AND p2.program_id != products.program_id
-      )
-    `);
-    await client.end();
-    console.log('\ud83e\uddf9 [' + label + '] supprimes: ' + del.rowCount);
-  } catch (e) {
-    console.log('\ud83e\uddf9 [' + label + '] erreur nettoyage: ' + e.message);
-  }
-}
-
 
 // ══════════════════════════════════════════════════════════════════
 // PHASE B — INGESTION
@@ -1214,10 +1227,12 @@ async function ingestHarvest() {
       console.log('  ' + e[0].padEnd(20) + String(e[1]).padStart(7) + '  (' + pct + '%)');
     });
   }
-  return totalKept;
+  return { totalKept, matching:s };
 }
 
 async function main() {
+  let matching = null;
+  let ingestedProducts = 0;
   try {
     // ── PHASE A : récolte (aucune écriture en base) ──
     console.log('='.repeat(64));
@@ -1231,29 +1246,20 @@ async function main() {
     await syncKwanko();
     await syncCJ();   // API paginee : reste en phase A pour beneficier du croisement 3-marchands
 
-    // ── PHASE B : on n'insère que les EAN présents chez 3+ marchands ──
-    await ingestHarvest();
+    // ── PHASE B : on n'insère que les EAN présents chez 2+ vrais marchands ──
+    const ingestion = await ingestHarvest();
+    ingestedProducts = ingestion.totalKept;
+    matching = ingestion.matching;
 
     // ── Sources API : petits volumes, insertion directe ──
     await syncBCDJeux();
     await syncRakuten();
     // await syncAliExpress(); // Désactivé - tracking_id invalide
     if (_neonClient) await _neonClient.end();
-    // Nettoyage automatique des mono-vendeurs
-    console.log('🧹 Nettoyage des mono-vendeurs...');
-    const client2 = new Client({ connectionString: process.env.NEON_URL, ssl: { rejectUnauthorized: false } });
-    await client2.connect();
-    const del = await client2.query(`
-      DELETE FROM products 
-      WHERE ean IS NULL
-      OR NOT EXISTS (
-        SELECT 1 FROM products p2 
-        WHERE p2.ean = products.ean 
-        AND p2.program_id != products.program_id
-      )
-    `);
-    console.log('🧹 Supprimés:', del.rowCount, 'produits mono-vendeurs');
-    await client2.end();
+    // Never delete catalogue rows after a partial/failed feed run. Public
+    // queries already hide non-comparable EANs; destructive lifecycle cleanup
+    // requires a complete per-feed generation and belongs to a separate job.
+    console.log('🛡️ Aucun effacement destructif pendant le sync');
     console.log('\n' + '='.repeat(64));
     console.log('RECAPITULATIF DES FLUX');
     console.log('='.repeat(64));
@@ -1267,9 +1273,11 @@ async function main() {
       console.log('\n   >>> Liens expires : a regenerer sur la plateforme concernee.');
     }
     console.log('='.repeat(64));
+    saveSyncReport('success', { matching, ingested_products:ingestedProducts });
     console.log('🎉 All done!');
   } catch(e) {
     console.error('❌ Failed:', e.message);
+    saveSyncReport('failed', { matching, ingested_products:ingestedProducts, error:e.message });
     if (_neonClient) await _neonClient.end();
     process.exit(1);
   }

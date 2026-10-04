@@ -19,8 +19,8 @@ jobs:
         env:
           # Base
           NEON_URL: ${{ secrets.NEON_URL }}
-          # Seuil de vendeurs distincts pour retenir un produit (defaut : 3)
-          MIN_VENDORS: '3'
+          # Une comparaison réelle commence à 2 marchands distincts.
+          MIN_VENDORS: '2'
           # Marge memoire pour l'index EAN (plusieurs millions d'entrees)
           NODE_OPTIONS: '--max-old-space-size=6144'
           # Reseaux d'affiliation
@@ -43,3 +43,11 @@ jobs:
         env:
           NEON_URL: ${{ secrets.NEON_URL }}
         run: node scripts/capture-price-history.js
+      - name: Upload sync quality report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hifind-sync-report-${{ github.run_number }}
+          path: sync-report.json
+          if-no-files-found: ignore
+          retention-days: 30

@@ -19,7 +19,19 @@ import readline from 'node:readline';
 export const HARVEST_DIR = process.env.HARVEST_DIR || '/tmp/hifind-harvest';
 
 /** Index EAN → marchands. Mémoire : ~100 octets par EAN unique. */
-export const MIN_VENDORS = parseInt(process.env.MIN_VENDORS || '3', 10);
+// HiFind is a comparator as soon as two independent merchants expose the
+// same exact barcode. Requiring three vendors discarded every genuine 2-way
+// comparison before it could ever reach the catalogue.
+export const MIN_VENDORS = parseInt(process.env.MIN_VENDORS || '2', 10);
+
+/** Stable merchant identity across Awin, CJ, Affilae, etc. */
+export function merchantIdentity(name) {
+  return String(name || '').toLowerCase().normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/&/g, ' and ')
+    .replace(/\b(?:france|fr)\b$/i, '')
+    .replace(/[^a-z0-9]+/g, '') || 'unknown';
+}
 
 export class EanIndex {
   constructor(minVendors = MIN_VENDORS) {
@@ -30,7 +42,7 @@ export class EanIndex {
     this.seen = 0;
     this.pairs = 0;           // ean vus chez au moins 2 marchands
   }
-  add(ean, programId) {
+  add(ean, merchantId) {
     if (!ean) return;
     this.seen++;
 
@@ -38,19 +50,19 @@ export class EanIndex {
 
     const set = this.owners.get(ean);
     if (set) {                                  // deja 2+ marchands connus
-      set.add(programId);
+      set.add(merchantId);
       if (set.size >= this.min) { this.multi.add(ean); this.owners.delete(ean); }
       return;
     }
 
     const first = this.owner.get(ean);
-    if (first === undefined) { this.owner.set(ean, programId); return; }
-    if (first === programId) return;
+    if (first === undefined) { this.owner.set(ean, merchantId); return; }
+    if (first === merchantId) return;
 
     // 2e marchand distinct : on bascule sur un Set
     this.pairs++;
     this.owner.delete(ean);
-    const s = new Set([first, programId]);
+    const s = new Set([first, merchantId]);
     if (s.size >= this.min) this.multi.add(ean);
     else this.owners.set(ean, s);
   }
