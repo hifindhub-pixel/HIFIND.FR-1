@@ -1,6 +1,10 @@
 name: Sync Products
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/sync-now
   schedule:
     # Tous les jours à 4h UTC (6h Paris)
     - cron: '0 4 * * *'
