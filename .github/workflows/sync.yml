@@ -25,6 +25,10 @@ jobs:
           NEON_URL: ${{ secrets.NEON_URL }}
           # Une comparaison réelle commence à 2 marchands distincts.
           MIN_VENDORS: '2'
+          # Garde la base 1 Go sous sa limite en privilégiant les comparaisons
+          # les plus solides. À augmenter simplement lors d'un upgrade Neon.
+          MAX_STORED_OFFERS: '180000'
+          MAX_OFFERS_PER_EAN: '4'
           # Marge memoire pour l'index EAN (plusieurs millions d'entrees)
           NODE_OPTIONS: '--max-old-space-size=6144'
           # Reseaux d'affiliation

@@ -40,9 +40,9 @@ try {
   if (names.has('search_vector')) statements.push(
     `CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_products_search_vector_gin ON products USING GIN (search_vector)`
   );
-  if (names.has('title')) statements.push(
-    `CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_products_title_trgm ON products USING GIN (title gin_trgm_ops)`
-  );
+  // search_vector is the primary search index. Keeping a second GIN trigram
+  // index over every duplicated offer title exhausted the 1 GB project.
+  await client.query('DROP INDEX IF EXISTS idx_products_title_trgm');
 
   for (const sql of statements) {
     try {

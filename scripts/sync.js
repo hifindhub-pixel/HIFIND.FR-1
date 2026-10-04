@@ -9,6 +9,7 @@ import { EanIndex, HarvestWriter, resetHarvest, harvestedPrograms, selectMatchin
 import { reconcileCategories } from './lib/category-consensus.js';
 import { categorize } from './lib/categorize.js';
 import { FeedLifecycle } from './lib/feed-lifecycle.js';
+import { budgetCatalogue } from './lib/catalogue-budget.js';
 import { writeFileSync } from 'node:fs';
 import pkg from 'pg';
 const { Client } = pkg;
@@ -23,6 +24,11 @@ async function getNeon() {
 }
 
 const PAGE_SIZE           = 20;
+// The current Neon project is capped at 1 GB. Keep the strongest comparable
+// catalogue within a predictable row envelope; an upgrade can raise this
+// value without changing matching semantics.
+const MAX_STORED_OFFERS   = Math.max(20000, parseInt(process.env.MAX_STORED_OFFERS || '180000', 10));
+const MAX_OFFERS_PER_EAN  = Math.max(2, parseInt(process.env.MAX_OFFERS_PER_EAN || '4', 10));
 
 const CATEGORY_RULES = [
   { cat: 'beaute-bienetre', keywords: ['beauté','soin','crème','sérum','shampoing','cosmétique','parfum','visage','corps','cheveux','peau','maquillage','hydrat','collagène','démêlant','nettoyant','pieds','pied'] },
@@ -207,6 +213,32 @@ async function supabaseUpsert(table, rows) {
       `, params);
     }
   }
+}
+
+async function prepareCatalogueStorage(selectedEans) {
+  if (!selectedEans?.size) throw new Error('Refus de préparer le stockage sans EAN sélectionné');
+  const client = await getNeon();
+  // This GIN index duplicated the full-text index and consumed a large share
+  // of the 1 GB quota. Search still uses search_vector; typo-free substring
+  // fallback remains available without storing another copy of every title.
+  await client.query('DROP INDEX IF EXISTS idx_products_title_trgm');
+  await client.query('CREATE TEMP TABLE sync_selected_eans (ean TEXT PRIMARY KEY) ON COMMIT PRESERVE ROWS');
+  const eans = [...selectedEans];
+  for (let i = 0; i < eans.length; i += 1000) {
+    await client.query(`INSERT INTO sync_selected_eans (ean)
+      SELECT DISTINCT unnest($1::text[]) ON CONFLICT DO NOTHING`, [eans.slice(i, i + 1000)]);
+  }
+  await client.query(`DELETE FROM products WHERE status <> 'enabled' OR ean IS NULL`);
+  const safePrograms = LIFECYCLE.safePrograms();
+  let pruned = 0;
+  if (safePrograms.length) {
+    const result = await client.query(`DELETE FROM products p
+      WHERE p.program_id = ANY($1::text[])
+      AND NOT EXISTS (SELECT 1 FROM sync_selected_eans s WHERE s.ean = p.ean)`, [safePrograms]);
+    pruned = result.rowCount;
+  }
+  await client.query('VACUUM (ANALYZE) products');
+  console.log('🧹 Budget stockage : ' + pruned.toLocaleString('fr-FR') + ' anciennes offres retirées avant ingestion');
 }
 
 async function syncAffilae() {
@@ -1216,6 +1248,15 @@ async function ingestHarvest() {
   }));
   categoryRows.forEach((row,i) => { row.category = decisions[i].category; });
 
+  const budget = budgetCatalogue(categoryRows, MAX_STORED_OFFERS, MAX_OFFERS_PER_EAN);
+  const selectedRows = new Set(budget.rows);
+  PENDING.forEach(batch => { batch.rows = batch.rows.filter(row => selectedRows.has(row)); });
+  totalKept = budget.rows.length;
+  console.log('💾 Budget catalogue : ' + budget.stats.selected_eans.toLocaleString('fr-FR') + ' EAN, '
+    + budget.stats.selected_offers.toLocaleString('fr-FR') + ' offres conservées sur '
+    + budget.stats.candidate_offers.toLocaleString('fr-FR'));
+  await prepareCatalogueStorage(budget.eans);
+
   // ── Insertion ──
   for (const b of PENDING) {
     try {
@@ -1228,7 +1269,7 @@ async function ingestHarvest() {
       }
     } catch (e) { LIFECYCLE.ingestFailed(b.programId); console.log('  \u26a0\ufe0f ' + b.meta.title + ' : ' + e.message); }
   }
-  categoryRows.forEach(function(r){ CAT_STATS[r.category] = (CAT_STATS[r.category] || 0) + 1; });
+  budget.rows.forEach(function(r){ CAT_STATS[r.category] = (CAT_STATS[r.category] || 0) + 1; });
 
   console.log('\n\ud83c\udf89 Ingestion : ' + totalKept.toLocaleString('fr-FR')
               + ' produits comparables sur ' + totalScanned.toLocaleString('fr-FR') + ' recoltes');
@@ -1241,7 +1282,7 @@ async function ingestHarvest() {
       console.log('  ' + e[0].padEnd(20) + String(e[1]).padStart(7) + '  (' + pct + '%)');
     });
   }
-  return { totalKept, matching:s };
+  return { totalKept, matching:{ ...s, storage_budget:budget.stats } };
 }
 
 async function archiveStaleOffers(cutoff) {

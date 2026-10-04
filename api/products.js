@@ -462,7 +462,7 @@ export default async function handler(req, res) {
               LEFT JOIN programs pr ON p.program_id = pr.id,
               to_tsquery('french', $2) query
               WHERE ${searchWhere}
-              AND (p.search_vector @@ query OR p.title % $1 OR COALESCE(p.brand,'') % $1
+              AND (p.search_vector @@ query
                 OR lower(p.brand) = lower($1) OR p.ean = regexp_replace($1, '[^0-9]', '', 'g'))
             )
             SELECT * FROM matched
@@ -473,7 +473,7 @@ export default async function handler(req, res) {
             SELECT COUNT(DISTINCT p.ean) AS total
             FROM products p, to_tsquery('french', $2) query
             WHERE ${MULTI_VENDOR_WHERE}
-            AND (p.search_vector @@ query OR p.title % $1 OR COALESCE(p.brand,'') % $1
+            AND (p.search_vector @@ query
               OR lower(p.brand) = lower($1) OR p.ean = regexp_replace($1, '[^0-9]', '', 'g'))
           `, [q, tsQuery]).then(res => parseInt(res.rows[0]?.total || '0', 10)),
         ]);
