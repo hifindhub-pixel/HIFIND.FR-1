@@ -941,6 +941,9 @@ nav {
 .pd-action-row{display:flex;gap:.55rem;align-items:center;margin-top:.8rem;flex-wrap:wrap}
 .pd-share-btn{border:1px solid var(--border2);background:var(--bg2);color:var(--text);border-radius:10px;padding:.72rem .9rem;font-weight:750;font-size:.76rem;cursor:pointer}
 .pd-share-btn:hover{background:var(--bg3)}
+.pd-alert-btn{border:1px solid rgba(20,184,166,.34);background:var(--jade-bg);color:var(--jade);border-radius:10px;padding:.72rem .9rem;font-weight:800;font-size:.76rem;cursor:pointer}.pd-alert-btn:hover{border-color:var(--jade)}
+.price-alert-status{display:flex;align-items:flex-start;gap:.6rem;margin-top:.7rem;padding:.72rem .82rem;border:1px solid var(--border);background:var(--bg2);border-radius:10px;color:var(--sub);font-size:.69rem;line-height:1.45}.price-alert-status strong{display:block;color:var(--text);margin-bottom:.08rem}.price-alert-status.reached{border-color:rgba(20,184,166,.35);background:var(--jade-bg)}
+.price-alert-modal{width:min(440px,100%);background:var(--bg);border:1px solid var(--border2);border-radius:17px;box-shadow:0 24px 80px rgba(0,0,0,.38);padding:1.2rem}.price-alert-modal h2{font-family:'Barlow Condensed',sans-serif;font-size:1.45rem}.price-alert-modal p{color:var(--sub);font-size:.72rem;line-height:1.55;margin:.35rem 0 1rem}.price-alert-field{display:flex;align-items:center;border:1px solid var(--border2);background:var(--bg2);border-radius:11px;padding:0 .85rem}.price-alert-field input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--text);font-family:var(--num);font-size:1.3rem;font-weight:800;padding:.8rem 0}.price-alert-field span{color:var(--sub);font-weight:800}.price-alert-actions{display:flex;justify-content:flex-end;gap:.5rem;margin-top:1rem}.price-alert-actions button{border-radius:9px;padding:.65rem .85rem;font-size:.72rem;font-weight:800;cursor:pointer}.price-alert-save{border:0;background:var(--coral);color:#fff}.price-alert-cancel,.price-alert-delete{border:1px solid var(--border);background:var(--bg2);color:var(--text)}.price-alert-delete{margin-right:auto;color:var(--coral)}
 .compare-dock{position:fixed;z-index:80;left:50%;bottom:18px;transform:translateX(-50%);width:min(920px,calc(100% - 28px));display:flex;align-items:center;gap:.8rem;padding:.72rem .8rem;background:color-mix(in srgb,var(--bg2) 94%,transparent);border:1px solid var(--border2);border-radius:15px;box-shadow:0 16px 50px rgba(0,0,0,.22);backdrop-filter:blur(18px)}
 .compare-dock-copy{min-width:115px}.compare-dock-copy strong{display:block;font-size:.79rem}.compare-dock-copy span{display:block;color:var(--sub);font-size:.64rem;margin-top:.1rem}
 .compare-dock-items{display:flex;gap:.4rem;flex:1;min-width:0;overflow:auto}.compare-chip{display:flex;align-items:center;gap:.45rem;min-width:0;max-width:165px;padding:.38rem .45rem;background:var(--bg3);border:1px solid var(--border);border-radius:9px}.compare-chip img{width:30px;height:30px;object-fit:contain;background:#fff;border-radius:6px}.compare-chip span{font-size:.65rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.compare-chip button{border:0;background:none;color:var(--sub);cursor:pointer;font-size:1rem}
@@ -1408,6 +1411,10 @@ var favorites = JSON.parse(localStorage.getItem('hf_favs') || '[]');
 var compareProducts = (function(){
   try { var saved = JSON.parse(localStorage.getItem('hf_compare') || '[]'); return Array.isArray(saved) ? saved.slice(0, 4) : []; }
   catch (error) { return []; }
+})();
+var priceAlerts = (function(){
+  try { var saved = JSON.parse(localStorage.getItem('hf_price_alerts') || '{}'); return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {}; }
+  catch (error) { return {}; }
 })();
 var lastQuery = '';
 var lastCat = '';
@@ -2011,7 +2018,63 @@ function closeProductComparison() {
   if (backdrop) backdrop.remove();
   document.body.style.overflow = '';
 }
-document.addEventListener('keydown', function(event){ if (event.key === 'Escape') closeProductComparison(); });
+document.addEventListener('keydown', function(event){ if (event.key === 'Escape') { closeProductComparison(); closePriceAlert(); } });
+
+// ══ LOCAL PRICE ALERTS ══
+function priceAlertKey(product) { return String(product && (product.ean || product.id) || ''); }
+function getPriceAlert(product) { return priceAlerts[priceAlertKey(product)] || null; }
+function isPriceTargetReached(alert, currentPrice) {
+  return Boolean(alert && Number(alert.target) > 0 && Number(currentPrice) > 0 && Number(currentPrice) <= Number(alert.target));
+}
+function priceAlertStatusHTML(product, currentPrice) {
+  var alert = getPriceAlert(product);
+  if (!alert) return '';
+  var reached = isPriceTargetReached(alert, currentPrice);
+  return '<div class="price-alert-status' + (reached ? ' reached' : '') + '"><span>' + (reached ? '✓' : '↓') + '</span><div><strong>' + (reached ? 'Votre objectif de prix est atteint' : 'Prix suivi sur cet appareil') + '</strong>'
+    + (reached ? 'Le meilleur prix actuel de ' + fmtEur(currentPrice) + ' est inférieur ou égal à votre objectif de ' + fmtEur(alert.target) + '.' : 'Objectif : ' + fmtEur(alert.target) + '. HiFind le comparera au meilleur prix lors de vos prochaines visites.')
+    + '</div></div>';
+}
+function closePriceAlert() {
+  var backdrop = document.getElementById('priceAlertBackdrop');
+  if (backdrop) backdrop.remove();
+  if (!document.getElementById('compareBackdrop')) document.body.style.overflow = '';
+}
+function openPriceAlert() {
+  if (!currentProduct) return;
+  var currentPrice = CURRENT_OFFERS.length ? Math.min.apply(null, CURRENT_OFFERS.map(function(offer){ return Number(offer.price); }).filter(function(price){ return price > 0; })) : Number(currentProduct.price);
+  var existing = getPriceAlert(currentProduct);
+  var suggested = existing ? Number(existing.target) : Math.max(.01, Math.floor(currentPrice * .95 * 100) / 100);
+  var backdrop = document.createElement('div');
+  backdrop.id = 'priceAlertBackdrop'; backdrop.className = 'compare-backdrop';
+  backdrop.onclick = function(event){ if (event.target === backdrop) closePriceAlert(); };
+  backdrop.innerHTML = '<section class="price-alert-modal" role="dialog" aria-modal="true" aria-labelledby="priceAlertTitle"><h2 id="priceAlertTitle">Suivre une baisse de prix</h2><p>Définissez votre prix cible. Cette alerte reste enregistrée uniquement dans ce navigateur et sera vérifiée lorsque vous reviendrez sur HiFind.</p><label class="price-alert-field"><input id="priceAlertTarget" type="number" min="0.01" step="0.01" value="' + suggested.toFixed(2) + '" aria-label="Prix cible"><span>€</span></label><div class="price-alert-actions">' + (existing ? '<button class="price-alert-delete" onclick="deletePriceAlert()">Supprimer</button>' : '') + '<button class="price-alert-cancel" onclick="closePriceAlert()">Annuler</button><button class="price-alert-save" onclick="savePriceAlert()">Enregistrer</button></div></section>';
+  document.body.append(backdrop); document.body.style.overflow = 'hidden';
+  var input = document.getElementById('priceAlertTarget'); if (input) { input.focus(); input.select(); }
+}
+function refreshPriceAlertUI() {
+  if (!currentProduct) return;
+  var currentPrice = CURRENT_OFFERS.length ? Math.min.apply(null, CURRENT_OFFERS.map(function(offer){ return Number(offer.price); }).filter(function(price){ return price > 0; })) : Number(currentProduct.price);
+  var button = document.getElementById('priceAlertButton'), status = document.getElementById('priceAlertStatus');
+  var alert = getPriceAlert(currentProduct);
+  if (button) button.textContent = alert ? 'Alerte à ' + fmtEur(alert.target) : 'Créer une alerte prix';
+  if (status) status.innerHTML = priceAlertStatusHTML(currentProduct, currentPrice);
+}
+function savePriceAlert() {
+  if (!currentProduct) return;
+  var input = document.getElementById('priceAlertTarget'), target = Number(input && input.value);
+  if (!Number.isFinite(target) || target <= 0) { if (input) input.focus(); return; }
+  var currentPrice = CURRENT_OFFERS.length ? Math.min.apply(null, CURRENT_OFFERS.map(function(offer){ return Number(offer.price); }).filter(function(price){ return price > 0; })) : Number(currentProduct.price);
+  var key = priceAlertKey(currentProduct);
+  priceAlerts[key] = { id:currentProduct.id, ean:currentProduct.ean || '', title:currentProduct.title || '', target:Math.round(target * 100) / 100, lastPrice:currentPrice, createdAt:new Date().toISOString() };
+  localStorage.setItem('hf_price_alerts', JSON.stringify(priceAlerts));
+  closePriceAlert(); refreshPriceAlertUI();
+}
+function deletePriceAlert() {
+  if (!currentProduct) return;
+  delete priceAlerts[priceAlertKey(currentProduct)];
+  localStorage.setItem('hf_price_alerts', JSON.stringify(priceAlerts));
+  closePriceAlert(); refreshPriceAlertUI();
+}
 
 // ══ DETAIL ══
 var DETAIL_REQUEST = 0;
@@ -2103,7 +2166,8 @@ async function openDetail(id, options) {
           + '<div class="pd-summary-item"><span>Écart de prix</span><strong>' + fmtEur(Math.max(0, hi-lo)) + '</strong></div>'
           + '<div class="pd-summary-item"><span>' + (bestDelivered ? 'Total livré connu' : 'Meilleure offre') + '</span><strong>' + (bestDelivered ? fmtEur(bestDelivered.total) : escHtml(cheapestMerchant)) + '</strong></div>'
         + '</div>'
-        + '<div class="pd-action-row"><button class="pd-share-btn" onclick="shareCurrentProduct()">Partager cette comparaison</button><button class="compare-card-btn' + (typeof compareProducts !== 'undefined' && compareProducts.some(function(item){ return item.id === p.id; }) ? ' on' : '') + '" data-compare-id="' + escHtml(p.id) + '" onclick="toggleCompare(\'' + sid + '\')">' + (typeof compareProducts !== 'undefined' && compareProducts.some(function(item){ return item.id === p.id; }) ? 'Retirer du comparatif' : 'Ajouter au comparatif') + '</button></div>'
+        + '<div class="pd-action-row"><button class="pd-share-btn" onclick="shareCurrentProduct()">Partager cette comparaison</button><button class="compare-card-btn' + (typeof compareProducts !== 'undefined' && compareProducts.some(function(item){ return item.id === p.id; }) ? ' on' : '') + '" data-compare-id="' + escHtml(p.id) + '" onclick="toggleCompare(\'' + sid + '\')">' + (typeof compareProducts !== 'undefined' && compareProducts.some(function(item){ return item.id === p.id; }) ? 'Retirer du comparatif' : 'Ajouter au comparatif') + '</button><button class="pd-alert-btn" id="priceAlertButton" onclick="openPriceAlert()">' + (typeof getPriceAlert === 'function' && getPriceAlert(p) ? 'Alerte à ' + fmtEur(getPriceAlert(p).target) : 'Créer une alerte prix') + '</button></div>'
+        + '<div id="priceAlertStatus">' + (typeof priceAlertStatusHTML === 'function' ? priceAlertStatusHTML(p, lo) : '') + '</div>'
         + '<div class="pd-decision-note"><strong>Conseil HiFind</strong><span>Comparez le prix livré lorsqu’il est disponible. Le prix et le stock définitifs restent ceux affichés chez le marchand.</span></div>'
       + '</div>'
     + '</div>'
