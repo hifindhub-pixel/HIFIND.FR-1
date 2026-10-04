@@ -6,7 +6,7 @@ import { CATEGORY_META } from '../api/categorie.js';
 
 test('clean product URLs render the interactive app with indexable metadata', () => {
   const product={ean:'1234567890123',title:'Téléphone <Premium>',brand:'Marque & Co',description:'Description réelle',
-    image_url:'https://images.example.test/p.jpg',price:699,offers_count:2,
+    image_url:'https://images.example.test/p.jpg',price:699,offers_count:1,
     ean_offers:[{price:699},{price:749}]};
   assert.equal(extractEanFromSlug('telephone-premium-1234567890123'),'1234567890123');
   assert.equal(productPath(product),'/produit/telephone-premium-1234567890123');
@@ -16,6 +16,7 @@ test('clean product URLs render the interactive app with indexable metadata', ()
   assert.match(html,/<meta property="og:type" content="product">/);
   assert.match(html,/"@type":"Product"/);
   assert.match(html,/"lowPrice":699/);
+  assert.match(html,/"offerCount":2/);
   assert.match(html,/Téléphone &lt;Premium&gt;/);
   assert.match(html,/id="page-detail"/);
 });

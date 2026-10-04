@@ -24,21 +24,29 @@ const esc = value => String(value ?? '').replace(/[&<>"']/g, character => ({
 }[character]));
 const jsonLd = value => JSON.stringify(value).replace(/</g, '\\u003c');
 const euros = value => Number(value).toLocaleString('fr-FR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+const truncate = (value, limit) => {
+  const text = String(value || '').replace(/\s+/g, ' ').trim();
+  if (text.length <= limit) return text;
+  const atWord = text.slice(0, limit + 1).replace(/\s+\S*$/, '').trim();
+  return `${atWord || text.slice(0, limit).trim()}…`;
+};
 
 export function renderProductShell(product, shell = APP_SHELL) {
   const offers = (product.ean_offers || []).filter(offer => Number(offer.price) > 0);
   const prices = offers.map(offer => Number(offer.price)).sort((a,b) => a-b);
   const low = prices[0] || Number(product.price) || 0;
   const high = prices.at(-1) || low;
-  const count = Number(product.offers_count) || offers.length;
+  // ean_offers is the live, deduplicated list rendered by the interactive
+  // page. Prefer it over a potentially stale aggregate stored on the product.
+  const count = offers.length || Number(product.offers_count) || 1;
   const canonical = SITE_URL + productPath(product);
-  const shortTitle = String(product.title || 'Produit').replace(/\s+/g, ' ').trim().slice(0, 92);
-  const title = `${shortTitle} : comparez ${count} prix | HiFind`;
-  const description = `Comparez ${count} offres pour ${shortTitle}. Meilleur prix relevé : ${euros(low)} €. Historique et vendeurs disponibles sur HiFind.`.slice(0, 158);
+  const fullTitle = String(product.title || 'Produit').replace(/\s+/g, ' ').trim();
+  const title = `${truncate(fullTitle, 48)} : comparez ${count} prix | HiFind`;
+  const description = truncate(`Comparez ${count} offres pour ${fullTitle}. Meilleur prix relevé : ${euros(low)} €. Historique et vendeurs disponibles sur HiFind.`, 158);
   const image = product.image_url ? `${SITE_URL}/api/img?url=${encodeURIComponent(product.image_url)}` : '';
   const structured = {
     '@context':'https://schema.org', '@type':'Product', name:product.title,
-    description:String(product.description || description).slice(0, 500), url:canonical,
+    description:truncate(product.description || description, 500), url:canonical,
     ...(image ? { image:[image] } : {}),
     ...(product.brand ? { brand:{ '@type':'Brand', name:product.brand } } : {}),
     ...(String(product.ean || '').length === 13 ? { gtin13:String(product.ean) } : { sku:String(product.ean) }),
