@@ -1,6 +1,9 @@
 name: Catalogue quality monitoring
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ['Sync Products']
+    types: [completed]
   schedule:
     - cron: '15 8 * * *'
   push:
@@ -16,6 +19,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   observe:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -28,3 +32,11 @@ jobs:
         env:
           NEON_URL: ${{ secrets.NEON_URL }}
         run: node scripts/catalogue-health.js
+      - name: Upload catalogue health report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hifind-catalogue-health-${{ github.run_number }}
+          path: health.json
+          if-no-files-found: ignore
+          retention-days: 30

@@ -19,6 +19,10 @@ function markdown(report) {
   } else {
     lines.push('Aucune dégradation significative détectée.');
   }
+  if (report.categories?.length) {
+    lines.push('', '### Couverture par catégorie', '', '| Catégorie | Produits comparables | Offres |', '|---|---:|---:|');
+    report.categories.forEach(item => lines.push(`| ${item.category || 'autres'} | ${Number(item.products).toLocaleString('fr-FR')} | ${Number(item.offers).toLocaleString('fr-FR')} |`));
+  }
   return lines.join('\n') + '\n';
 }
 
@@ -50,6 +54,13 @@ try {
     WHERE p.status = 'enabled'
     GROUP BY p.program_id ORDER BY offers DESC`);
 
+  const categories = await client.query(`SELECT COALESCE(p.category, 'autres') AS category,
+    COUNT(DISTINCT p.ean)::int AS products, COUNT(*)::int AS offers
+    FROM products p
+    WHERE p.status='enabled' AND p.ean IS NOT NULL
+      AND EXISTS (SELECT 1 FROM products p2 WHERE p2.ean=p.ean AND p2.status='enabled' AND p2.program_id<>p.program_id)
+    GROUP BY COALESCE(p.category, 'autres') ORDER BY products DESC`);
+
   const quarantineTable = await client.query(`SELECT to_regclass('public.quarantined_eans') IS NOT NULL AS present`);
   let quarantines = { unresolved_quarantines: 0, new_quarantines_24h: 0 };
   if (quarantineTable.rows[0]?.present) {
@@ -76,16 +87,18 @@ try {
     baseline_observed_at: baseline?.observed_at || null,
     ...size.rows[0],
     totals,
+    categories:categories.rows,
     quality,
     merchants: health.rows,
   };
   await client.query(`INSERT INTO catalogue_health_snapshots (day, observed_at, snapshot)
     VALUES (CURRENT_DATE, $1, $2::jsonb)
     ON CONFLICT (day) DO UPDATE SET observed_at = EXCLUDED.observed_at, snapshot = EXCLUDED.snapshot`,
-    [observedAt, JSON.stringify({ observed_at:observedAt, totals, quality, merchants:health.rows })]);
+    [observedAt, JSON.stringify({ observed_at:observedAt, totals, categories:categories.rows, quality, merchants:health.rows })]);
   await client.query(`DELETE FROM catalogue_health_snapshots WHERE day < CURRENT_DATE - INTERVAL '90 days'`);
   const summary = markdown(report);
   console.log(summary);
+  await writeFile('health.json', JSON.stringify(report, null, 2));
   if (process.env.GITHUB_STEP_SUMMARY) await writeFile(process.env.GITHUB_STEP_SUMMARY, summary, { flag:'a' });
   if (quality.status === 'critical') console.warn('Des alertes critiques sont présentes dans health.json ; aucune offre n’a été modifiée automatiquement.');
   if (quality.status === 'critical' && process.env.CATALOGUE_HEALTH_FAIL_ON_CRITICAL === '1') process.exitCode = 2;
