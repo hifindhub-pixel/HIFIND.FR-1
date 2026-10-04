@@ -21,8 +21,8 @@ export default async function handler(req, res) {
       INSERT INTO product_engagement_daily (ean, day, detail_views, offer_clicks)
       VALUES ($1, CURRENT_DATE, $2, $3)
       ON CONFLICT (ean, day) DO UPDATE SET
-        detail_views = product_engagement_daily.detail_views + EXCLUDED.detail_views,
-        offer_clicks = product_engagement_daily.offer_clicks + EXCLUDED.offer_clicks,
+        detail_views = LEAST(10000, product_engagement_daily.detail_views + EXCLUDED.detail_views),
+        offer_clicks = LEAST(10000, product_engagement_daily.offer_clicks + EXCLUDED.offer_clicks),
         updated_at = NOW()
     `, [ean, detailViews, offerClicks]);
     return res.status(202).json({ ok: true });

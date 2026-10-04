@@ -1452,11 +1452,11 @@ async function apiFetch(params) {
 
 function trackEngagement(ean, eventName) {
   if (!ean) return;
-  if (eventName === 'detail_view') {
-    var day = new Date().toISOString().slice(0, 10);
-    var key = 'hf_view_' + day + '_' + ean;
-    try { if (localStorage.getItem(key)) return; localStorage.setItem(key, '1'); } catch(e) {}
-  }
+  var bucket = eventName === 'detail_view'
+    ? new Date().toISOString().slice(0, 10)
+    : Math.floor(Date.now() / 600000);
+  var key = 'hf_' + eventName + '_' + bucket + '_' + ean;
+  try { if (localStorage.getItem(key)) return; localStorage.setItem(key, '1'); } catch(e) {}
   fetch('/api/engagement', {
     method:'POST', headers:{'Content-Type':'application/json'}, keepalive:true,
     body:JSON.stringify({ ean:String(ean), event:eventName })

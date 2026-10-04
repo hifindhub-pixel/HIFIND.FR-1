@@ -1,5 +1,6 @@
 import { getPool, groupWithOffers, slugifyMerchant } from './products.js';
 import { SITE_URL, CATEGORY_META, esc, jsonLd, productCard, slugify } from './categorie.js';
+import { ENGAGEMENT_DECAY_SQL, engagementTrendSql } from '../scripts/lib/trend-ranking.js';
 
 const MULTI_VENDOR_WHERE = `
   p.ean IS NOT NULL AND p.status = 'enabled'
@@ -87,14 +88,9 @@ export default async function handler(req, res) {
     if (!matched.length) return res.status(404).send('Marchand introuvable');
     const merchant = matched[0].title;
     const programIds = matched.map(row => row.id);
-    const candidates = await client.query(`WITH engagement AS (
-        SELECT ean, SUM(detail_views)::int AS detail_views, SUM(offer_clicks)::int AS offer_clicks
-        FROM product_engagement_daily
-        WHERE day >= CURRENT_DATE - INTERVAL '30 days'
-        GROUP BY ean
-      ), distinct_products AS (
+    const candidates = await client.query(`WITH engagement AS (${ENGAGEMENT_DECAY_SQL}), distinct_products AS (
         SELECT DISTINCT ON (p.ean) p.*, pr.title AS program_title
-          , (COALESCE(e.detail_views,0) * 2 + COALESCE(e.offer_clicks,0) * 6) AS trend_score
+          , ${engagementTrendSql('e')} AS trend_score
         FROM products p LEFT JOIN programs pr ON p.program_id=pr.id
         LEFT JOIN engagement e ON e.ean=p.ean
         WHERE ${MULTI_VENDOR_WHERE} AND p.program_id=ANY($1)

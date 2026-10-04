@@ -7,6 +7,7 @@ import { filterByCondition } from '../scripts/lib/condition.js';
 import { detectContradictions } from '../scripts/lib/quarantine.js';
 import { computePriceInsights } from '../scripts/lib/price-insights.js';
 import { rankSearchResults } from '../scripts/lib/search-ranking.js';
+import { ENGAGEMENT_DECAY_SQL, engagementTrendSql } from '../scripts/lib/trend-ranking.js';
 
 const AFFILAE_PROFILE_ID = '69c1bc52b682a8edf3205672';
 
@@ -148,15 +149,11 @@ export async function rankedCandidates(client, { category = '', limit = 90, offs
     )`;
 
   try {
-    return await client.query(`${baseCte}, engagement AS (
-        SELECT ean, SUM(detail_views)::int AS detail_views, SUM(offer_clicks)::int AS offer_clicks
-        FROM product_engagement_daily WHERE day >= CURRENT_DATE - INTERVAL '30 days' GROUP BY ean
-      )
+    return await client.query(`${baseCte}, engagement AS (${ENGAGEMENT_DECAY_SQL})
       SELECT candidates.*,
-        COALESCE(engagement.detail_views,0) AS trend_views,
-        COALESCE(engagement.offer_clicks,0) AS trend_clicks,
-        (candidates.market_interest + COALESCE(engagement.detail_views,0) * 2
-          + COALESCE(engagement.offer_clicks,0) * 6) AS trend_score,
+        COALESCE(engagement.trend_views,0) AS trend_views,
+        COALESCE(engagement.trend_clicks,0) AS trend_clicks,
+        (candidates.market_interest + ${engagementTrendSql('engagement')}) AS trend_score,
         COUNT(*) OVER() AS total_count
       FROM candidates LEFT JOIN engagement USING (ean)
       ORDER BY trend_score DESC, candidates.updated_at DESC NULLS LAST, candidates.ean
@@ -349,12 +346,8 @@ async function loadSearchEngagement(client, eans) {
   if (!eans.length) return new Map();
   try {
     const result = await client.query(`
-      SELECT ean,
-        SUM(detail_views) FILTER (WHERE day >= CURRENT_DATE - INTERVAL '30 days')::int AS detail_views,
-        SUM(offer_clicks) FILTER (WHERE day >= CURRENT_DATE - INTERVAL '30 days')::int AS offer_clicks
-      FROM product_engagement_daily
-      WHERE ean = ANY($1) AND day >= CURRENT_DATE - INTERVAL '30 days'
-      GROUP BY ean
+      SELECT ean, trend_views AS detail_views, trend_clicks AS offer_clicks
+      FROM (${ENGAGEMENT_DECAY_SQL}) recent WHERE ean = ANY($1)
     `, [eans]);
     return new Map(result.rows.map(row => [String(row.ean), row]));
   } catch (error) {
