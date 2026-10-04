@@ -1,0 +1,31 @@
+name: Public journey smoke test
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['Sync Products']
+    types: [completed]
+  schedule:
+    - cron: '45 8 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Verify public customer journey and real offers
+        env:
+          SITE_URL: https://hifind.fr
+          SMOKE_TIMEOUT_MS: '20000'
+        run: node scripts/public-smoke.js
