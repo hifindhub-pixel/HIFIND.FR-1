@@ -1,6 +1,9 @@
 name: Public journey smoke test
 
 on:
+  push:
+    branches: [main]
+    paths: ['scripts/public-smoke.js', '.github/workflows/public-smoke.yml']
   workflow_dispatch:
   workflow_run:
     workflows: ['Sync Products']

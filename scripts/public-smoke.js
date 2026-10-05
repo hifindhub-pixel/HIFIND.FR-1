@@ -20,6 +20,27 @@ async function request(path, { json = false, contains = '' } = {}) {
 
 try {
   await request('/', { contains:'HiFind' });
+  for (const [path, marker] of [
+    ['/marques', 'id="brandSearch"'],
+    ['/tendances', 'Les tendances du moment'],
+    ['/baisses-de-prix?periode=30', 'Moyenne 30 j'],
+    ['/baisses-de-prix?periode=90', 'Moyenne 90 j'],
+  ]) {
+    const html = await request(path);
+    if (!html.includes(marker) && !(path.startsWith('/baisses-de-prix') && html.includes('Aucune baisse vérifiable'))) {
+      throw new Error(path + ' : contenu attendu absent');
+    }
+    if (!html.includes('rel="canonical"') || !html.includes('application/ld+json')) {
+      throw new Error(path + ' : métadonnées SEO absentes');
+    }
+    for (const match of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
+      JSON.parse(match[1]);
+    }
+    if (path === '/marques') {
+      const firstBrand = html.match(/href="(\/marque\/[a-z0-9-]+)"/);
+      if (firstBrand) await request(firstBrand[1], { contains:'Marque comparée' });
+    }
+  }
   const trending = await request('/api/products?action=trending&limit=12', { json:true });
   const seed = validateTrending(trending);
   const detailPayload = await request(`/api/products?action=product&ean=${encodeURIComponent(seed.ean)}`, { json:true });
