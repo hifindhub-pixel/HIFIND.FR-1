@@ -26,19 +26,19 @@
   "rewrites": [
     {
       "source": "/tendances",
-      "destination": "/api/tendances"
+      "destination": "/api/discovery?pageType=tendances"
     },
     {
       "source": "/baisses-de-prix",
-      "destination": "/api/baisses-prix"
+      "destination": "/api/discovery?pageType=baisses-prix"
     },
     {
       "source": "/marques",
-      "destination": "/api/marques"
+      "destination": "/api/discovery?pageType=marques"
     },
     {
       "source": "/marque/:slug",
-      "destination": "/api/marque?slug=:slug"
+      "destination": "/api/discovery?pageType=marque&slug=:slug"
     },
     {
       "source": "/marchands",

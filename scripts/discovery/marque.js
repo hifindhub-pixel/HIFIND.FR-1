@@ -1,6 +1,6 @@
-import { getPool, groupWithOffers } from './products.js';
-import { SITE_URL, esc, jsonLd, productCard, slugify } from './categorie.js';
-import { ENGAGEMENT_DECAY_SQL, engagementTrendSql } from '../scripts/lib/trend-ranking.js';
+import { getPool, groupWithOffers } from '../../api/products.js';
+import { SITE_URL, esc, jsonLd, productCard, slugify } from '../../api/categorie.js';
+import { ENGAGEMENT_DECAY_SQL, engagementTrendSql } from '../lib/trend-ranking.js';
 
 export function brandPageHtml({ brand, products, total, page = 1, pages = 1 }) {
   const path = `/marque/${slugify(brand)}`;

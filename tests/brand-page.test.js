@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { brandPageHtml } from '../api/marque.js';
+import { brandPageHtml } from '../scripts/discovery/marque.js';
 
 const product={ean:'1234567890123',title:'Casque audio',brand:'ACME',price:99,image_url:'https://example.invalid/x.jpg',product_type_label:'Casques',offers_count:2,ean_offers:[{price:99,program_title:'A'},{price:119,program_title:'B'}]};
 

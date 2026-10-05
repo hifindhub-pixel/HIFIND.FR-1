@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { brandDirectoryHtml } from '../api/marques.js';
+import { brandDirectoryHtml } from '../scripts/discovery/marques.js';
 
 test('brand directory is indexable, searchable and escapes catalogue data',()=>{
   const html=brandDirectoryHtml([{brand:'L’Oréal',products:42,merchants:5},{brand:'A < B',products:3,merchants:2}]);

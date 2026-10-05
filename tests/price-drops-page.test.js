@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { priceDropsHtml } from '../api/baisses-prix.js';
+import { priceDropsHtml } from '../scripts/discovery/baisses-prix.js';
 
 test('price drops page explains its strict reference and shows verified reductions',()=>{
   const product={ean:'1234567890123',title:'Produit <test>',brand:'ACME',price:80,current_price:80,period_average:100,coverage_days:26,offers_count:2,ean_offers:[{price:80},{price:90}]};
@@ -15,7 +15,7 @@ test('price drops page explains its strict reference and shows verified reductio
 });
 
 test('a discarded cheap offer cannot manufacture a price drop', async()=>{
-  const {verifiedDrops}=await import('../api/baisses-prix.js');
+  const {verifiedDrops}=await import('../scripts/discovery/baisses-prix.js');
   const stats=new Map([['x',{period_average:100,coverage_days:30}]]);
   assert.equal(verifiedDrops([{ean:'x',ean_offers:[{price:110},{price:120}]}],stats).length,0);
   assert.equal(verifiedDrops([{ean:'x',ean_offers:[{price:80},{price:120}]}],stats)[0].current_price,80);

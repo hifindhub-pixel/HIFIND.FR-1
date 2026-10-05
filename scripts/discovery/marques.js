@@ -1,5 +1,5 @@
-import { getPool } from './products.js';
-import { SITE_URL, esc, jsonLd, slugify } from './categorie.js';
+import { getPool } from '../../api/products.js';
+import { SITE_URL, esc, jsonLd, slugify } from '../../api/categorie.js';
 
 export function brandDirectoryHtml(brands) {
   const title = 'Marques comparées sur HiFind';

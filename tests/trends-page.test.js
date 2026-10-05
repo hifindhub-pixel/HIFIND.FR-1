@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { trendsHtml } from '../api/tendances.js';
+import { trendsHtml } from '../scripts/discovery/tendances.js';
 
 test('trends page is indexable, honest and based on comparable offers',()=>{
   const product={ean:'1234567890123',title:'Produit <tendance>',brand:'ACME',price:80,image_url:'https://example.test/p.jpg',ean_offers:[{price:80},{price:100}]};

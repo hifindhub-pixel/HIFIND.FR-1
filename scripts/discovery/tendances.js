@@ -1,5 +1,5 @@
-import { getPool, groupWithOffers, rankedCandidates } from './products.js';
-import { SITE_URL, esc, jsonLd, slugify } from './categorie.js';
+import { getPool, groupWithOffers, rankedCandidates } from '../../api/products.js';
+import { SITE_URL, esc, jsonLd, slugify } from '../../api/categorie.js';
 
 export function trendsHtml({ products, page = 1, pages = 1, total = 0 }) {
   const path='/tendances';

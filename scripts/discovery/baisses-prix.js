@@ -1,5 +1,5 @@
-import { getPool, groupWithOffers } from './products.js';
-import { SITE_URL, esc, jsonLd, slugify } from './categorie.js';
+import { getPool, groupWithOffers } from '../../api/products.js';
+import { SITE_URL, esc, jsonLd, slugify } from '../../api/categorie.js';
 
 export function priceDropsHtml({ products, period = 30, page = 1, pages = 1, total = 0 }) {
   const path = '/baisses-de-prix';
