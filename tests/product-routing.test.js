@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { extractEanFromSlug, productPath, renderProductShell } from '../api/produit.js';
+import { brandPath, extractEanFromSlug, productPath, renderProductShell } from '../api/produit.js';
 import engagementHandler from '../api/engagement.js';
 import { CATEGORY_META } from '../api/categorie.js';
 
@@ -13,7 +13,8 @@ test('clean product URLs render the interactive app with indexable metadata', ()
     ]};
   assert.equal(extractEanFromSlug('telephone-premium-1234567890123'),'1234567890123');
   assert.equal(productPath(product),'/produit/telephone-premium-1234567890123');
-  const shell='<!doctype html><html><head><title>HiFind</title><meta name="description" content="Accueil"></head><body><div id="page-detail"></div></body></html>';
+  assert.equal(brandPath(product.brand),'/marque/marque-co');
+  const shell='<!doctype html><html><head><title>HiFind</title><meta name="description" content="Accueil"></head><body><div id="page-detail"><div id="detailContent"></div></div></body></html>';
   const html=renderProductShell(product,shell);
   assert.match(html,/<link rel="canonical" href="https:\/\/hifind.fr\/produit\/telephone-premium-1234567890123">/);
   assert.match(html,/<meta property="og:type" content="product">/);
@@ -28,6 +29,13 @@ test('clean product URLs render the interactive app with indexable metadata', ()
   assert.doesNotMatch(html,/Marchand B[^<]+shippingDetails/);
   assert.match(html,/Téléphone &lt;Premium&gt;/);
   assert.match(html,/id="page-detail"/);
+  assert.match(html,/data-server-product="true"/);
+  assert.match(html,/<h1 class="pd-title">Téléphone &lt;Premium&gt;<\/h1>/);
+  assert.match(html,/<a class="pd-brand" href="\/marque\/marque-co">Marque &amp; Co<\/a>/);
+  assert.match(html,/"name":"Marque & Co","item":"https:\/\/hifind.fr\/marque\/marque-co"/);
+  assert.match(html,/Marchand A/);
+  assert.match(html,/rel="sponsored nofollow"/);
+  assert.doesNotMatch(html,/Livraison :[^<]*Marchand B/);
 });
 
 test('innovations exists as a real cross-category collection', () => {

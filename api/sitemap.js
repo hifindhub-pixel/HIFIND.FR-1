@@ -106,6 +106,18 @@ async function fetchMerchants(client) {
   return result.rows;
 }
 
+async function fetchBrands(client) {
+  const result = await client.query(`
+    SELECT p.brand, COUNT(DISTINCT p.ean)::int AS products
+    FROM products p
+    WHERE ${VALID_PRODUCT_WHERE} AND p.brand IS NOT NULL AND length(trim(p.brand)) BETWEEN 2 AND 80
+      AND EXISTS (SELECT 1 FROM products p2 WHERE p2.ean=p.ean AND p2.status='enabled' AND p2.program_id<>p.program_id)
+    GROUP BY p.brand HAVING COUNT(DISTINCT p.ean)>=2
+    ORDER BY products DESC LIMIT 1000
+  `);
+  return result.rows;
+}
+
 export default async function handler(req, res) {
   const requestedPart = req.query.part == null ? null : Number.parseInt(req.query.part, 10);
   if (requestedPart != null && (!Number.isInteger(requestedPart) || requestedPart < 1)) {
@@ -123,16 +135,21 @@ export default async function handler(req, res) {
       return res.status(200).send(renderSitemapIndex(partCount));
     }
 
-    const [products, merchants] = await Promise.all([
+    const [products, merchants, brands] = await Promise.all([
       fetchProducts(client, requestedPart),
       requestedPart === 1 ? fetchMerchants(client) : Promise.resolve([]),
+      requestedPart === 1 ? fetchBrands(client) : Promise.resolve([]),
     ]);
     if (requestedPart > 1 && products.length === 0) return res.status(404).send('Sitemap introuvable');
 
     const urls = [];
     if (requestedPart === 1) {
       urls.push({ loc:`${SITE_URL}/`, changefreq:'daily', priority:'1.0' });
+      urls.push({ loc:`${SITE_URL}/tendances`, changefreq:'daily', priority:'0.9' });
       urls.push({ loc:`${SITE_URL}/marchands`, changefreq:'daily', priority:'0.8' });
+      urls.push({ loc:`${SITE_URL}/marques`, changefreq:'daily', priority:'0.8' });
+      urls.push({ loc:`${SITE_URL}/baisses-de-prix?periode=30`, changefreq:'daily', priority:'0.8' });
+      urls.push({ loc:`${SITE_URL}/baisses-de-prix?periode=90`, changefreq:'daily', priority:'0.8' });
       CATEGORIES.forEach(category => urls.push({ loc:`${SITE_URL}/categorie/${category}`, changefreq:'daily', priority:'0.8' }));
       const seen = new Set();
       merchants.forEach(merchant => {
@@ -140,6 +157,13 @@ export default async function handler(req, res) {
         if (!slug || seen.has(slug)) return;
         seen.add(slug);
         urls.push({ loc:`${SITE_URL}/marchand/${slug}`, changefreq:'daily', priority:'0.7' });
+      });
+      const seenBrands = new Set();
+      brands.forEach(brand => {
+        const brandSlug = slugify(brand.brand);
+        if (!brandSlug || seenBrands.has(brandSlug)) return;
+        seenBrands.add(brandSlug);
+        urls.push({ loc:`${SITE_URL}/marque/${brandSlug}`, changefreq:'daily', priority:'0.7' });
       });
     }
     products.forEach(product => urls.push({

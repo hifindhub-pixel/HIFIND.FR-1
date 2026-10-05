@@ -25,6 +25,22 @@
   ],
   "rewrites": [
     {
+      "source": "/tendances",
+      "destination": "/api/tendances"
+    },
+    {
+      "source": "/baisses-de-prix",
+      "destination": "/api/baisses-prix"
+    },
+    {
+      "source": "/marques",
+      "destination": "/api/marques"
+    },
+    {
+      "source": "/marque/:slug",
+      "destination": "/api/marque?slug=:slug"
+    },
+    {
       "source": "/marchands",
       "destination": "/api/marchands"
     },

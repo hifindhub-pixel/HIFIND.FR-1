@@ -15,6 +15,8 @@ export function slugifyProduct(value) {
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
 }
 
+export const brandPath = value => `/marque/${slugifyProduct(value)}`;
+
 export function productPath(product) {
   return `/produit/${slugifyProduct(product.title) || 'produit'}-${product.ean}`;
 }
@@ -37,6 +39,21 @@ const truncate = (value, limit) => {
   const atWord = text.slice(0, limit + 1).replace(/\s+\S*$/, '').trim();
   return `${atWord || text.slice(0, limit).trim()}…`;
 };
+
+export function renderProductFallback(product) {
+  const offers = (product.ean_offers || []).filter(offer => Number(offer.price) > 0)
+    .sort((a,b) => Number(a.price) - Number(b.price));
+  const low = offers.length ? Number(offers[0].price) : Number(product.price) || 0;
+  const image = product.image_url ? `/api/img?url=${encodeURIComponent(product.image_url)}` : '';
+  const category = CATEGORY_LABELS[product.category] || 'Produit';
+  const rows = offers.slice(0, 10).map((offer, index) => {
+    const merchant = offer.program_title || offer.programs?.title || 'Marchand';
+    const shipping = offer.shipping_cost == null || offer.shipping_cost === '' ? null : Number(offer.shipping_cost);
+    const target = offer.tracking_url || offer.url || '#';
+    return `<div class="pd-offer-row${index === 0 ? ' best' : ''}"><div class="pd-offer-merchant"><div><div class="pd-offer-name">${esc(merchant)}</div>${index === 0 ? '<span class="pd-offer-tag">Meilleur prix</span>' : ''}</div></div><div><div class="pd-offer-price">${euros(offer.price)} €</div>${Number.isFinite(shipping) && shipping >= 0 ? `<div class="pd-offer-shipping">Livraison : ${shipping === 0 ? 'gratuite' : `${euros(shipping)} €`}</div>` : ''}</div><a class="pd-offer-btn ${index === 0 ? 'primary' : 'secondary'}" href="${esc(target)}" rel="sponsored nofollow">Voir l’offre</a></div>`;
+  }).join('');
+  return `<article data-server-product="true"><div class="pd-layout"><div class="pd-media"><div class="pd-img-box">${image ? `<img src="${esc(image)}" alt="${esc(product.title)}" width="420" height="420">` : ''}</div><div class="pd-media-meta"><strong>${offers.length}</strong> marchand${offers.length > 1 ? 's' : ''} comparé${offers.length > 1 ? 's' : ''}</div></div><div class="pd-info"><div class="pd-kicker"><span class="pd-live-dot"></span>Offres disponibles sur HiFind</div>${product.brand ? `<a class="pd-brand" href="${brandPath(product.brand)}">${esc(product.brand)}</a>` : ''}<h1 class="pd-title">${esc(product.title)}</h1>${product.description ? `<p class="pd-specs">${esc(truncate(product.description, 260))}</p>` : ''}<div class="pd-hero"><div><div class="pd-hero-label">Meilleur prix affiché</div><div class="pd-hero-value">${euros(low)} €</div><div class="pd-hero-sub">${esc(category)} · prix hors livraison lorsque celle-ci n’est pas renseignée</div></div><a href="#pdOffers" class="pd-hero-cta">Voir les offres →</a></div></div></div><section class="pd-offers" id="pdOffers"><div class="pd-offers-head"><div><h2 class="pd-offers-title">Comparer les prix<span>${offers.length} offre${offers.length > 1 ? 's' : ''}</span></h2><div class="pd-section-sub">Le prix définitif et la disponibilité sont confirmés sur le site du marchand.</div></div></div><div class="pd-offers-list">${rows}</div></section></article>`;
+}
 
 export function renderProductShell(product, shell = APP_SHELL) {
   const offers = (product.ean_offers || []).filter(offer => Number(offer.price) > 0);
@@ -84,11 +101,15 @@ export function renderProductShell(product, shell = APP_SHELL) {
   const categoryCrumb = category && product.category && product.category !== 'autres'
     ? { '@type':'ListItem', position:2, name:category, item:`${SITE_URL}/categorie/${product.category}` }
     : null;
+  const brandCrumb = product.brand
+    ? { '@type':'ListItem', position:categoryCrumb ? 3 : 2, name:product.brand, item:SITE_URL + brandPath(product.brand) }
+    : null;
   const breadcrumb = {
     '@context':'https://schema.org', '@type':'BreadcrumbList', itemListElement:[
       { '@type':'ListItem', position:1, name:'Accueil', item:SITE_URL + '/' },
       ...(categoryCrumb ? [categoryCrumb] : []),
-      { '@type':'ListItem', position:categoryCrumb ? 3 : 2, name:product.title, item:canonical },
+      ...(brandCrumb ? [brandCrumb] : []),
+      { '@type':'ListItem', position:2 + Number(Boolean(categoryCrumb)) + Number(Boolean(brandCrumb)), name:product.title, item:canonical },
     ]
   };
   const social = `
@@ -102,6 +123,9 @@ ${image ? `<meta property="og:image" content="${esc(image)}"><meta name="twitter
   return shell
     .replace(/<title>[\s\S]*?<\/title>/i, `<title>${esc(title)}</title>`)
     .replace(/<meta name="description" content="[^"]*">/i, `<meta name="description" content="${esc(description)}">`)
+    .replace('<div id="page-home" class="page active">', '<div id="page-home" class="page">')
+    .replace('<div id="page-detail" class="page">', '<div id="page-detail" class="page active">')
+    .replace('<div id="detailContent"></div>', `<div id="detailContent">${renderProductFallback(product)}</div>`)
     .replace('</head>', social + '\n</head>');
 }
 

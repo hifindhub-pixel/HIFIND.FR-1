@@ -865,7 +865,8 @@ nav {
 .pd-fav-btn.on{color:var(--coral)}
 .pd-media-meta{display:flex;justify-content:center;gap:.35rem;margin-top:.8rem;font-size:.76rem;color:var(--sub)}
 .pd-media-meta strong{color:var(--text);font-family:var(--num);font-weight:800}
-.pd-brand{font-family:var(--num);font-size:.72rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--coral);margin-bottom:.45rem}
+.pd-brand{display:inline-block;font-family:var(--num);font-size:.72rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--coral);margin-bottom:.45rem;text-decoration:none}
+.pd-brand:hover{text-decoration:underline;text-underline-offset:3px}
 .pd-title{font-family:'Barlow',sans-serif;font-size:clamp(1.8rem,3vw,2.45rem);font-weight:800;line-height:1.12;margin-bottom:.7rem;color:var(--text);letter-spacing:-.025em}
 .pd-specs{font-size:.9rem;color:var(--sub);line-height:1.6;margin-bottom:1.15rem;max-width:62ch}
 .pd-trust-row{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.1rem}
@@ -1374,7 +1375,10 @@ nav {
     <div class="footer-col">
       <h4>HiFind</h4>
       <a onclick="showPage('home')">Accueil</a>
+      <a href="/tendances">Tendances</a>
+      <a href="/marques">Marques</a>
       <a href="/marchands">Marchands</a>
+      <a href="/baisses-de-prix">Baisses de prix</a>
       <a href="https://hiflight.fr" target="_blank">HiFlight <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5a2.1 2.1 0 0 0-3-3L13 8 4.8 6.2a.5.5 0 0 0-.5.8l3.2 3.2-1.7 1.7-1.6-.4a.5.5 0 0 0-.5.8L6 15l2.7 2.3a.5.5 0 0 0 .8-.5l-.4-1.6 1.7-1.7 3.2 3.2a.5.5 0 0 0 .8-.5Z"/></svg></a>
     </div>
     <div class="footer-col">
@@ -2156,7 +2160,7 @@ async function openDetail(id, options) {
       + '</div>'
       + '<div class="pd-info">'
         + '<div class="pd-kicker"><span class="pd-live-dot"></span>Comparaison actualisée à partir des offres disponibles</div>'
-        + (p.brand ? '<div class="pd-brand">' + escHtml(p.brand) + '</div>' : '')
+        + (p.brand ? '<a class="pd-brand" href="' + escHtml(brandUrl(p.brand)) + '">' + escHtml(p.brand) + '</a>' : '')
         + '<h1 class="pd-title">' + escHtml(p.title) + '</h1>'
         + (p.description ? '<p class="pd-specs">' + escHtml(p.description.slice(0, 260)) + '</p>' : '')
         + '<div class="pd-trust-row">'
@@ -2810,6 +2814,12 @@ function productUrl(p) {
   var slug = String(p.title || 'produit').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80) || 'produit';
   return '/produit/' + slug + '-' + encodeURIComponent(p.ean);
+}
+
+function brandUrl(brand) {
+  var slug = String(brand || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);
+  return slug ? '/marque/' + slug : '/marques';
 }
 
 // Intercepte un clic GAUCHE simple pour garder la transition SPA rapide
