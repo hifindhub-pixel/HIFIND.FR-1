@@ -148,7 +148,7 @@ export async function rankedCandidates(client, { category = '', limit = 90, offs
       SELECT DISTINCT ON (p.ean) p.id, p.ean, p.title, p.updated_at
       FROM products p
       WHERE ${MULTI_VENDOR_WHERE} AND ${filter}
-      ORDER BY p.ean, p.price ASC
+      ORDER BY p.ean, p.price ASC, p.id ASC
     ), accessory_eans AS MATERIALIZED (${ACCESSORY_EANS_SQL}), candidates AS (
       SELECT p.*, ${MARKET_INTEREST_SQL} AS market_interest
       FROM representatives p LEFT JOIN accessory_eans accessory ON accessory.ean = p.ean
