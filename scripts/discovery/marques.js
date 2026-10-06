@@ -1,4 +1,5 @@
 import { getPool } from '../../api/products.js';
+import { BRAND_DIRECTORY_SQL } from '../lib/brand-directory.js';
 import { SITE_URL, esc, jsonLd, slugify } from '../../api/categorie.js';
 
 export function brandDirectoryHtml(brands) {
@@ -19,23 +20,25 @@ export function brandDirectoryHtml(brands) {
 }
 
 export default async function handler(req, res) {
-  const client = await getPool().connect();
+  const started = performance.now();
+  let client;
   try {
-    const result = await client.query(`SELECT p.brand, COUNT(DISTINCT p.ean)::int AS products,
-      COUNT(DISTINCT COALESCE(ma.merchant_id::text,p.program_id))::int AS merchants
-      FROM products p LEFT JOIN merchant_aliases ma ON ma.raw_program_id=p.program_id
-      WHERE p.status='enabled' AND p.ean IS NOT NULL AND p.price>0 AND p.brand IS NOT NULL
-        AND length(trim(p.brand)) BETWEEN 2 AND 80 AND p.program_id NOT LIKE '%darty%'
-        AND EXISTS (SELECT 1 FROM products p2 LEFT JOIN merchant_aliases ma2 ON ma2.raw_program_id=p2.program_id
-          WHERE p2.ean=p.ean AND p2.status='enabled'
-          AND COALESCE(ma2.merchant_id::text,p2.program_id)<>COALESCE(ma.merchant_id::text,p.program_id))
-      GROUP BY p.brand HAVING COUNT(DISTINCT p.ean)>=2
-      ORDER BY products DESC, p.brand ASC LIMIT 1000`);
+    client = await getPool().connect();
+    const connected = performance.now();
+    const result = await client.query(BRAND_DIRECTORY_SQL);
+    const queried = performance.now();
+    const html = brandDirectoryHtml(result.rows);
+    res.setHeader('Server-Timing', [
+      `db_connect;dur=${(connected - started).toFixed(1)}`,
+      `directory;dur=${(queried - connected).toFixed(1)}`,
+      `render;dur=${(performance.now() - queried).toFixed(1)}`,
+    ].join(', '));
     res.setHeader('Content-Type','text/html; charset=utf-8');
     res.setHeader('Cache-Control','public, s-maxage=900, stale-while-revalidate=3600');
-    return res.status(200).send(brandDirectoryHtml(result.rows));
+    return res.status(200).send(html);
   } catch (error) {
     console.error('Brand directory error:', error.message);
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(500).send('Annuaire momentanément indisponible');
-  } finally { client.release(); }
+  } finally { client?.release(); }
 }

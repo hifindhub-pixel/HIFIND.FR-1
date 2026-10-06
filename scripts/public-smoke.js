@@ -46,7 +46,8 @@ try {
       if (firstBrand) await request(firstBrand[1], { contains:'Marque comparée' });
     }
   }
-  // Repeat the same URL to distinguish a cache hit from a fresh server render.
+  // Repeat directory and trends URLs to distinguish cache hits from fresh renders.
+  await request('/marques', { contains:'id="brandSearch"' });
   await request('/tendances', { contains:'Les tendances du moment' });
   const trending = await request('/api/products?action=trending&limit=12', { json:true });
   const seed = validateTrending(trending);
