@@ -14,4 +14,39 @@ export function trendsHtml({ products, page = 1, pages = 1, total = 0 }) {
 </style></head><body><header><div><a class="logo" href="/">Hi<i>Find</i></a></div></header><main class="wrap"><div class="crumbs"><a href="/">Accueil</a> / Tendances</div><section class="hero"><div class="eyebrow">Intérêt récent</div><h1>Les tendances du moment</h1><p>${esc(description)}</p><div class="method">Classement combinant des critères du catalogue et les consultations et clics récents, avec une pondération décroissante sur sept jours et un plafonnement anti-manipulation.</div></section><section class="grid">${cards}</section>${pagination}</main></body></html>`;
 }
 
-export default async function handler(req,res){const page=Math.max(1,Math.min(parseInt(req.query.page,10)||1,200)),limit=30,offset=(page-1)*limit,client=await getPool().connect();try{const result=await rankedCandidates(client,{limit:limit,offset});const total=Number(result.rows[0]?.total_count||0),pages=Math.max(1,Math.ceil(total/limit));if(page>pages)return res.status(404).send('Page introuvable');const products=(await groupWithOffers(client,result.rows)).slice(0,limit);res.setHeader('Content-Type','text/html; charset=utf-8');res.setHeader('Cache-Control','public, s-maxage=600, stale-while-revalidate=1800');return res.status(200).send(trendsHtml({products,page,pages,total}));}catch(error){console.error('Trends page error:',error.message);return res.status(500).send('Page momentanément indisponible');}finally{client.release();}}
+export default async function handler(req, res) {
+  const page = Math.max(1, Math.min(parseInt(req.query.page, 10) || 1, 200));
+  const limit = 30, offset = (page - 1) * limit;
+  const started = performance.now();
+  let client;
+  try {
+    client = await getPool().connect();
+    const connected = performance.now();
+    const result = await rankedCandidates(client, { limit, offset });
+    const ranked = performance.now();
+    const total = Number(result.rows[0]?.total_count || 0);
+    const pages = Math.max(1, Math.ceil(total / limit));
+    if (page > pages) {
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(404).send('Page introuvable');
+    }
+    const products = (await groupWithOffers(client, result.rows)).slice(0, limit);
+    const grouped = performance.now();
+    const html = trendsHtml({ products, page, pages, total });
+    res.setHeader('Server-Timing', [
+      `db_connect;dur=${(connected - started).toFixed(1)}`,
+      `ranking;dur=${(ranked - connected).toFixed(1)}`,
+      `offers;dur=${(grouped - ranked).toFixed(1)}`,
+      `render;dur=${(performance.now() - grouped).toFixed(1)}`,
+    ].join(', '));
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=1800');
+    return res.status(200).send(html);
+  } catch (error) {
+    console.error('Trends page error:', error.message);
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(500).send('Page momentanément indisponible');
+  } finally {
+    client?.release();
+  }
+}

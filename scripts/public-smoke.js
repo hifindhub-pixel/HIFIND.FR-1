@@ -14,7 +14,12 @@ async function request(path, { json = false, contains = '' } = {}) {
   const body = json ? await response.json() : await response.text();
   if (!response.ok) throw new Error(`${path} répond HTTP ${response.status}`);
   if (contains && !String(body).includes(contains)) throw new Error(`${path} ne contient plus « ${contains} »`);
-  checks.push({ path, status:response.status, duration_ms:Date.now()-started });
+  checks.push({
+    path, status:response.status, duration_ms:Date.now()-started,
+    cache:response.headers.get('x-vercel-cache') || 'unknown',
+    age:response.headers.get('age'),
+    timing:response.headers.get('server-timing') || '',
+  });
   return body;
 }
 
@@ -41,6 +46,8 @@ try {
       if (firstBrand) await request(firstBrand[1], { contains:'Marque comparée' });
     }
   }
+  // Repeat the same URL to distinguish a cache hit from a fresh server render.
+  await request('/tendances', { contains:'Les tendances du moment' });
   const trending = await request('/api/products?action=trending&limit=12', { json:true });
   const seed = validateTrending(trending);
   const detailPayload = await request(`/api/products?action=product&ean=${encodeURIComponent(seed.ean)}`, { json:true });
@@ -58,11 +65,11 @@ try {
   validateTrending(suggestions);
   await request('/sitemap.xml', { contains:'sitemap' });
 
-  const summary = `## Parcours public HiFind — ✅ opérationnel\n\n${checks.map(c => `- \`${c.path}\` — ${c.status} en ${c.duration_ms} ms`).join('\n')}\n`;
+  const summary = `## Parcours public HiFind — ✅ opérationnel\n\n${checks.map(c => `- \`${c.path}\` — ${c.status} en ${c.duration_ms} ms (cache: ${c.cache}${c.age !== null ? `, age: ${c.age}s` : ''})${c.timing ? ` — ${c.timing}` : ''}`).join('\n')}\n`;
   console.log(summary);
   if (process.env.GITHUB_STEP_SUMMARY) await writeFile(process.env.GITHUB_STEP_SUMMARY, summary, { flag:'a' });
 } catch (error) {
-  const summary = `## Parcours public HiFind — 🚨 échec\n\n${error.message}\n\n${checks.map(c => `- ✅ \`${c.path}\` — ${c.duration_ms} ms`).join('\n')}\n`;
+  const summary = `## Parcours public HiFind — 🚨 échec\n\n${error.message}\n\n${checks.map(c => `- ✅ \`${c.path}\` — ${c.duration_ms} ms (cache: ${c.cache}${c.age !== null ? `, age: ${c.age}s` : ''})${c.timing ? ` — ${c.timing}` : ''}`).join('\n')}\n`;
   console.error(summary);
   if (process.env.GITHUB_STEP_SUMMARY) await writeFile(process.env.GITHUB_STEP_SUMMARY, summary, { flag:'a' });
   process.exitCode = 1;
