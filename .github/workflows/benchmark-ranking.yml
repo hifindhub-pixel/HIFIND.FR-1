@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['scripts/benchmarks/ranking.js', '.github/workflows/benchmark-ranking.yml']
+    paths: ['api/products.js', 'scripts/benchmarks/ranking.js', '.github/workflows/benchmark-ranking.yml']
 permissions:
   contents: read
 concurrency:
