@@ -113,10 +113,9 @@ export const INNOVATION_WHERE = `(
     '(intelligence artificielle|(^|[^a-z])ai([^a-z]|$)|copilot[ +]?pc|smart ring|bague connect[eé]e|lunettes connect[eé]es|r[eé]alit[eé] (virtuelle|mixte)|casque vr|pliable|foldable|imprimante 3d|scanner 3d|drone|robot|domotique|maison connect[eé]e|matter|wifi 7|wi-fi 7|oled|mini[- ]led|[eé]lectrique|solaire portable)'
 )`;
 
-const MARKET_INTEREST_SQL = `CASE
-  WHEN EXISTS (
-    SELECT 1 FROM products trend_offer
-    WHERE trend_offer.ean = p.ean
+const ACCESSORY_EANS_SQL = `
+  SELECT DISTINCT trend_offer.ean FROM products trend_offer
+  WHERE trend_offer.ean IS NOT NULL
     AND lower(COALESCE(trend_offer.title, '')) LIKE ANY (ARRAY[
       '%coque%', '% case %', '% cover%', '%housse%', '%etui%', '%étui%',
       '%flip wallet%', '%folio%', '%panzer%glass%', '%verre%iphone%',
@@ -126,7 +125,10 @@ const MARKET_INTEREST_SQL = `CASE
       '%toner%', '%cable%', '%câble%', '%adaptateur%', '%chargeur%',
       '%support pour%', '%manette%', '%volant%', '%sacoche%'
     ])
-  ) THEN -100
+`;
+
+const MARKET_INTEREST_SQL = `CASE
+  WHEN accessory.ean IS NOT NULL THEN -100
   WHEN lower(p.title) ~ '(iphone [0-9]|galaxy [asz][0-9]|google pixel [0-9]|pixel [0-9]|redmi note [0-9]|smartphone .{0,20}(go|5g|4g))' THEN 40
   WHEN lower(p.title) ~ '(playstation 5|ps5 slim|xbox series [xs]|nintendo switch (2|oled))' THEN 34
   WHEN lower(p.title) ~ '(airpods|ecouteurs|casque audio|montre connectee|smartwatch|aspirateur robot|air ?fryer)' THEN 24
@@ -140,12 +142,16 @@ export async function rankedCandidates(client, { category = '', limit = 90, offs
   const args = category && !innovation ? [category, limit, offset] : [limit, offset];
   const limitIndex = category && !innovation ? 2 : 1;
   const offsetIndex = limitIndex + 1;
-  const baseCte = `WITH candidates AS (
-      SELECT DISTINCT ON (p.ean) p.*, pr.title AS program_title,
-        ${MARKET_INTEREST_SQL} AS market_interest
+  // Materialize the product representatives before expensive ranking. Scan
+  // accessory titles once instead of probing all offers for every candidate.
+  const baseCte = `WITH representatives AS MATERIALIZED (
+      SELECT DISTINCT ON (p.ean) p.*, pr.title AS program_title
       FROM products p LEFT JOIN programs pr ON p.program_id = pr.id
       WHERE ${MULTI_VENDOR_WHERE} AND ${filter}
       ORDER BY p.ean, p.price ASC
+    ), accessory_eans AS MATERIALIZED (${ACCESSORY_EANS_SQL}), candidates AS (
+      SELECT p.*, ${MARKET_INTEREST_SQL} AS market_interest
+      FROM representatives p LEFT JOIN accessory_eans accessory ON accessory.ean = p.ean
     )`;
 
   try {
