@@ -1,0 +1,25 @@
+name: Benchmark Brand Directory
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['scripts/lib/brand-directory.js', 'scripts/benchmarks/brands.js', '.github/workflows/benchmark-brands.yml']
+permissions:
+  contents: read
+concurrency:
+  group: benchmark-brands
+  cancel-in-progress: false
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - name: Compare directory queries in a read-only snapshot
+        env:
+          NEON_URL: ${{ secrets.NEON_URL }}
+        run: node scripts/benchmarks/brands.js
