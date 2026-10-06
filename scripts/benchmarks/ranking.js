@@ -40,6 +40,22 @@ try {
   for (const options of [{limit:30}, {limit:30,offset:30}, {category:'high-tech',limit:30}, {category:'innovations',limit:30}]) {
     let query;
     await rankedCandidates({query:async (text,values) => { query={text,values}; return {rows:[]}; }}, options);
+    if (!options.category && !options.offset) {
+      const planResult = await client.query('EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) ' + query.text, query.values);
+      const plan = planResult.rows[0]['QUERY PLAN'][0];
+      const nodes = [];
+      function summarize(node, depth = 0) {
+        nodes.push({depth, type:node['Node Type'], relation:node['Relation Name'],
+          subplan:node['Subplan Name'], index:node['Index Name'],
+          rows:node['Actual Rows'], loops:node['Actual Loops'],
+          ms:node['Actual Total Time'], removed:node['Rows Removed by Filter'],
+          tempRead:node['Temp Read Blocks'], tempWritten:node['Temp Written Blocks'],
+          sort:node['Sort Method']});
+        for (const child of node.Plans || []) summarize(child, depth + 1);
+      }
+      summarize(plan.Plan);
+      console.log(JSON.stringify({query_plan:{execution_ms:plan['Execution Time'], planning_ms:plan['Planning Time'], jit:plan.JIT, nodes}}));
+    }
     query.text = baselineQuery(query.text);
     const timings={baseline:[],narrow:[]};
     let baseline;
