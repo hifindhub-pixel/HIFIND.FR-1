@@ -144,13 +144,15 @@ export async function rankedCandidates(client, { category = '', limit = 90, offs
   const offsetIndex = limitIndex + 1;
   // Rank narrow rows; fetch full descriptions, URLs and merchant data only
   // after pagination, rather than carrying them through the catalogue sort.
+  // Materialize each score once and count the representative set separately
+  // so the page does not require a full-width COUNT window.
   const baseCte = `WITH representatives AS MATERIALIZED (
       SELECT DISTINCT ON (p.ean) p.id, p.ean, p.title, p.updated_at
       FROM products p
       WHERE ${MULTI_VENDOR_WHERE} AND ${filter}
       ORDER BY p.ean, p.price ASC, p.id ASC
-    ), accessory_eans AS MATERIALIZED (${ACCESSORY_EANS_SQL}), candidates AS (
-      SELECT p.*, ${MARKET_INTEREST_SQL} AS market_interest
+    ), accessory_eans AS MATERIALIZED (${ACCESSORY_EANS_SQL}), candidates AS MATERIALIZED (
+      SELECT p.id, p.ean, p.updated_at, ${MARKET_INTEREST_SQL} AS market_interest
       FROM representatives p LEFT JOIN accessory_eans accessory ON accessory.ean = p.ean
     )`;
 
@@ -168,7 +170,7 @@ export async function rankedCandidates(client, { category = '', limit = 90, offs
         COALESCE(engagement.trend_views,0) AS trend_views,
         COALESCE(engagement.trend_clicks,0) AS trend_clicks,
         (candidates.market_interest + ${engagementTrendSql('engagement')}) AS trend_score,
-        COUNT(*) OVER() AS total_count
+        (SELECT COUNT(*) FROM representatives) AS total_count
       FROM candidates LEFT JOIN engagement USING (ean)
       ORDER BY trend_score DESC, candidates.updated_at DESC NULLS LAST, candidates.ean
       LIMIT $${limitIndex} OFFSET $${offsetIndex}`), args);
@@ -176,7 +178,7 @@ export async function rankedCandidates(client, { category = '', limit = 90, offs
     if (error.code !== '42P01') throw error;
     return client.query(hydratePage(`${baseCte}
       SELECT candidates.*, 0 AS trend_views, 0 AS trend_clicks,
-        candidates.market_interest AS trend_score, COUNT(*) OVER() AS total_count
+        candidates.market_interest AS trend_score, (SELECT COUNT(*) FROM representatives) AS total_count
       FROM candidates
       ORDER BY trend_score DESC, candidates.updated_at DESC NULLS LAST, candidates.ean
       LIMIT $${limitIndex} OFFSET $${offsetIndex}`), args);
