@@ -142,11 +142,11 @@ export async function rankedCandidates(client, { category = '', limit = 90, offs
   const args = category && !innovation ? [category, limit, offset] : [limit, offset];
   const limitIndex = category && !innovation ? 2 : 1;
   const offsetIndex = limitIndex + 1;
-  // Materialize the product representatives before expensive ranking. Scan
-  // accessory titles once instead of probing all offers for every candidate.
+  // Rank narrow rows; fetch full descriptions, URLs and merchant data only
+  // after pagination, rather than carrying them through the catalogue sort.
   const baseCte = `WITH representatives AS MATERIALIZED (
-      SELECT DISTINCT ON (p.ean) p.*, pr.title AS program_title
-      FROM products p LEFT JOIN programs pr ON p.program_id = pr.id
+      SELECT DISTINCT ON (p.ean) p.id, p.ean, p.title, p.updated_at
+      FROM products p
       WHERE ${MULTI_VENDOR_WHERE} AND ${filter}
       ORDER BY p.ean, p.price ASC
     ), accessory_eans AS MATERIALIZED (${ACCESSORY_EANS_SQL}), candidates AS (
@@ -154,8 +154,16 @@ export async function rankedCandidates(client, { category = '', limit = 90, offs
       FROM representatives p LEFT JOIN accessory_eans accessory ON accessory.ean = p.ean
     )`;
 
+  const hydratePage = sql => `WITH ranked_page AS MATERIALIZED (${sql})
+    SELECT p.*, pr.title AS program_title, ranked_page.market_interest,
+      ranked_page.trend_views, ranked_page.trend_clicks,
+      ranked_page.trend_score, ranked_page.total_count
+    FROM ranked_page JOIN products p ON p.id = ranked_page.id
+    LEFT JOIN programs pr ON pr.id = p.program_id
+    ORDER BY ranked_page.trend_score DESC, ranked_page.updated_at DESC NULLS LAST, ranked_page.ean`;
+
   try {
-    return await client.query(`${baseCte}, engagement AS (${ENGAGEMENT_DECAY_SQL})
+    return await client.query(hydratePage(`${baseCte}, engagement AS (${ENGAGEMENT_DECAY_SQL})
       SELECT candidates.*,
         COALESCE(engagement.trend_views,0) AS trend_views,
         COALESCE(engagement.trend_clicks,0) AS trend_clicks,
@@ -163,15 +171,15 @@ export async function rankedCandidates(client, { category = '', limit = 90, offs
         COUNT(*) OVER() AS total_count
       FROM candidates LEFT JOIN engagement USING (ean)
       ORDER BY trend_score DESC, candidates.updated_at DESC NULLS LAST, candidates.ean
-      LIMIT $${limitIndex} OFFSET $${offsetIndex}`, args);
+      LIMIT $${limitIndex} OFFSET $${offsetIndex}`), args);
   } catch (error) {
     if (error.code !== '42P01') throw error;
-    return client.query(`${baseCte}
+    return client.query(hydratePage(`${baseCte}
       SELECT candidates.*, 0 AS trend_views, 0 AS trend_clicks,
         candidates.market_interest AS trend_score, COUNT(*) OVER() AS total_count
       FROM candidates
       ORDER BY trend_score DESC, candidates.updated_at DESC NULLS LAST, candidates.ean
-      LIMIT $${limitIndex} OFFSET $${offsetIndex}`, args);
+      LIMIT $${limitIndex} OFFSET $${offsetIndex}`), args);
   }
 }
 
