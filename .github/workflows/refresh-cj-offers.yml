@@ -1,0 +1,37 @@
+name: Refresh CJ Offers
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['scripts/refresh-cj-offers.js', 'scripts/lib/cj-refresh.js', '.github/workflows/refresh-cj-offers.yml']
+permissions:
+  contents: read
+concurrency:
+  group: refresh-cj-offers
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm test
+      - name: Read complete catalogues and refresh matching existing offers
+        env:
+          NEON_URL: ${{ secrets.NEON_URL }}
+          CJ_TOKEN: ${{ secrets.CJ_TOKEN }}
+          CJ_PUBLISHER_ID: ${{ secrets.CJ_PUBLISHER_ID }}
+          CJ_FEEDS: ${{ secrets.CJ_FEEDS }}
+        run: node scripts/refresh-cj-offers.js
+      - name: Capture changed prices
+        env:
+          NEON_URL: ${{ secrets.NEON_URL }}
+        run: node scripts/capture-price-history.js
+      - name: Verify public journey
+        env:
+          SITE_URL: https://hifind.fr
+        run: node scripts/public-smoke.js

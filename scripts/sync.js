@@ -1,3 +1,4 @@
+import { collectCjPages, cjReadLimit } from './lib/cj-pagination.js';
 import { isClosedProgram } from './lib/closed-programs.js';
 // HIFIND - Sync Affilae + Effinity -> Neon
 const AFFILAE_TOKEN       = process.env.AFFILAE_TOKEN;
@@ -1073,38 +1074,24 @@ async function syncCJ() {
 
   for (const feed of feeds) {
     const requestedLimit = Number.parseInt(feed.limit, 10);
-    const limit = Number.isFinite(requestedLimit) && requestedLimit > 0 ? requestedLimit : Infinity;
+    const limit = cjReadLimit(feed.name, requestedLimit);
     const partnerId = feed.advertiserId || feed.adId;
     console.log('  \u2192 ' + feed.name + ' (partnerId ' + partnerId + ', ' + (Number.isFinite(limit) ? 'limit ' + limit : 'lecture intégrale') + ')');
 
     const programId = 'cj_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
     PROGRAM_META.set(programId, { title: feed.name, category: feed.category });
 
-    const all = [];
-    let offset = 0;
-    let totalAvailable = null;
-    const pageSize = 1000;
-
+    let all, totalAvailable, fullCatalogue;
     try {
-      while (all.length < limit) {
-        const requestSize = Number.isFinite(limit) ? Math.min(pageSize, limit - all.length) : pageSize;
-        const query = '{ products(companyId: "' + CJ_PUBLISHER_ID + '", partnerIds: ["' + partnerId + '"], limit: ' + requestSize + ', offset: ' + offset + ') { totalCount count resultList { ' + CJ_FIELDS + ' } } }';
+      const catalogue = await collectCjPages(async ({ offset, limit: requestSize }) => {
+        const query = '{ products(companyId: "' + CJ_PUBLISHER_ID + '", partnerIds: ["' + partnerId + '"], limit: ' + requestSize + ', offset: ' + offset + ') { totalCount resultList { ' + CJ_FIELDS + ' } } }';
         const data = await cjQuery(query);
-        const res = data && data.products;
-        if (!res) break;
-        const items = res.resultList || [];
-        if (offset === 0) {
-          totalAvailable = Number(res.totalCount);
-          console.log('     total dispo: ' + res.totalCount);
-          if (!res.totalCount) {
-            console.log('     \u26a0\ufe0f aucun produit \u2014 verifier que partnerId est bien un advertiserId');
-          }
-        }
-        if (!items.length) break;
-        all.push.apply(all, items);
-        offset += requestSize;
-        if (items.length < requestSize) break;
-      }
+        return data?.products;
+      }, { limit });
+      all = catalogue.items;
+      totalAvailable = catalogue.total;
+      fullCatalogue = catalogue.complete;
+      console.log('     lecture: ' + all.length + '/' + totalAvailable);
     } catch (e) {
       console.log('     \u274c ' + e.message);
       LIFECYCLE.feedIncomplete(programId);
@@ -1166,8 +1153,6 @@ async function syncCJ() {
     feedEans.forEach(ean => EAN_INDEX.add(ean, merchantId));
     console.log('     \ud83d\udce6 ' + writer.count + ' recoltees (' + writer.skippedNoEan + ' sans EAN ignorees)');
     reportFeed(feed.name, writer.count);
-    const fullCatalogue = !Number.isFinite(limit)
-      || (Number.isFinite(totalAvailable) && all.length >= totalAvailable);
     if (fullCatalogue) LIFECYCLE.feedSucceeded(programId, writer.count);
     else LIFECYCLE.feedIncomplete(programId);
   }
