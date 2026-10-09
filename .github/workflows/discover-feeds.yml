@@ -2,12 +2,16 @@ name: Discover Feeds
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['scripts/discover-feeds.js', 'scripts/lib/awin-feed-list.js', '.github/workflows/discover-feeds.yml']
   schedule:
     - cron: '0 6 * * 1'
 
 jobs:
   discover:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -17,6 +21,7 @@ jobs:
 
       - name: Discover feeds
         env:
+          AWIN_FEEDS: ${{ secrets.AWIN_FEEDS }}
           AWIN_API_KEY: ${{ secrets.AWIN_API_KEY }}
           AWIN_OAUTH_TOKEN: ${{ secrets.AWIN_OAUTH_TOKEN }}
           AWIN_PUBLISHER_ID: '2855063'
@@ -32,3 +37,4 @@ jobs:
           name: awin-feeds
           path: awin-feeds.json
           if-no-files-found: ignore
+

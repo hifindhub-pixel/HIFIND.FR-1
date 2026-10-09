@@ -1,3 +1,4 @@
+import { loadAwinFeedList, awinFeedEntry } from './lib/awin-feed-list.js';
 // discover-feeds.js — Decouvre les flux Awin / Effinity / CJ
 // Usage: node scripts/discover-feeds.js
 
@@ -44,109 +45,26 @@ async function testFeed(url) {
 
 // ============================== AWIN ==============================
 async function discoverAwin() {
-  console.log('\n' + '='.repeat(70));
-  console.log('AWIN');
-  console.log('='.repeat(70));
-
-  if (!AWIN_OAUTH_TOKEN) {
-    console.log('AWIN_OAUTH_TOKEN manquant.');
-    console.log('  Awin > ton nom (haut droite) > Account settings > API credentials');
-    return null;
-  }
-  if (!AWIN_API_KEY) { console.log('AWIN_API_KEY manquant'); return null; }
-
-  // 1) Programmes rejoints (donne les mid + noms)
-  const progUrl = 'https://api.awin.com/publishers/' + AWIN_PUBLISHER_ID + '/programmes?relationship=joined';
-  console.log('  GET ' + progUrl);
-  const midToName = {};
-  try {
-    const res = await fetch(progUrl, { headers: { 'Authorization': 'Bearer ' + AWIN_OAUTH_TOKEN } });
-    const body = await res.text();
-    if (!res.ok) { console.log('  HTTP ' + res.status + ' ' + body.slice(0, 200)); return null; }
-    const progs = JSON.parse(body);
-    for (const p of progs) midToName[String(p.id)] = p.displayName || p.name;
-    console.log('  Programmes rejoints : ' + progs.length);
-  } catch (e) { console.log('  Erreur: ' + e.message); return null; }
-
-  // 2) Liste des FLUX (fid) avec leur URL d'exemple REELLE. Le fid n'est PAS
-  //    le mid : il faut cet endpoint. L'URL d'exemple choisit elle-meme le bon
-  //    format (classique productdata.awin.com OU darwin ui.awin.com) selon
-  //    ce que le marchand a configure — on ne doit pas la reconstruire nous-memes.
-  console.log('\n  Recuperation de la liste des flux (fid)...');
-  const listCandidates = [
-    'https://ui.awin.com/productdata-darwin-download/publisher/' + AWIN_PUBLISHER_ID + '/' + AWIN_API_KEY + '/1/feedList',
-    'https://productdata.awin.com/datafeed/list/apikey/' + AWIN_API_KEY + '/',
-    'https://api.awin.com/publishers/' + AWIN_PUBLISHER_ID + '/datafeeds',
-    'https://api.awin.com/publishers/' + AWIN_PUBLISHER_ID + '/productdata/feeds',
-  ];
-
-  let feedRows = null;
-  for (const u of listCandidates) {
-    process.stdout.write('  test ' + u.replace(AWIN_API_KEY, '***').replace(AWIN_OAUTH_TOKEN, '***') + ' ... ');
-    try {
-      const headers = u.indexOf('api.awin.com') !== -1
-        ? { 'Authorization': 'Bearer ' + AWIN_OAUTH_TOKEN } : {};
-      const r = await fetch(u, { headers: headers });
-      const b = await r.text();
-      if (!r.ok) { console.log('HTTP ' + r.status); continue; }
-      if (b.length < 50) { console.log('vide'); continue; }
-      console.log('OK (' + b.length + ' octets)');
-      feedRows = b.trim().charAt(0) === '[' || b.trim().charAt(0) === '{'
-        ? JSON.parse(b) : parseCsv(b, ',');
-      break;
-    } catch (e) { console.log('erreur: ' + e.message); }
-  }
-
-  if (!feedRows) {
-    console.log('\n  Impossible de recuperer les fid automatiquement.');
-    console.log('  Le mid ne permet PAS de construire l\'URL de telechargement.');
-    console.log('  Genere les liens sur Awin > Toolbox > Create-a-Feed.\n');
-    console.log('  Programmes rejoints (mid | nom) :');
-    for (const mid of Object.keys(midToName)) console.log('    ' + mid + ' | ' + midToName[mid]);
-    return null;
-  }
-
-  console.log('  Flux listes : ' + feedRows.length);
-  if (feedRows.length) console.log('  Champs : ' + Object.keys(feedRows[0]).join(', ') + '\n');
-
+  console.log('AWIN — liste officielle des flux');
+  const configured = JSON.parse(process.env.AWIN_FEEDS || '[]');
+  const rows = await loadAwinFeedList({ apiKey:AWIN_API_KEY, feeds:configured });
+  const configuredNames = new Set(configured.map(feed => feed.name.toLowerCase()));
   const feeds = [], skipped = [];
-  for (const row of feedRows) {
-    const fid   = row['Feed ID'] || row.feedId || row['Feed Id'] || row.id;
-    const name  = row['Advertiser Name'] || row.advertiserName || row['Advertiser'] || midToName[String(row['Advertiser ID'] || row.advertiserId)];
-    const count = parseInt(row['No of products'] || row.productCount || row['Products'] || '0', 10);
-    const lang  = (row['Language'] || row.language || '').toUpperCase();
-    if (!fid || !name) continue;
-    if (lang && lang !== 'FR') { continue; }
-    if (count === 0) { skipped.push(name + ' (vide)'); continue; }
-
-    // L'URL d'exemple renvoyee par la liste connait le VRAI format du flux
-    // (colonnes personnalisees classiques, ou gabarit darwin/Google Merchant
-    // fixe). On l'utilise telle quelle plutot que de la reconstruire :
-    // reconstruire donne un flux vide pour les marchands en darwin.
-    const exampleUrl = row['Example Download URL'] || row.exampleDownloadUrl
-                      || row['Example URL'] || row.url || row.downloadUrl;
-    const feedUrl = exampleUrl || (
-      'https://productdata.awin.com/datafeed/download/apikey/' + AWIN_API_KEY +
-      '/language/fr/fid/' + fid + '/rid/0/hasEnhancedFeeds/0/columns/' + AWIN_COLUMNS +
-      '/format/csv/delimiter/%2C/compression/gzip/adultcontent/1/'
-    );
-
-    process.stdout.write('  ' + name + ' (fid ' + fid + ', ' + count + ') ... ');
-    const t = await testFeed(feedUrl);
-    if (!t.ok) { console.log('KO ' + t.status); skipped.push(name); continue; }
-    console.log('OK');
-
-    const entry = { name: name, url: feedUrl, limit: count > 20000 ? 3000 : 5000 };
-    const cat = guessCategory(name);
-    if (cat) entry.category = cat;
-    feeds.push(entry);
+  for (const row of rows) {
+    const entry = awinFeedEntry(row);
+    if (!entry.id || !entry.name || !entry.url) continue;
+    if (!['fr','french','français','francais'].includes(entry.language)) continue;
+    if (!['joined','active'].includes(entry.membership) && !configuredNames.has(entry.name.toLowerCase())) continue;
+    if (!(entry.count > 0)) continue;
+    const check = await testFeed(entry.url);
+    if (!check.ok) { skipped.push(entry.name); continue; }
+    const feed = { name:entry.name, url:entry.url, limit:entry.count > 20000 ? 3000 : 5000 };
+    const category = guessCategory(entry.name);
+    if (category) feed.category = category;
+    feeds.push(feed);
   }
-
-  if (skipped.length) console.log('\n  Ignores : ' + skipped.join(', '));
-  console.log('\n' + feeds.length + ' flux Awin valides');
-  if (skipped.length) console.log('Sans flux produit : ' + skipped.join(', '));
-  console.log('\n>>> Secret AWIN_FEEDS :\n');
-  console.log(JSON.stringify(feeds));
+  console.log(`${rows.length} flux visibles, ${feeds.length} flux français validés, ${skipped.length} indisponibles.`);
+  // The download URLs contain credentials: save them to the existing artifact, never log them.
   return feeds;
 }
 
@@ -169,18 +87,18 @@ async function discoverEffinity() {
 
       let data;
       try { data = JSON.parse(body); }
-      catch (e) { console.log('\n  Reponse brute :\n  ' + body.slice(0, 1200)); continue; }
+      catch (e) { console.log('Réponse Effinity non JSON.'); continue; }
 
       const list = Array.isArray(data) ? data : (data.feeds || data.productfeeds || data.data || []);
       console.log('  Flux trouves : ' + list.length);
       if (list.length) {
         console.log('  Champs : ' + Object.keys(list[0]).join(', ') + '\n');
         console.log('  Exemple :');
-        console.log('  ' + JSON.stringify(list[0], null, 2).replace(/\n/g, '\n  '));
+        console.log('  Données privées omises des journaux.');
         console.log('\n  Liste complete :');
-        console.log(JSON.stringify(list));
+        console.log(list.map(row => row.nomprogramme || row.nom || 'Flux').join(', '));
       } else {
-        console.log('\n  Reponse :\n  ' + body.slice(0, 1200));
+        console.log('Aucun flux Effinity retourné.');
       }
       console.log('\n>>> Envoie ceci a Claude pour generer EFFINITY_FEEDS');
       return list;
@@ -243,9 +161,17 @@ async function discoverCJ() {
 
 async function main() {
   console.log('Decouverte multi-reseaux HiFind');
-  const awin = await discoverAwin();
-  await discoverEffinity();
-  await discoverCJ();
+  let awin;
+  for (const [network, discover] of [['Awin',discoverAwin],['Effinity',discoverEffinity],['CJ',discoverCJ]]) {
+    try {
+      const result = await discover();
+      if (network === 'Awin') awin = result;
+      if (result === null) { console.error(`::error::Découverte ${network} indisponible.`); process.exitCode = 1; }
+    } catch(error) {
+      console.error(`::error::Découverte ${network} : ${error.message}`);
+      process.exitCode = 1;
+    }
+  }
   if (awin && awin.length) {
     const fs = await import('fs');
     fs.writeFileSync('awin-feeds.json', JSON.stringify(awin, null, 2));
@@ -255,3 +181,4 @@ async function main() {
 }
 
 main().catch(e => { console.error('Erreur fatale: ' + e.message); process.exit(1); });
+

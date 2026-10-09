@@ -572,6 +572,7 @@ async function syncRakuten() {
   }]);
 
   let totalInserted = 0;
+  let failedSearches = 0;
 
   for (const search of RAKUTEN_SEARCHES) {
     try {
@@ -580,11 +581,8 @@ async function syncRakuten() {
                   '&nav=' + encodeURIComponent(search.nav) +
                   '&nbproductsperpage=50&pagenumber=1';
 
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
-      const res = await fetch(url, { signal: controller.signal });
-      clearTimeout(timeout);
-      if (!res.ok) { console.log('  ❌ Rakuten', catConfig.nav, res.status); continue; }
+      const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       const text = await res.text();
       const products = parseRakutenXML(text);
 
@@ -611,9 +609,12 @@ async function syncRakuten() {
         console.log('  ✅ Rakuten "'+search.kw+'" :', mapped.length, 'produits');
       }
     } catch(e) {
+      failedSearches++;
+      LIFECYCLE.feedIncomplete(programId);
       console.log('  ⚠️ Rakuten "'+search.kw+'" :', e.message);
     }
   }
+  reportFeed('Rakuten API', totalInserted, failedSearches ? `${failedSearches}/${RAKUTEN_SEARCHES.length} recherches en échec` : null);
   console.log('🎉 Rakuten done:', totalInserted, 'produits');
 }
 
