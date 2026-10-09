@@ -20,7 +20,10 @@ for (const name of ['notino', 'ugreen']) {
       method:'POST', headers:{Authorization:'Bearer ' + CJ_TOKEN,'Content-Type':'application/json'},
       body:JSON.stringify({query}), signal:AbortSignal.timeout(60000)
     });
-    if (!response.ok) throw new Error('CJ HTTP ' + response.status);
+    if (!response.ok) {
+      const detail = (await response.text()).split(CJ_TOKEN).join('[redacted]').split(CJ_PUBLISHER_ID).join('[publisher]').replace(/https?:\/\/[^\s"<>]+/g,'[URL]').slice(0,700);
+      throw new Error('CJ HTTP ' + response.status + ' offset=' + offset + ' limit=' + limit + ' ' + detail);
+    }
     const body = await response.json();
     if (body.errors?.length) throw new Error('CJ GraphQL request failed');
     if (offset % 10000 === 0) console.log(name + ': page offset ' + offset);
