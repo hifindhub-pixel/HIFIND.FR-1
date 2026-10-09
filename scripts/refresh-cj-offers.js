@@ -14,8 +14,8 @@ for (const name of ['notino', 'ugreen']) {
   const feed = matches[0], partnerId = feed.advertiserId || feed.adId;
   if (!partnerId) throw new Error('Missing CJ advertiser identity');
   const observedAt = new Date().toISOString();
-  const snapshot = await collectCjPages(async ({offset, limit}) => {
-    const query = `{ products(companyId: ${JSON.stringify(String(CJ_PUBLISHER_ID))}, partnerIds: [${JSON.stringify(String(partnerId))}], limit: ${limit}, offset: ${offset}) { totalCount resultList { id title link price { amount currency } ... on Shopping { gtin mpn salePrice { amount currency } } } } }`;
+  const snapshot = await collectCjPages(async ({offset, limit, page}) => {
+    const query = `{ products(companyId: ${JSON.stringify(String(CJ_PUBLISHER_ID))}, partnerIds: [${JSON.stringify(String(partnerId))}], limit: ${limit}${page ? ', page: ' + JSON.stringify(page) : ''}) { totalCount nextPage resultList { id title link price { amount currency } ... on Shopping { gtin mpn salePrice { amount currency } } } } }`;
     const response = await fetch('https://ads.api.cj.com/query', {
       method:'POST', headers:{Authorization:'Bearer ' + CJ_TOKEN,'Content-Type':'application/json'},
       body:JSON.stringify({query}), signal:AbortSignal.timeout(60000)

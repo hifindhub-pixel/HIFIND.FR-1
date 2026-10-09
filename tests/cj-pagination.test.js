@@ -7,7 +7,7 @@ test('complete pagination follows actual returned count even for short pages', a
   const offsets = [];
   const result = await collectCjPages(async ({offset, limit}) => {
     offsets.push(offset);
-    return { totalCount: 7, resultList: products.slice(offset, offset + Math.min(limit, 2)) };
+    return { totalCount: 7, nextPage: String(offset+2), resultList: products.slice(offset, offset + Math.min(limit, 2)) };
   });
   assert.deepEqual(offsets, [0,2,4,6]);
   assert.equal(result.complete, true);
@@ -29,11 +29,27 @@ test('malformed, truncated, shifting and repeated pages fail closed', async () =
     await assert.rejects(collectCjPages(async () => response));
   }
   let calls = 0;
-  await assert.rejects(collectCjPages(async () => ({totalCount:7,resultList:[{id:'1'},{id:'1'}]})), /Repeated/);
-  await assert.rejects(collectCjPages(async () => ({totalCount: ++calls === 1 ? 7 : 8,resultList:[{id:String(calls)}]})), /changed/);
+  await assert.rejects(collectCjPages(async () => ({totalCount:7,nextPage:'next',resultList:[{id:'1'},{id:'1'}]})), /Repeated/);
+  await assert.rejects(collectCjPages(async () => ({totalCount: ++calls === 1 ? 7 : 8,nextPage:String(calls),resultList:[{id:String(calls)}]})), /changed/);
   await assert.rejects(collectCjPages(async () => { throw new Error('HTTP 503'); }), /503/);
 });
 test('CJ can legitimately repeat a SKU within a complete feed', async () => {
   const result = await collectCjPages(async () => ({totalCount:2,resultList:[{id:'same'},{id:'same'}]}));
   assert.equal(result.complete,true);
+});
+
+test('next-page cursors cross the 10000 record boundary without offsets in the API query', async () => {
+  let calls = 0;
+  const result = await collectCjPages(async ({ page, limit }) => {
+    assert.equal(page, calls ? 'token-' + calls : null);
+    const start = calls++ * 1000;
+    return {totalCount:11001, nextPage:'token-' + calls, resultList:Array.from({length:limit}, (_,i)=>({id:String(start+i)}))};
+  });
+  assert.equal(result.items.length,11001);
+  assert.equal(result.complete,true);
+});
+test('missing or repeated cursor cannot mark a partial feed complete', async () => {
+  await assert.rejects(collectCjPages(async ()=>({totalCount:2,resultList:[{id:'1'}]})), /token/);
+  let id=0;
+  await assert.rejects(collectCjPages(async ()=>({totalCount:3,nextPage:'same',resultList:[{id:String(++id)}]})), /token/);
 });

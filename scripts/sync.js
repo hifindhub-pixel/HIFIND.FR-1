@@ -1083,8 +1083,8 @@ async function syncCJ() {
 
     let all, totalAvailable, fullCatalogue;
     try {
-      const catalogue = await collectCjPages(async ({ offset, limit: requestSize }) => {
-        const query = '{ products(companyId: "' + CJ_PUBLISHER_ID + '", partnerIds: ["' + partnerId + '"], limit: ' + requestSize + ', offset: ' + offset + ') { totalCount resultList { ' + CJ_FIELDS + ' } } }';
+      const catalogue = await collectCjPages(async ({ page, limit: requestSize }) => {
+        const query = '{ products(companyId: "' + CJ_PUBLISHER_ID + '", partnerIds: ["' + partnerId + '"], limit: ' + requestSize + (page ? ', page: ' + JSON.stringify(page) : '') + ') { totalCount nextPage resultList { ' + CJ_FIELDS + ' } } }';
         const data = await cjQuery(query);
         return data?.products;
       }, { limit });

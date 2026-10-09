@@ -11,10 +11,11 @@ export async function collectCjPages(fetchPage, { limit = Infinity, pageSize = 1
   if (!(limit === Infinity || Number.isInteger(limit) && limit > 0)
       || !Number.isInteger(pageSize) || pageSize < 1) throw new Error('Invalid CJ pagination options');
   const items = [], pages = new Set();
-  let total = null;
+  let total = null, cursor = null;
+  const cursors = new Set();
   while (total === null || items.length < Math.min(total, limit)) {
     const size = Math.min(pageSize, limit - items.length, total === null ? Infinity : total - items.length);
-    const page = await fetchPage({ offset: items.length, limit: size });
+    const page = await fetchPage({ offset: items.length, limit: size, page: cursor });
     if (!page || page.totalCount == null || !Number.isSafeInteger(Number(page.totalCount))
         || Number(page.totalCount) < 0 || !Array.isArray(page.resultList)) {
       throw new Error('Malformed CJ catalogue page');
@@ -34,6 +35,11 @@ export async function collectCjPages(fetchPage, { limit = Infinity, pageSize = 1
         throw new Error('Missing CJ product identity');
       }
       items.push(product);
+    }
+    if (items.length < Math.min(total, limit)) {
+      if (typeof page.nextPage !== 'string' || !page.nextPage || cursors.has(page.nextPage)) throw new Error('Missing or repeated CJ next-page token');
+      cursor = page.nextPage;
+      cursors.add(cursor);
     }
   }
   return { items, total, complete: items.length === total };
