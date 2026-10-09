@@ -37,3 +37,14 @@ test('new EAN collisions surface without mutating the catalogue', () => {
   assert.equal(result.counts.unresolved_quarantines, 12);
   assert.equal(result.alerts[0].code, 'new_ean_collisions');
 });
+
+test('a merchant that disappears entirely is reported as a complete loss', () => {
+  const result = evaluateCatalogue([], { merchants:[merchant(500)] });
+  assert.equal(result.status, 'critical');
+  assert.equal(result.alerts[0].current_offers, 0);
+  assert.equal(result.alerts[0].drop_ratio, 1);
+});
+
+test('a missing small feed still respects the minimum baseline threshold', () => {
+  assert.equal(evaluateCatalogue([], { merchants:[merchant(20)] }).status, 'healthy');
+});

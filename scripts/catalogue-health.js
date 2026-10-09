@@ -73,16 +73,19 @@ try {
       FROM quarantined_eans`);
     quarantines = { ...quarantines, ...q.rows[0] };
   }
+  const distinct = await client.query("SELECT COUNT(DISTINCT ean)::int AS distinct_eans FROM products WHERE status = 'enabled'");
   await client.query('COMMIT');
   const quality = evaluateCatalogue(health.rows, baseline, quarantines);
   const totals = health.rows.reduce((acc, row) => {
-    for (const key of ['offers', 'distinct_eans', 'refreshed_24h', 'older_than_7d', 'older_than_30d', 'missing_image', 'missing_brand', 'uncategorized']) {
+    for (const key of ['offers', 'refreshed_24h', 'older_than_7d', 'older_than_30d', 'missing_image', 'missing_brand', 'uncategorized']) {
       acc[key] += Number(row[key] || 0);
     }
     return acc;
   }, { offers:0, distinct_eans:0, refreshed_24h:0, older_than_7d:0, older_than_30d:0, missing_image:0, missing_brand:0, uncategorized:0 });
+  // An EAN sold by several merchants is counted once in the global total.
+  totals.distinct_eans = Number(distinct.rows[0].distinct_eans);
   const report = {
-    schema: 2,
+    schema: 3,
     observed_at: observedAt,
     baseline_observed_at: baseline?.observed_at || null,
     ...size.rows[0],
@@ -100,7 +103,7 @@ try {
   console.log(summary);
   await writeFile('health.json', JSON.stringify(report, null, 2));
   if (process.env.GITHUB_STEP_SUMMARY) await writeFile(process.env.GITHUB_STEP_SUMMARY, summary, { flag:'a' });
-  if (quality.status === 'critical') console.warn('Des alertes critiques sont présentes dans health.json ; aucune offre n’a été modifiée automatiquement.');
+  if (quality.status === 'critical') console.error(`::error::Catalogue critique : ${quality.counts.critical} alerte(s). Consulter le rapport health.json.`);
   if (quality.status === 'critical' && process.env.CATALOGUE_HEALTH_FAIL_ON_CRITICAL === '1') process.exitCode = 2;
 } catch (error) {
   console.error('Catalogue health failed:', error.message);

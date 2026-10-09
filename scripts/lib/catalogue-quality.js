@@ -86,6 +86,14 @@ function evaluateMerchant(current, previous, thresholds = DEFAULT_THRESHOLDS) {
 function evaluateCatalogue(currentMerchants, previousReport, extras = {}, thresholds = DEFAULT_THRESHOLDS) {
   const previousByProgram = new Map((previousReport?.merchants || []).map(row => [String(row.program_id), row]));
   const alerts = currentMerchants.flatMap(row => evaluateMerchant(row, previousByProgram.get(String(row.program_id)), thresholds));
+  // A merchant absent from the current GROUP BY has zero active offers.
+  // It must still be compared with its previous catalogue.
+  const currentIds = new Set(currentMerchants.map(row => String(row.program_id)));
+  for (const [programId, previous] of previousByProgram) {
+    if (!currentIds.has(programId)) {
+      alerts.push(...evaluateMerchant({ program_id:programId, offers:0 }, previous, thresholds));
+    }
+  }
   const unresolved = number(extras.unresolved_quarantines);
   const newQuarantines = number(extras.new_quarantines_24h);
 

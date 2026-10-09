@@ -19,7 +19,6 @@ concurrency:
   cancel-in-progress: false
 jobs:
   observe:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -31,6 +30,7 @@ jobs:
       - name: Analyse catalogue quality and freshness
         env:
           NEON_URL: ${{ secrets.NEON_URL }}
+          CATALOGUE_HEALTH_FAIL_ON_CRITICAL: '1'
         run: node scripts/catalogue-health.js
       - name: Upload catalogue health report
         if: always()
