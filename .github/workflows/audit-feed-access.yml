@@ -17,6 +17,7 @@ jobs:
           node-version: '20'
       - name: Check configured feeds and official catalogues without logging URLs
         env:
+          AFFILAE_FEEDS: ${{ secrets.AFFILAE_FEEDS }}
           AWIN_API_KEY: ${{ secrets.AWIN_API_KEY }}
           AWIN_FEEDS: ${{ secrets.AWIN_FEEDS }}
           EFFINITY_API_KEY: ${{ secrets.EFFINITY_API_KEY }}

@@ -18,12 +18,32 @@ function safeRow(row) {
     return [key,safeName(value)];
   }));
 }
-for (const network of ['AWIN','EFFINITY']) {
+for (const network of ['AWIN','EFFINITY','AFFILAE']) {
   const feeds = JSON.parse(process.env[network+'_FEEDS'] || '[]');
   for(const feed of feeds.filter(f=>wanted(f.name))) {
     console.log(JSON.stringify({network,configured:safeName(feed.name),...await probe(feed.url)}));
   }
-  const key=process.env[network+'_API_KEY'];
+  if(network === 'AFFILAE') continue;
+  const keys=[process.env[network+'_API_KEY']];
+  if(network === 'AWIN') {
+    for(const feed of feeds) {
+      try {
+        const u=new URL(feed.url);
+        if(['productdata.awin.com','datafeed.api.productserve.com'].includes(u.hostname)) keys.push(u.pathname.match(/\/apikey\/([^/]+)/)?.[1]);
+        if(u.hostname==='ui.awin.com') keys.push(u.pathname.match(/\/publisher\/\d+\/([^/]+)/)?.[1]);
+      } catch {}
+    }
+  }
+  const uniqueKeys=[...new Set(keys.filter(Boolean))].slice(0,5);
+  let key=uniqueKeys[0];
+  if(network==='AWIN') {
+    for(let index=0;index<uniqueKeys.length;index++) {
+      const candidate=uniqueKeys[index];
+      const check=await probe('https://productdata.awin.com/datafeed/list/apikey/'+candidate);
+      console.log(JSON.stringify({network,key_source:index===0?'configured':'existing_feed_url',...check}));
+      if(check.status===200) {key=candidate;break;}
+    }
+  }
   if(!key) { console.log(JSON.stringify({network,list:'missing_key'}));continue; }
   const url=network==='AWIN'
     ? 'https://productdata.awin.com/datafeed/list/apikey/'+key
