@@ -1,0 +1,24 @@
+name: Audit Feed Access
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['scripts/audit-feed-access.js', '.github/workflows/audit-feed-access.yml']
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Check configured feeds and official catalogues without logging URLs
+        env:
+          AWIN_API_KEY: ${{ secrets.AWIN_API_KEY }}
+          AWIN_FEEDS: ${{ secrets.AWIN_FEEDS }}
+          EFFINITY_API_KEY: ${{ secrets.EFFINITY_API_KEY }}
+          EFFINITY_FEEDS: ${{ secrets.EFFINITY_FEEDS }}
+        run: node scripts/audit-feed-access.js
