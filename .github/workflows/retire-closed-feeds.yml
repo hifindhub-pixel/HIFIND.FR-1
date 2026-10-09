@@ -1,0 +1,34 @@
+name: Retire Closed Feeds
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['scripts/retire-closed-feeds.js', 'scripts/lib/closed-programs.js', '.github/workflows/retire-closed-feeds.yml']
+permissions:
+  contents: read
+concurrency:
+  group: retire-closed-feeds
+  cancel-in-progress: false
+jobs:
+  retire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - name: Disable offers from confirmed closed programmes
+        env:
+          NEON_URL: ${{ secrets.NEON_URL }}
+        run: node scripts/retire-closed-feeds.js
+      - name: Verify remaining public journey
+        env:
+          SITE_URL: https://hifind.fr
+        run: node scripts/public-smoke.js
+      - name: Verify catalogue after retirement
+        env:
+          NEON_URL: ${{ secrets.NEON_URL }}
+          CATALOGUE_HEALTH_FAIL_ON_CRITICAL: '1'
+        run: node scripts/catalogue-health.js

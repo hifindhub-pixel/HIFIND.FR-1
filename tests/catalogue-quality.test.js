@@ -48,3 +48,14 @@ test('a merchant that disappears entirely is reported as a complete loss', () =>
 test('a missing small feed still respects the minimum baseline threshold', () => {
   assert.equal(evaluateCatalogue([], { merchants:[merchant(20)] }).status, 'healthy');
 });
+
+test('confirmed programme closure is documented rather than treated as an accidental disappearance', () => {
+  const result = evaluateCatalogue([], { merchants:[merchant(500, {program_id:'awin_rakuten'})] });
+  assert.equal(result.status, 'healthy');
+  assert.equal(result.confirmed_closures[0].advertiser_id, '55615');
+});
+test('closed programmes with remaining active offers are still critical', () => {
+  const result=evaluateCatalogue([merchant(1,{program_id:'awin_rakuten'})],null);
+  assert.equal(result.status,'critical');
+  assert.equal(result.alerts[0].code,'closed_program_active');
+});

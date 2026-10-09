@@ -1,3 +1,4 @@
+import { isClosedProgram } from './lib/closed-programs.js';
 // HIFIND - Sync Affilae + Effinity -> Neon
 const AFFILAE_TOKEN       = process.env.AFFILAE_TOKEN;
 const NEON_URL            = process.env.NEON_URL;
@@ -741,6 +742,10 @@ async function syncAwin() {
     if (feed.name.match(/^Velostore [A-Z]/)) feedDisplayName = 'Velostore';
     if (feed.name === 'Foot Store 2') feedDisplayName = 'Footstore';
     const programId = 'awin_' + feedDisplayName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    if (isClosedProgram(programId)) {
+      console.log('  Programme fermé ignoré :', feedDisplayName);
+      continue;
+    }
     PROGRAM_META.set(programId, { title: feedDisplayName, category: feed.category });
     try {
       console.log('  →', feed.name, '(lecture intégrale)');

@@ -19,6 +19,10 @@ function markdown(report) {
   } else {
     lines.push('Aucune dégradation significative détectée.');
   }
+  if (report.quality.confirmed_closures?.length) {
+    lines.push('', 'Fermetures confirmées (retrait attendu du catalogue) : ' +
+      report.quality.confirmed_closures.map(item => `${item.name} / ${item.network} depuis le ${item.closed_at}`).join(', ') + '.');
+  }
   if (report.categories?.length) {
     lines.push('', '### Couverture par catégorie', '', '| Catégorie | Produits comparables | Offres |', '|---|---:|---:|');
     report.categories.forEach(item => lines.push(`| ${item.category || 'autres'} | ${Number(item.products).toLocaleString('fr-FR')} | ${Number(item.offers).toLocaleString('fr-FR')} |`));

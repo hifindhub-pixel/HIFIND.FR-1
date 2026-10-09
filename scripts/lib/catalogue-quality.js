@@ -1,3 +1,4 @@
+import { CLOSED_PROGRAMS, isClosedProgram } from './closed-programs.js';
 const DEFAULT_THRESHOLDS = Object.freeze({
   minimumBaselineOffers: 100,
   warningDropRatio: 0.30,
@@ -90,8 +91,14 @@ function evaluateCatalogue(currentMerchants, previousReport, extras = {}, thresh
   // It must still be compared with its previous catalogue.
   const currentIds = new Set(currentMerchants.map(row => String(row.program_id)));
   for (const [programId, previous] of previousByProgram) {
-    if (!currentIds.has(programId)) {
+    if (!currentIds.has(programId) && !isClosedProgram(programId)) {
       alerts.push(...evaluateMerchant({ program_id:programId, offers:0 }, previous, thresholds));
+    }
+  }
+  for (const row of currentMerchants) {
+    if (isClosedProgram(row.program_id) && number(row.offers) > 0) {
+      alerts.push(alert('critical', 'closed_program_active', row.program_id,
+        'Des offres actives subsistent pour un programme dont la fermeture est confirmée.'));
     }
   }
   const unresolved = number(extras.unresolved_quarantines);
@@ -109,6 +116,7 @@ function evaluateCatalogue(currentMerchants, previousReport, extras = {}, thresh
     status: critical ? 'critical' : warnings ? 'warning' : 'healthy',
     counts: { critical, warnings, unresolved_quarantines: unresolved },
     alerts,
+    confirmed_closures: Object.entries(CLOSED_PROGRAMS).map(([program_id, details]) => ({ program_id, ...details })),
   };
 }
 
