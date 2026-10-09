@@ -1,6 +1,6 @@
 import pg from 'pg';
 import { collectCjPages } from './lib/cj-pagination.js';
-import { cjRefreshRow } from './lib/cj-refresh.js';
+import { cjRefreshRow, unambiguousCjRows } from './lib/cj-refresh.js';
 
 const { CJ_TOKEN, CJ_PUBLISHER_ID, NEON_URL } = process.env;
 if (!CJ_TOKEN || !CJ_PUBLISHER_ID || !NEON_URL) throw new Error('Required CJ/Neon configuration missing');
@@ -28,11 +28,10 @@ for (const name of ['notino', 'ugreen']) {
   });
   if (!snapshot.complete || !snapshot.total) throw new Error('Incomplete or empty CJ catalogue: ' + name);
   const programId = 'cj_' + name;
-  const rows = snapshot.items.map(product => cjRefreshRow(programId, product)).filter(Boolean);
+  const { rows, ambiguous } = unambiguousCjRows(snapshot.items.map(product => cjRefreshRow(programId, product)).filter(Boolean));
   if (!rows.length) throw new Error('No valid EUR/GTIN products: ' + name);
-  if (new Set(rows.map(row => row.id)).size !== rows.length) throw new Error('CJ normalized identity collision: ' + name);
   snapshots.push({programId, observedAt, total:snapshot.total, rows});
-  console.log(JSON.stringify({programId, complete:true,total:snapshot.total,valid:rows.length}));
+  console.log(JSON.stringify({programId, complete:true,total:snapshot.total,valid:rows.length,ambiguous}));
 }
 
 const client = new pg.Client({connectionString:NEON_URL,connectionTimeoutMillis:15000});

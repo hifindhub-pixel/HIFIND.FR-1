@@ -25,10 +25,15 @@ test('empty complete catalogue is valid', async () => {
   assert.equal((await collectCjPages(async () => ({totalCount:0,resultList:[]}))).complete, true);
 });
 test('malformed, truncated, shifting and repeated pages fail closed', async () => {
-  for (const response of [null, {}, {totalCount:null,resultList:[]}, {totalCount:7,resultList:[]}, {totalCount:7,resultList:[{id:'1'},{id:'1'}]}]) {
+  for (const response of [null, {}, {totalCount:null,resultList:[]}, {totalCount:7,resultList:[]}, {totalCount:1,resultList:[{}]}]) {
     await assert.rejects(collectCjPages(async () => response));
   }
   let calls = 0;
+  await assert.rejects(collectCjPages(async () => ({totalCount:7,resultList:[{id:'1'},{id:'1'}]})), /Repeated/);
   await assert.rejects(collectCjPages(async () => ({totalCount: ++calls === 1 ? 7 : 8,resultList:[{id:String(calls)}]})), /changed/);
   await assert.rejects(collectCjPages(async () => { throw new Error('HTTP 503'); }), /503/);
+});
+test('CJ can legitimately repeat a SKU within a complete feed', async () => {
+  const result = await collectCjPages(async () => ({totalCount:2,resultList:[{id:'same'},{id:'same'}]}));
+  assert.equal(result.complete,true);
 });

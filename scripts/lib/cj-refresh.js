@@ -14,3 +14,13 @@ export function cjRefreshRow(programId, product) {
   const raw = programId + '_' + product.id;
   return { id: raw.replace(/[^a-z0-9_\-]/gi, '_').slice(0,100), affilae_id: raw.slice(0,100), ean, price };
 }
+
+export function unambiguousCjRows(rows) {
+  const unique = new Map(), ambiguous = new Set();
+  for (const row of rows) {
+    const previous = unique.get(row.id);
+    if (previous && (previous.affilae_id !== row.affilae_id || previous.ean !== row.ean || previous.price !== row.price)) ambiguous.add(row.id);
+    unique.set(row.id,row);
+  }
+  return { rows: [...unique.values()].filter(row => !ambiguous.has(row.id)), ambiguous: ambiguous.size };
+}
