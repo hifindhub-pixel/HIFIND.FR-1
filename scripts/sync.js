@@ -1,4 +1,5 @@
 import { collectCjPages, cjReadLimit } from './lib/cj-pagination.js';
+import { untrustedFeedIdentityReason } from './lib/untrusted-feed-identities.js';
 import { isClosedProgram } from './lib/closed-programs.js';
 // HIFIND - Sync Affilae + Effinity -> Neon
 const AFFILAE_TOKEN       = process.env.AFFILAE_TOKEN;
@@ -324,6 +325,13 @@ async function syncEffinity() {
   for (const feed of feeds) {
     const programId = 'effinity_' + feed.name.toLowerCase().replace(/[^a-z0-9]/g,'_');
     PROGRAM_META.set(programId, { title: feed.name, category: feed.category });
+    const identityProblem = untrustedFeedIdentityReason(programId);
+    if (identityProblem) {
+      LIFECYCLE.feedIncomplete(programId);
+      reportFeed(feed.name, 0, identityProblem);
+      console.log('  Identités produit en quarantaine : ' + feed.name + ' — ' + identityProblem);
+      continue;
+    }
     try {
       console.log('  →', feed.name, '(lecture intégrale)');
 

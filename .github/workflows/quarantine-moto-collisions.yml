@@ -1,0 +1,27 @@
+name: Quarantine Moto Collisions
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['scripts/quarantine-moto-collisions.js', '.github/workflows/quarantine-moto-collisions.yml']
+permissions:
+  contents: read
+jobs:
+  quarantine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm test
+      - name: Disable only confirmed false moto matches
+        env:
+          NEON_URL: ${{ secrets.NEON_URL }}
+        run: node scripts/quarantine-moto-collisions.js
+      - name: Check public journey
+        env:
+          SITE_URL: https://hifind.fr
+        run: node scripts/public-smoke.js
