@@ -1,0 +1,23 @@
+name: Audit Moto Matching
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['scripts/audit-moto-matching.js', '.github/workflows/audit-moto-matching.yml']
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - name: Audit source barcodes and current catalogue without writes
+        env:
+          EFFINITY_FEEDS: ${{ secrets.EFFINITY_FEEDS }}
+          NEON_URL: ${{ secrets.NEON_URL }}
+        run: node scripts/audit-moto-matching.js
