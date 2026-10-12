@@ -1249,6 +1249,9 @@ async function ingestHarvest() {
   categoryRows.forEach((row,i) => { row.category = decisions[i].category; });
 
   const budget = budgetCatalogue(categoryRows, MAX_STORED_OFFERS, MAX_OFFERS_PER_EAN);
+  for (const merchant of budget.stats.merchant_selection) {
+    console.log('Sélection marchand : ' + JSON.stringify(merchant));
+  }
   const selectedRows = new Set(budget.rows);
   PENDING.forEach(batch => { batch.rows = batch.rows.filter(row => selectedRows.has(row)); });
   budget.stats.metadata_compaction = compactCatalogueRows(budget.rows);

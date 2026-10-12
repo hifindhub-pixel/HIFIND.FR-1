@@ -6,6 +6,17 @@ const offer = (ean, program, extra = {}) => ({
   ean, program_id:program, price:100, title:`Produit ${ean}`, category:'high-tech', ...extra,
 });
 
+test('merchant diagnostics distinguish total storage pressure from per-product selection',()=>{
+  const rows=[offer('1','a',{price:1}),offer('1','b',{price:2}),offer('1','c',{price:3}),
+    offer('2','a'),offer('2','b')];
+  const result=budgetCatalogue(rows,2,2);
+  const merchant=id=>result.stats.merchant_selection.find(row=>row.program_id===id);
+  assert.deepEqual(merchant('a'),{program_id:'a',input_offers:2,eligible_after_offer_cap:2,selected_offers:1,excluded_before_total_budget:0,excluded_by_total_budget:1});
+  assert.deepEqual(merchant('c'),{program_id:'c',input_offers:1,eligible_after_offer_cap:0,selected_offers:0,excluded_before_total_budget:1,excluded_by_total_budget:0});
+  assert.equal(result.stats.merchant_selection.reduce((sum,row)=>sum+row.selected_offers,0),result.rows.length);
+  assert.equal(budgetCatalogue(rows,Infinity,2).stats.merchant_selection.every(row=>row.excluded_by_total_budget===0),true);
+});
+
 test('storage budget never leaves a product with one merchant',()=>{
   const rows=[offer('1','a'),offer('1','b'),offer('2','a'),offer('2','b')];
   const result=budgetCatalogue(rows,3);

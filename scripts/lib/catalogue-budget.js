@@ -46,10 +46,27 @@ export function budgetCatalogue(rows, maxRows = Infinity, maxOffersPerEan = 4) {
     selected.push(...group.offers);
     eans.add(group.ean);
   }
+  // Preserve the selection funnel, so a healthy source feed is not mistaken
+  // for an import failure when the global row budget displaces its offers.
+  const merchants = new Map();
+  const count = (row, field) => {
+    if (!merchants.has(row.program_id)) merchants.set(row.program_id, {
+      program_id:row.program_id, input_offers:0, eligible_after_offer_cap:0, selected_offers:0,
+    });
+    merchants.get(row.program_id)[field]++;
+  };
+  for (const row of rows || []) if (row?.ean) count(row,'input_offers');
+  for (const group of candidates) for (const row of group.offers) count(row,'eligible_after_offer_cap');
+  for (const row of selected) count(row,'selected_offers');
+  const merchantSelection = [...merchants.values()].map(merchant => ({...merchant,
+    excluded_before_total_budget:merchant.input_offers-merchant.eligible_after_offer_cap,
+    excluded_by_total_budget:merchant.eligible_after_offer_cap-merchant.selected_offers,
+  })).sort((a,b)=>String(a.program_id).localeCompare(String(b.program_id)));
   return {
     rows:selected,
     eans,
     stats:{
+      merchant_selection:merchantSelection,
       candidate_eans:candidates.length,
       selected_eans:eans.size,
       candidate_offers:candidates.reduce((sum, group) => sum + group.offers.length, 0),
