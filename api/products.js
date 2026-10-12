@@ -6,6 +6,7 @@ import { countDistinctMerchants, loadMerchantAliases, canonicalMerchantId } from
 import { filterByCondition } from '../scripts/lib/condition.js';
 import { detectContradictions } from '../scripts/lib/quarantine.js';
 import { computePriceInsights } from '../scripts/lib/price-insights.js';
+import { productDisplayTitle } from '../scripts/lib/product-display-title.js';
 import { rankSearchResults } from '../scripts/lib/search-ranking.js';
 import { ENGAGEMENT_DECAY_SQL, engagementTrendSql } from '../scripts/lib/trend-ranking.js';
 
@@ -330,6 +331,7 @@ export async function groupWithOffers(client, products) {
     const best = filtered[0];
     eanMap.set(key, {
       ...best,
+      title: productDisplayTitle(best, filtered, offer => canonicalMerchantId(merchantAliases, offer.program_id)),
       price: best.price,
       ean_offers: filtered,
       offers_count: distinctVendorCount
@@ -422,6 +424,7 @@ export async function getComparableProductDetail(client, { id = '', ean = '', in
   if (merchantCount < 2) return null;
 
   product.ean_offers = offers;
+  product.title = productDisplayTitle(product, offers, offer => canonicalMerchantId(merchantAliases, offer.program_id));
   product.offers_count = merchantCount;
   if (includeHistory) {
     product.price_history = await getPriceHistory(client, product.ean);
