@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="dark">
+<html lang="fr" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1016,6 +1016,7 @@ nav {
 .search-quick button:hover{border-color:var(--border2);color:var(--text);background:var(--bg3)}
 </style>
 <link rel="stylesheet" href="/assets/home-refinement.css">
+<link rel="stylesheet" href="/assets/comparator-layout.css">
 </head>
 <body>
 
@@ -1062,7 +1063,7 @@ nav {
   <div class="hero">
     <div class="hero-inner">
       <div class="hero-left">
-        <h1 class="barlow">Les <span class="accent">meilleurs prix</span>,<br>un seul endroit.</h1>
+        <h1 class="barlow">Trouvez votre produit.<br><span class="accent">Comparez les prix.</span></h1>
         <p class="hero-sub">Comparez les offres de plusieurs vendeurs. Choisissez le meilleur prix.</p>
         <div class="hero-search">
           <input type="text" id="heroInput" placeholder="Quel produit recherchez-vous ?" aria-label="Rechercher un produit"
@@ -1288,13 +1289,13 @@ nav {
       <button class="sp-btn" onclick="doSpSearch()">Rechercher</button>
     </div>
   </div>
-  <div class="cat-head">
+  <div class="cat-head"><div class="catalog-breadcrumb"><a href="/" onclick="event.preventDefault();showPage('home')">Accueil</a><span> / </span> Comparer les prix</div>
     <div class="cat-head-top">
       <div>
         <h1 class="cat-title" id="catTitle">Résultats<span class="cat-count" id="resCountNum">0</span></h1>
         <p class="cat-lede" id="catLede">Chaque produit ci-dessous est comparé chez plusieurs marchands. Le prix affiché est le plus bas relevé lors de la dernière actualisation.</p><div class="sp-context" id="searchContext"></div><div class="search-quick" id="searchQuick"></div>
       </div>
-      <div class="cat-tools">
+      <div class="cat-tools"><button class="mobile-filter-toggle" aria-expanded="false" aria-controls="facetsPanel" onclick="toggleMobileFilters(this)">Filtres</button>
         <select class="sort-select" id="sortSelect" onchange="sortResults()" aria-label="Trier les résultats">
           <option value="relevance">Trier : pertinence</option>
           <option value="price_asc">Prix croissant</option>
@@ -1396,7 +1397,7 @@ nav {
 
 <script>
 // ══ THEME ══
-var theme = localStorage.getItem('hf_theme') || 'dark';
+var theme = localStorage.getItem('hf_theme') || 'light';
 applyTheme(theme);
 function applyTheme(t) {
   theme = t;
@@ -1677,6 +1678,7 @@ function renderResults(list) {
       + '<button class="empty-btn" onclick="clearFacets()">Reinitialiser les filtres</button></div>';
     return;
   }
+  document.querySelectorAll('.view-toggle button').forEach(function(b){ b.classList.toggle('on', b.dataset.view === VIEW); b.setAttribute('aria-pressed', String(b.dataset.view === VIEW)); });
   el.className = VIEW === 'list' ? 'plist' : 'pgrid';
   el.innerHTML = list.map(function(p, i){ return cardHTML(p, i); }).join('');
   var n = document.getElementById('resCountNum');
@@ -2189,17 +2191,6 @@ async function openDetail(id, options) {
 
     + '<nav class="pd-section-nav" aria-label="Navigation de la fiche"><a href="#pdOffers">Offres</a><a href="#pdPriceAnalysis">Analyse du prix</a><a href="#pdSimilar">Produits similaires</a></nav>'
 
-    + '<section class="pd-section" id="pdPriceAnalysis">'
-      + '<div class="pd-section-head"><div><div class="pd-section-title">Comprendre le prix</div><div class="pd-section-sub">Calculé uniquement à partir des offres disponibles pour ce produit.</div></div></div>'
-      + '<div class="pd-price-insight">'
-        + '<div class="pd-stat"><div class="pd-stat-label">Prix le plus bas</div><div class="pd-stat-value">' + fmtEur(lo) + '</div><div class="pd-stat-note">' + escHtml(cheapestMerchant) + '</div></div>'
-        + '<div class="pd-stat"><div class="pd-stat-label">Prix moyen</div><div class="pd-stat-value">' + fmtEur(avg) + '</div><div class="pd-stat-note">' + offers.length + ' offre' + (offers.length > 1 ? 's' : '') + ' analysée' + (offers.length > 1 ? 's' : '') + '</div></div>'
-        + '<div class="pd-stat"><div class="pd-stat-label">Écart observé</div><div class="pd-stat-value">' + fmtEur(Math.max(0, hi - lo)) + '</div><div class="pd-stat-note">entre l’offre la moins chère et la plus chère</div></div>'
-      + '</div>'
-    + '</section>'
-
-    + renderPriceIntelligence(p)
-
     + '<div class="pd-offers" id="pdOffers">'
       + '<div class="pd-offers-head">'
         + '<div><h2 class="pd-offers-title">Comparer les prix<span>' + offers.length + ' offre' + (offers.length > 1 ? 's' : '') + '</span></h2><div class="pd-section-sub">Prix produit et frais de livraison affichés séparément lorsque les données sont disponibles.</div></div>'
@@ -2211,6 +2202,17 @@ async function openDetail(id, options) {
       + '</div>'
       + '<div class="pd-offers-list" id="pdOffersList">' + renderOfferRows(offers) + '</div>'
     + '</div>'
+    + '<section class="pd-section" id="pdPriceAnalysis">'
+      + '<div class="pd-section-head"><div><div class="pd-section-title">Comprendre le prix</div><div class="pd-section-sub">Calculé uniquement à partir des offres disponibles pour ce produit.</div></div></div>'
+      + '<div class="pd-price-insight">'
+        + '<div class="pd-stat"><div class="pd-stat-label">Prix le plus bas</div><div class="pd-stat-value">' + fmtEur(lo) + '</div><div class="pd-stat-note">' + escHtml(cheapestMerchant) + '</div></div>'
+        + '<div class="pd-stat"><div class="pd-stat-label">Prix moyen</div><div class="pd-stat-value">' + fmtEur(avg) + '</div><div class="pd-stat-note">' + offers.length + ' offre' + (offers.length > 1 ? 's' : '') + ' analysée' + (offers.length > 1 ? 's' : '') + '</div></div>'
+        + '<div class="pd-stat"><div class="pd-stat-label">Écart observé</div><div class="pd-stat-value">' + fmtEur(Math.max(0, hi - lo)) + '</div><div class="pd-stat-note">entre l’offre la moins chère et la plus chère</div></div>'
+      + '</div>'
+    + '</section>'
+
+    + renderPriceIntelligence(p)
+
     + '<div id="pdSimilar"></div>';
 
   renderSimilar(p);
@@ -2723,7 +2725,7 @@ document.addEventListener('DOMContentLoaded', function() {
 /* ═══════════════════════════════════════════════════════════
    PAGE CATÉGORIE — état des facettes et rendu
    ═══════════════════════════════════════════════════════════ */
-var VIEW = localStorage.getItem('hf-view') || 'grid';
+var VIEW = localStorage.getItem('hf-view') || 'list';
 var FACETS = { types: new Set(), brands: new Set(), merchants: new Set(), minOffers: 0, min: null, max: null, freeShip: false };
 var FACET_OPEN = { price:true, brand:true, merchant:true, offers:true };
 var BRAND_SHOW_ALL = false, MERCHANT_SHOW_ALL = false, BRAND_Q = '';
@@ -2860,14 +2862,10 @@ function cardHTML(p, rank){
     + '</div>';
 
   var spread = '<div class="spread">'
-    + (hi > lo ? '<div class="spread-track"><i class="spread-fill" style="width:' + Math.max(8, 100-pct) + '%"></i></div>' : '')
-    + '<div class="spread-row">'
-      + '<span class="spread-low"><small>dès</small>' + fmtEur(lo) + '</span>'
-      + (hi > lo ? '<span class="spread-high">jusqu\'à ' + fmtEur(hi) + '</span>' : '')
-    + '</div>'
-    + '<div class="card-meta"><strong>' + offers.length + '</strong> marchands'
-      + (pct > 0 ? '<span class="dot"></span>' + pct + '&nbsp;% d\'écart' : '')
-    + '</div>'
+    + '<span class="comparison-count">' + offers.length + ' marchands</span>'
+    + '<div class="spread-row"><span class="spread-low"><small>à partir de</small>' + fmtEur(lo) + '</span></div>'
+    + '<span class="comparison-shipping">Hors livraison</span>'
+    + '<span class="comparison-cta">Comparer les prix <span aria-hidden="true">→</span></span>'
   + '</div>';
 
   var main = '<div class="card-main">'
@@ -3071,10 +3069,16 @@ function removeChip(kind, value){
   renderFacets(); applyFacets();
 }
 
+function toggleMobileFilters(button){
+  var open = document.getElementById('facetsPanel').classList.toggle('mobile-open');
+  button.setAttribute('aria-expanded', String(open));
+  button.textContent = open ? 'Fermer les filtres' : 'Filtres';
+}
+
 function setView(v){
   VIEW = v; localStorage.setItem('hf-view', v);
   document.querySelectorAll('.view-toggle button').forEach(function(b){ b.classList.toggle('on', b.dataset.view === v); });
-  renderResults(currentResults);
+  sortResults();
 }
 
 
