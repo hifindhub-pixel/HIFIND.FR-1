@@ -1063,7 +1063,7 @@ nav {
   <div class="hero">
     <div class="hero-inner">
       <div class="hero-left">
-        <h1 class="barlow">Trouvez votre produit.<br><span class="accent">Comparez les prix.</span></h1>
+        <h1 class="barlow">Trouvez votre produit. <br><span class="accent">Comparez les prix.</span></h1>
         <p class="hero-sub">Comparez les offres de plusieurs vendeurs. Choisissez le meilleur prix.</p>
         <div class="hero-search">
           <input type="text" id="heroInput" placeholder="Quel produit recherchez-vous ?" aria-label="Rechercher un produit"
@@ -2138,6 +2138,7 @@ async function openDetail(id, options) {
     return;
   }
   CURRENT_OFFERS = offers;
+  OFFER_FILTERS = {condition:"all", stock:false, sort:"price"};
   var lo = offers[0].price, hi = offers[offers.length-1].price;
   if (typeof recordPriceAlertObservation === 'function') recordPriceAlertObservation(p, lo);
   var isFav = favorites.some(function(f){return f.id === p.id;});
@@ -2200,6 +2201,14 @@ async function openDetail(id, options) {
           + '<option value="name">Marchand A-Z</option>'
         + '</select>'
       + '</div>'
+      + '<div class="pd-offer-controls">'
+        + '<label>État <select id="pdCondition" class="sort-select" onchange="filterOffers()"><option value="all">Tous les états</option>'
+          + Object.keys(CONDITION_LABELS).filter(function(key){return offers.some(function(o){return o.condition === key;});}).map(function(key){return '<option value="' + key + '">' + CONDITION_LABELS[key] + '</option>';}).join('')
+        + '</select></label>'
+        + '<label class="pd-stock-filter"><input id="pdStockOnly" type="checkbox" onchange="filterOffers()"> En stock confirmé uniquement</label>'
+        + '<span id="pdOfferCount" role="status" aria-live="polite">' + offers.length + ' offres affichées</span>'
+      + '</div>'
+      + '<p class="pd-comparison-note">Les totaux incluent uniquement les frais de livraison communiqués. Vérifiez le prix final chez le marchand.</p>'
       + '<div class="pd-offers-list" id="pdOffersList">' + renderOfferRows(offers) + '</div>'
     + '</div>'
     + '<section class="pd-section" id="pdPriceAnalysis">'
@@ -3086,19 +3095,22 @@ function setView(v){
    FICHE PRODUIT — rendu et interactions
    ═══════════════════════════════════════════════════════════ */
 var CURRENT_OFFERS = [];
+var OFFER_FILTERS = {condition:"all", stock:false, sort:"price"};
 
 function renderOfferRows(offers){
   // "Meilleur prix total" ne peut etre attribue qu'a une offre dont les
   // frais de port sont CONNUS -- jamais a une offre dont on ignore le
   // total reel, meme si son prix produit seul est le plus bas affiche.
   // Meme regle que bestKnownTotalId() dans api/produit.js.
-  var knownTotals = offers.filter(function(o){ return o.total != null; });
+  var eligible = offers.filter(function(o){ return o.inStock !== false; });
+  var knownTotals = eligible.filter(function(o){ return o.total != null; });
   var bestTotal = knownTotals.length ? Math.min.apply(null, knownTotals.map(function(o){ return o.total; })) : null;
-  var bestProductPrice = offers.length ? Math.min.apply(null, offers.map(function(o){ return o.price; })) : null;
+  var bestProductPrice = eligible.length ? Math.min.apply(null, eligible.map(function(o){ return o.price; })) : null;
 
+  if (!offers.length) return '<p class="pd-offers-empty">Aucune offre ne correspond à ces filtres. Essayez un autre état ou désactivez le filtre de stock.</p>';
   return offers.map(function(o){
-    var isBestTotal = bestTotal != null && o.total === bestTotal;
-    var isBestProductPrice = bestProductPrice != null && o.price === bestProductPrice;
+    var isBestTotal = o.inStock !== false && bestTotal != null && o.total === bestTotal;
+    var isBestProductPrice = o.inStock !== false && bestProductPrice != null && o.price === bestProductPrice;
     var fav = getFavicon(o.merchant);
     var merchantSafe = escHtml(o.merchant);
     var initials = escHtml(o.merchant.slice(0,2).toUpperCase());
@@ -3129,7 +3141,7 @@ function renderOfferRows(offers){
     return '<div class="pd-offer-row' + (isBestTotal ? ' best' : '') + '">'
       + '<div class="pd-offer-merchant">' + logoEl
         + '<div><div class="pd-offer-name">' + merchantSafe + '</div>'
-          + (isBestTotal ? '<span class="pd-offer-tag">Meilleur prix total</span>' : '')
+          + (isBestTotal ? '<span class="pd-offer-tag">Meilleur prix total connu</span>' : '')
           + (isBestProductPrice && !isBestTotal ? '<span class="pd-offer-tag">Prix produit le plus bas</span>' : '')
           + conditionBadge
           + stockBadge
@@ -3147,8 +3159,19 @@ function renderOfferRows(offers){
   }).join('');
 }
 
-function sortOffers(mode){
-  var arr = CURRENT_OFFERS.slice();
+function filterOffers(){
+  var condition = document.getElementById('pdCondition');
+  var stock = document.getElementById('pdStockOnly');
+  OFFER_FILTERS.condition = condition ? condition.value : 'all';
+  OFFER_FILTERS.stock = stock ? stock.checked : false;
+  sortOffers(OFFER_FILTERS.sort);
+}
+
+function selectOffers(offers, filters){
+  var mode = filters.sort;
+  var arr = offers.filter(function(o){
+    return (filters.condition === 'all' || o.condition === filters.condition) && (!filters.stock || o.inStock === true);
+  });
   if (mode === 'name') arr.sort(function(a,b){ return a.merchant.localeCompare(b.merchant, 'fr'); });
   else if (mode === 'total') {
     // Les totaux inconnus restent visibles, mais ne sont jamais présentés
@@ -3163,7 +3186,15 @@ function sortOffers(mode){
   else {
     arr.sort(function(a,b){ return a.price - b.price; });
   }
+  return arr;
+}
+
+function sortOffers(mode){
+  OFFER_FILTERS.sort = mode;
+  var arr = selectOffers(CURRENT_OFFERS, OFFER_FILTERS);
   var el = document.getElementById('pdOffersList');
+  var count = document.getElementById('pdOfferCount');
+  if (count) count.textContent = arr.length + ' offre' + (arr.length > 1 ? 's' : '') + ' affichée' + (arr.length > 1 ? 's' : '') + ' sur ' + CURRENT_OFFERS.length;
   if (el) el.innerHTML = renderOfferRows(arr);
 }
 
