@@ -17,7 +17,7 @@ test('premium detail fetches real offers, preserves unknown shipping and renders
  const ctx=vm.createContext({currentResults:[],favorites:[],homeProductsCache:{},document:{getElementById:()=>host},
   showPage(){},apiFetch:async()=>({data:[p]}),normalizeMerchant:s=>s,extractConditionClient:()=> 'neuf',
   fmtDeliveryTime:x=>x,escHtml:s=>String(s),getImageUrl:()=>null,fmtEur:n=>n+' €',
-  ICO:{heart:()=>'',box:'',arrow:''},renderOfferRows:o=>{rendered=o;return 'REAL_OFFERS';},renderPriceIntelligence:()=>'',renderSimilar(){}});
+  CONDITION_LABELS:{neuf:'Neuf'},ICO:{heart:()=>'',box:'',arrow:''},renderOfferRows:o=>{rendered=o;return 'REAL_OFFERS';},renderPriceIntelligence:()=>'',renderSimilar(){}});
  vm.runInContext(detail,ctx);
  await vm.runInContext("openDetail('a')",ctx);
  assert.equal(rendered.length,2);assert.equal(rendered[0].shipping,null);
@@ -44,4 +44,25 @@ test('offer comparison separates product price from known delivered total',()=>{
  assert.ok(rendered.innerHTML.indexOf('Livré plus cher') < rendered.innerHTML.indexOf('Port inconnu'));
  assert.match(rendered.innerHTML,/Meilleur prix total/);
  assert.match(rendered.innerHTML,/Prix produit le plus bas/);
+});
+
+function offerContext(){
+ const ctx=vm.createContext({getFavicon:()=>'',escHtml:String,fmtEur:n=>n+' €',fmtRelativeDate:()=>'',CONDITION_LABELS:{neuf:'Neuf',occasion:'Occasion'}});
+ vm.runInContext(html.slice(html.indexOf('var CURRENT_OFFERS = [];'),html.indexOf('async function renderSimilar')),ctx);
+ return ctx;
+}
+test('condition and confirmed-stock filters compose without treating unknown stock as available',()=>{
+ const ctx=offerContext();
+ const offers=[{merchant:'A',condition:'neuf',inStock:null,price:80,total:null},{merchant:'B',condition:'neuf',inStock:true,price:100,total:105},{merchant:'C',condition:'occasion',inStock:true,price:70,total:70},{merchant:'D',condition:'neuf',inStock:false,price:60,total:60}];
+ const selected=ctx.selectOffers(offers,{condition:'neuf',stock:true,sort:'total'});
+ assert.equal(selected.length,1);assert.equal(selected[0].merchant,'B');assert.equal(offers.length,4);
+ assert.equal(ctx.selectOffers(offers,{condition:'all',stock:false,sort:'price'})[0].merchant,'D');
+});
+test('out-of-stock offers never receive a best-price badge, unknown delivery remains explicit',()=>{
+ const ctx=offerContext();
+ const result=ctx.renderOfferRows([{merchant:'Rupture',condition:'neuf',inStock:false,price:60,total:60,shipping:0,url:'#'},{merchant:'Disponible',condition:'neuf',inStock:true,price:100,total:null,shipping:null,url:'#'}]);
+ const rows=result.split('<div class="pd-offer-row');
+ assert.doesNotMatch(rows[1],/pd-offer-tag/);
+ assert.match(rows[2],/Prix produit le plus bas/);assert.match(rows[2],/Livraison non communiquée/);
+ assert.match(ctx.renderOfferRows([]),/Aucune offre ne correspond/);
 });

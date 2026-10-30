@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs';
 import { getPool, getComparableProductDetail } from './products.js';
 
 export const SITE_URL = 'https://hifind.fr';
-const APP_SHELL = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+// Netlify bundles modules into its function directory; Vercel retains the source layout.
+const APP_SHELL = readFileSync(process.env.NETLIFY ? `${process.cwd()}/index.html` : new URL('../index.html', import.meta.url), 'utf8');
 
 export function extractEanFromSlug(slug) {
   const value = Array.isArray(slug) ? slug.join('/') : String(slug || '');
