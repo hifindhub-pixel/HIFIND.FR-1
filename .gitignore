@@ -2,3 +2,5 @@ node_modules/
 category-report/
 .env
 .env.*
+agent-report/
+.hifind-agent/
