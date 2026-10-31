@@ -14,6 +14,10 @@ import { categorize } from './lib/categorize.js';
 import { FeedLifecycle } from './lib/feed-lifecycle.js';
 import { budgetCatalogue, compactCatalogueRows } from './lib/catalogue-budget.js';
 import { writeFileSync } from 'node:fs';
+
+// Délais réseau : un marchand muet ne doit jamais bloquer tout le run.
+const NETWORK_TIMEOUT_MS = 60_000;   // appels d'API (réponse JSON)
+const BULK_TIMEOUT_MS = 180_000;     // téléchargement d'un fichier complet
 import pkg from 'pg';
 const { Client } = pkg;
 
@@ -250,7 +254,8 @@ async function syncAffilae() {
   let offset = 0, all = [];
   while (true) {
     const res = await fetch(AFFILAE_BASE + '/publisher/products.list?limit=' + PAGE_SIZE + '&offset=' + offset, {
-      headers: { 'Authorization': 'Bearer ' + AFFILAE_TOKEN }
+      headers: { 'Authorization': 'Bearer ' + AFFILAE_TOKEN },
+      signal: AbortSignal.timeout(NETWORK_TIMEOUT_MS)
     });
     const data = await res.json();
     const items = data.data || [];
@@ -453,7 +458,7 @@ async function syncBCDJeux() {
   const LIMIT = 500;
 
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: AbortSignal.timeout(BULK_TIMEOUT_MS) });
     if (!res.ok) { console.log('  ❌ BCD Jeux:', res.status); return; }
     const buffer = await res.arrayBuffer();
     let text;
@@ -937,7 +942,7 @@ async function syncAliExpress() {
     };
     params.sign = sign(params, APP_SECRET);
     const url = 'https://api-sg.aliexpress.com/sync?' + new URLSearchParams(params).toString();
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: AbortSignal.timeout(NETWORK_TIMEOUT_MS) });
     return await res.json();
   }
 
@@ -1045,7 +1050,8 @@ async function syncCJ() {
     const res = await fetch('https://ads.api.cj.com/query', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + CJ_TOKEN, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: query })
+      body: JSON.stringify({ query: query }),
+      signal: AbortSignal.timeout(NETWORK_TIMEOUT_MS)
     });
     const body = await res.text();
     if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + body.slice(0, 300));
