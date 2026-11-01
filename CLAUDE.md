@@ -52,7 +52,7 @@ Neon 512 Mo. Le sync nettoie les mono-vendeurs après chaque réseau(cleanupMono
 
 Certains flux dépassent 400 Mo. Le décodage en une seule chaîne JS faitplanter V8 (FATAL ERROR: v8::ToLocalChecked Empty MaybeLocal). Traiter enstreaming, pas en Buffer.toString() global.
 
-Aucun timeout réseau actuellement. Un marchand qui ne répond plus bloquele job jusqu'au timeout-minutes du workflow et fait perdre tout le run.
+Timeouts réseau : streamFeed (scripts/lib/stream-feed.js) a timeout + retry ; les autres fetch de sync.js utilisent AbortSignal.timeout (NETWORK_TIMEOUT_MS / BULK_TIMEOUT_MS). Tout nouveau fetch doit en avoir un.
 
 Les prix HT sont à exclure (c'était le cas de Darty Pro, retiré).
 

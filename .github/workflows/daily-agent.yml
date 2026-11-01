@@ -1,0 +1,43 @@
+name: Agent quotidien HIFIND
+on:
+  workflow_dispatch:
+  schedule:
+    # Tous les jours à 8h UTC, après le sync de 4h UTC
+    - cron: '0 8 * * *'
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: read
+concurrency:
+  group: daily-agent
+  cancel-in-progress: false
+jobs:
+  agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Agent
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          claude_args: >-
+            --max-turns 40
+            --allowedTools "Read,Edit,Write,Grep,Glob,Bash(gh run list:*),Bash(gh run view:*),Bash(gh issue create:*),Bash(gh pr create:*),Bash(git checkout:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git diff:*),Bash(git status:*),Bash(node --check:*),Bash(npm test:*),Bash(npm install:*)"
+          prompt: |
+            Tu es l'agent de maintenance quotidien de HIFIND (hifind.fr). Lis d'abord CLAUDE.md et respecte ses contraintes dures.
+
+            1. Diagnostic : avec `gh run list`, examine les derniers runs des workflows "Sync Products", "catalogue-health" et "public-smoke" (3 à 5 derniers de chacun). Pour chaque échec, lis les logs (`gh run view <id> --log-failed`, en tronquant).
+            2. Classe chaque problème :
+               - CODE : bug ou faiblesse corrigeable dans le dépôt ;
+               - ACTION HUMAINE : lien de flux expiré (400/404/500 sur un flux), secret manquant, quota Neon, compte d'affiliation à valider. Ne tente jamais de corriger ceux-là dans le code.
+            3. Si un problème CODE est clair et corrigeable : crée UNE seule branche `agent/fix-<sujet>`, applique un correctif minimal, ajoute ou adapte un test, lance `node --check scripts/sync.js` et `npm test` (13 tests échouent déjà avant toute modification ; ne les compte pas comme régression), puis ouvre une pull request en commits conventionnels (fix(sync): ...). Ne fusionne JAMAIS. Ne touche pas au design de index.html. Ne mets jamais de clé ou de secret dans le code.
+            4. Rapport : ouvre une issue GitHub titrée "Rapport agent AAAA-MM-JJ" avec : état du sync (ok/échec, durée), problèmes CODE (avec lien vers la PR si créée), liste ACTION HUMAINE (flux à régénérer, avec nom du marchand/réseau), et une courte liste d'opportunités (pages SEO ou marchands à étudier) uniquement si tu les as constatées dans le dépôt ou les logs. Reste factuel et court. Si tout va bien, une issue de 3 lignes suffit.
+            Ne crée pas plus d'une PR et d'une issue par jour.
