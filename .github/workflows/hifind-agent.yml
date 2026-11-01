@@ -1,0 +1,41 @@
+name: HiFind Agent
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 9 * * *'
+  push:
+    branches: [main]
+    paths: ['scripts/hifind-agent.js', 'scripts/hifind-developer.js', 'tests/hifind-agent.test.js', '.github/workflows/hifind-agent.yml']
+  pull_request:
+    paths: ['scripts/hifind-agent.js', 'scripts/hifind-developer.js', 'scripts/lib/**', 'tests/**', '.github/workflows/hifind-agent.yml']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: hifind-agent-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  supervise:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci --ignore-scripts
+      - name: Test repository and agent
+        run: npm test
+      - name: Observe HiFind and prepare action plan
+        if: github.event_name != 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/hifind-agent.js
+      - name: Save report
+        if: always() && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: hifind-agent-${{ github.run_number }}
+          path: agent-report/
+          retention-days: 30
+          if-no-files-found: warn
