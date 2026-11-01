@@ -29,6 +29,7 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           claude_args: >-
+            --model claude-sonnet-5-5
             --max-turns 40
             --allowedTools "Read,Edit,Write,Grep,Glob,Bash(gh run list:*),Bash(gh run view:*),Bash(gh issue create:*),Bash(gh pr create:*),Bash(git checkout:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git diff:*),Bash(git status:*),Bash(node --check:*),Bash(npm test:*),Bash(npm install:*)"
           prompt: |
