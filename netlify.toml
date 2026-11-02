@@ -8,7 +8,7 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "zisi"
-  included_files = ["index.html"]
+  included_files = ["index.html", "api/**", "scripts/package.json", "scripts/lib/**", "scripts/discovery/**", "scripts/netlify-adapter.js", "node_modules/**"]
 
 [[redirects]]
   from = "/api/*"
