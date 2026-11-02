@@ -4,3 +4,5 @@ category-report/
 .env.*
 agent-report/
 .hifind-agent/
+dist/
+.netlify/
