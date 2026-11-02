@@ -1,0 +1,77 @@
+[build]
+  command = "node scripts/build-netlify.mjs"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "zisi"
+  included_files = ["index.html", "api/**", "scripts/package.json", "scripts/lib/**", "scripts/discovery/**", "scripts/netlify-adapter.js", "node_modules/**"]
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/router"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/tendances"
+  to = "/.netlify/functions/router"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/baisses-de-prix"
+  to = "/.netlify/functions/router"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/marques"
+  to = "/.netlify/functions/router"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/marque/*"
+  to = "/.netlify/functions/router"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/marchands"
+  to = "/.netlify/functions/router"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/marchand/*"
+  to = "/.netlify/functions/router"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/categorie/*"
+  to = "/.netlify/functions/router"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/produit/*"
+  to = "/.netlify/functions/router"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/.netlify/functions/router"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap-*"
+  to = "/.netlify/functions/router"
+  status = 200
+  force = true
