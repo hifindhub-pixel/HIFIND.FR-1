@@ -71,7 +71,7 @@
   force = true
 
 [[redirects]]
-  from = "/sitemap-:part.xml"
+  from = "/sitemap-*"
   to = "/.netlify/functions/router"
   status = 200
   force = true
